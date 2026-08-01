@@ -68,8 +68,7 @@ export const navItems: NavItemConfig[] = [
   {
     id: "personality",
     label: "Personality Profile",
-    icon: <Sparkles className="w-4 h-4" />,
-    isComingSoon: true,
+    icon: <BrainCircuit className="w-4 h-4 text-purple-400" />,
   },
   {
     id: "upload-history",
