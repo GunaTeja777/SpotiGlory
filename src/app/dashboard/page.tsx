@@ -10,6 +10,7 @@ import { TopTracksTab } from "@/components/dashboard/TopTracksTab";
 import { TopArtistsTab } from "@/components/dashboard/TopArtistsTab";
 import { ListeningPatternsTab } from "@/components/dashboard/ListeningPatternsTab";
 import { PersonalityTab } from "@/components/dashboard/PersonalityTab";
+import { UploadHistoryTab } from "@/components/dashboard/UploadHistoryTab";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { SpotifyIcon } from "@/components/landing/LandingNav";
@@ -116,6 +117,7 @@ export default function DashboardPage() {
         {activeTab === "top-artists" && <TopArtistsTab />}
         {activeTab === "listening-patterns" && <ListeningPatternsTab />}
         {activeTab === "personality" && <PersonalityTab />}
+        {activeTab === "upload-history" && <UploadHistoryTab />}
 
         {activeTab === "settings" && (
           <GlassCard variant="elevated" radius="3xl" className="p-8 border-white/18 text-left max-w-2xl">

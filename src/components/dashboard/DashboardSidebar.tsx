@@ -73,8 +73,7 @@ export const navItems: NavItemConfig[] = [
   {
     id: "upload-history",
     label: "Upload Deep History",
-    icon: <UploadCloud className="w-4 h-4" />,
-    isComingSoon: true,
+    icon: <UploadCloud className="w-4 h-4 text-cyan-400" />,
   },
   {
     id: "settings",
