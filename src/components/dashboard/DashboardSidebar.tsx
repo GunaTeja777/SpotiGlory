@@ -20,6 +20,7 @@ export type NavTab =
   | "top-tracks" 
   | "top-artists" 
   | "listening-patterns" 
+  | "debug-features"
   | "personality" 
   | "upload-history" 
   | "settings";
@@ -29,6 +30,7 @@ export interface NavItemConfig {
   label: string;
   icon: React.ReactNode;
   isComingSoon?: boolean;
+  href?: string;
 }
 
 export interface DashboardSidebarProps {
@@ -58,9 +60,15 @@ export const navItems: NavItemConfig[] = [
     icon: <Clock className="w-4 h-4" />,
   },
   {
+    id: "debug-features",
+    label: "Debug Features",
+    icon: <BrainCircuit className="w-4 h-4 text-purple-400" />,
+    href: "/dashboard/debug-features",
+  },
+  {
     id: "personality",
     label: "Personality Profile",
-    icon: <BrainCircuit className="w-4 h-4" />,
+    icon: <Sparkles className="w-4 h-4" />,
     isComingSoon: true,
   },
   {
@@ -104,10 +112,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               const isActive = activeTab === item.id;
               const isDisabled = item.isComingSoon;
 
-              return (
+              const content = (
                 <button
-                  key={item.id}
-                  onClick={() => !isDisabled && onSelectTab(item.id)}
+                  onClick={() => !isDisabled && !item.href && onSelectTab(item.id)}
                   disabled={isDisabled}
                   className={`w-full px-3.5 py-2.5 rounded-2xl text-xs font-semibold flex items-center justify-between transition-all duration-200 text-left ${
                     isActive
@@ -130,6 +137,16 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   )}
                 </button>
               );
+
+              if (item.href && !isDisabled) {
+                return (
+                  <Link key={item.id} href={item.href}>
+                    {content}
+                  </Link>
+                );
+              }
+
+              return <React.Fragment key={item.id}>{content}</React.Fragment>;
             })}
           </nav>
         </div>

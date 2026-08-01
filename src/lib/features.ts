@@ -90,8 +90,8 @@ export function computeBehavioralFeatures(
     const date = new Date(item.played_at);
     if (isNaN(date.getTime())) return;
 
-    const hour = date.getHours(); // 0-23
-    const day = date.getDay(); // 0=Sun..6=Sat
+    const hour = date.getUTCHours(); // 0-23 UTC
+    const day = date.getUTCDay(); // 0=Sun..6=Sat UTC
 
     listeningHourDistribution[hour] += 1;
     listeningDayDistribution[day] += 1;
