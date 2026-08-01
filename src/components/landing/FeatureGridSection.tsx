@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { 
   BarChart3, 
@@ -10,10 +10,7 @@ import {
   Waves, 
   Clock, 
   Share2,
-  Sparkles,
-  Zap,
-  Radio,
-  Flame
+  Sparkles
 } from "lucide-react";
 
 export const FeatureGridSection: React.FC = () => {
@@ -146,7 +143,12 @@ export const FeatureGridSection: React.FC = () => {
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/20">
             One-Tap Share
           </span>
+        </div>
+      ),
+    },
+  ];
 
+  const containerVariants: Variants = {
     hidden: {},
     visible: {
       transition: {
@@ -155,7 +157,7 @@ export const FeatureGridSection: React.FC = () => {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 25 },
     visible: {
       opacity: 1,
@@ -163,11 +165,6 @@ export const FeatureGridSection: React.FC = () => {
       transition: { duration: 0.6, ease: "easeOut" },
     },
   };
-
-
-
-
-
 
   return (
     <section id="features" className="py-20 md:py-28 px-4 md:px-8 max-w-7xl mx-auto relative z-10 scroll-mt-20">
@@ -187,7 +184,7 @@ export const FeatureGridSection: React.FC = () => {
         </p>
       </div>
 
-      {/* Feature Cards Grid (2 cols or 3 cols responsive) */}
+      {/* Feature Cards Grid */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
