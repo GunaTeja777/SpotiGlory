@@ -50,7 +50,7 @@ export const HeroSection: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+
           className="lg:col-span-7 flex flex-col gap-6 text-left z-10"
         >
           {/* Badge */}
@@ -119,7 +119,7 @@ export const HeroSection: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 35 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+
           className="lg:col-span-5 flex justify-center perspective-1000 z-10"
         >
           <motion.div

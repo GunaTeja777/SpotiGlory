@@ -151,23 +151,9 @@ export const FeatureGridSection: React.FC = () => {
     },
   ];
 
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 25 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
-    },
-  };
+
+
 
   return (
     <section id="features" className="py-20 md:py-28 px-4 md:px-8 max-w-7xl mx-auto relative z-10 scroll-mt-20">
