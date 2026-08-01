@@ -1,0 +1,201 @@
+import { SpotifyArtist, SpotifyTrack, SpotifyPlayHistory } from "./spotify";
+
+export interface GenreDistributionItem {
+  genre: string;
+  count: number;
+  percentage: number;
+}
+
+export interface GenreDiversityMetric {
+  shannonEntropy: number; // Raw Shannon entropy in bits
+  normalizedEntropy: number; // 0..1 scale (H / log2(N))
+  uniqueGenreCount: number;
+}
+
+export interface GenreSpreadMetric {
+  stabilityScore: number; // Jaccard similarity (0..1) between short-term & long-term genres
+  shortTermGenreCount: number;
+  longTermGenreCount: number;
+  overlapCount: number;
+}
+
+export interface BehavioralFeatures {
+  genreDiversity: GenreDiversityMetric;
+  topGenreDistribution: GenreDistributionItem[];
+  listeningHourDistribution: number[]; // 24-length array (0-23)
+  listeningDayDistribution: number[]; // 7-length array (0=Sun..6=Sat)
+  peakListeningHour: number; // 0..23
+  nightListenerRatio: number; // Percentage (0..100) between 10 PM and 5 AM
+  artistLoyalty: number; // Ratio 0..1 (unique artists / total track artist appearances)
+  avgArtistPopularity: number; // Mean popularity (0..100)
+  genreSpreadAcrossTimeRanges: GenreSpreadMetric;
+  recencyConcentration: number; // Ratio 0..1 of recently-played tracks present in top tracks
+}
+
+/**
+ * Computes behavioral signals and feature vectors from Spotify listening data.
+ * Pure function with zero API calls or side effects.
+ */
+export function computeBehavioralFeatures(
+  topTracks: SpotifyTrack[] = [],
+  topArtists: SpotifyArtist[] = [],
+  recentlyPlayed: SpotifyPlayHistory[] = [],
+  shortTermArtists: SpotifyArtist[] = [],
+  longTermArtists: SpotifyArtist[] = []
+): BehavioralFeatures {
+  // 1. Genre Frequency & Shannon Entropy
+  const genreMap: Record<string, number> = {};
+  topArtists.forEach((artist) => {
+    artist.genres?.forEach((genre) => {
+      const normalizedGenre = genre.trim().toLowerCase();
+      if (normalizedGenre) {
+        genreMap[normalizedGenre] = (genreMap[normalizedGenre] || 0) + 1;
+      }
+    });
+  });
+
+  const genreEntries = Object.entries(genreMap).sort(([, a], [, b]) => b - a);
+  const totalGenreTokens = genreEntries.reduce((sum, [, count]) => sum + count, 0);
+  const uniqueGenreCount = genreEntries.length;
+
+  let shannonEntropy = 0;
+  if (totalGenreTokens > 0) {
+    genreEntries.forEach(([, count]) => {
+      const p = count / totalGenreTokens;
+      if (p > 0) {
+        shannonEntropy -= p * Math.log2(p);
+      }
+    });
+  }
+
+  const maxPossibleEntropy = uniqueGenreCount > 1 ? Math.log2(uniqueGenreCount) : 1;
+  const normalizedEntropy = uniqueGenreCount > 1 
+    ? Math.min(1, Math.max(0, shannonEntropy / maxPossibleEntropy))
+    : 0;
+
+  // Top 10 Genre Distribution
+  const topGenreDistribution: GenreDistributionItem[] = genreEntries.slice(0, 10).map(([genre, count]) => ({
+    genre,
+    count,
+    percentage: totalGenreTokens > 0 ? Math.round((count / totalGenreTokens) * 100) : 0,
+  }));
+
+  // 2. Circadian Hour & Day Bucket Distributions
+  const listeningHourDistribution = Array(24).fill(0);
+  const listeningDayDistribution = Array(7).fill(0);
+  let nightStreamCount = 0;
+
+  recentlyPlayed.forEach((item) => {
+    if (!item.played_at) return;
+    const date = new Date(item.played_at);
+    if (isNaN(date.getTime())) return;
+
+    const hour = date.getHours(); // 0-23
+    const day = date.getDay(); // 0=Sun..6=Sat
+
+    listeningHourDistribution[hour] += 1;
+    listeningDayDistribution[day] += 1;
+
+    // Night hours: 10 PM (22) through 4:59 AM (4)
+    if (hour >= 22 || hour <= 4) {
+      nightStreamCount += 1;
+    }
+  });
+
+  // Peak Listening Hour
+  let peakListeningHour = 0;
+  let maxHourStreams = 0;
+  listeningHourDistribution.forEach((count, hour) => {
+    if (count > maxHourStreams) {
+      maxHourStreams = count;
+      peakListeningHour = hour;
+    }
+  });
+
+  const totalRecentCount = recentlyPlayed.length;
+  const nightListenerRatio = totalRecentCount > 0 
+    ? Math.round((nightStreamCount / totalRecentCount) * 100)
+    : 0;
+
+  // 3. Artist Loyalty (Unique Artists / Total Track Artist Appearances)
+  const trackArtistIds: string[] = [];
+  topTracks.forEach((track) => {
+    track.artists?.forEach((artist) => {
+      if (artist.id || artist.name) {
+        trackArtistIds.push(artist.id || artist.name);
+      }
+    });
+  });
+
+  const uniqueArtistCount = new Set(trackArtistIds).size;
+  const totalArtistAppearances = trackArtistIds.length;
+  const artistLoyalty = totalArtistAppearances > 0 
+    ? Number((uniqueArtistCount / totalArtistAppearances).toFixed(3))
+    : 1;
+
+  // 4. Average Artist Popularity
+  const totalPopularity = topArtists.reduce((sum, a) => sum + (a.popularity || 0), 0);
+  const avgArtistPopularity = topArtists.length > 0 
+    ? Math.round(totalPopularity / topArtists.length)
+    : 0;
+
+  // 5. Genre Spread Across Time Ranges (Jaccard Similarity)
+  const shortArtistsList = shortTermArtists.length > 0 ? shortTermArtists : topArtists;
+  const longArtistsList = longTermArtists.length > 0 ? longTermArtists : topArtists;
+
+  const shortTermGenreSet = new Set<string>();
+  shortArtistsList.forEach((a) => a.genres?.forEach((g) => shortTermGenreSet.add(g.toLowerCase())));
+
+  const longTermGenreSet = new Set<string>();
+  longArtistsList.forEach((a) => a.genres?.forEach((g) => longTermGenreSet.add(g.toLowerCase())));
+
+  let overlapCount = 0;
+  shortTermGenreSet.forEach((genre) => {
+    if (longTermGenreSet.has(genre)) {
+      overlapCount += 1;
+    }
+  });
+
+  const unionSet = new Set([...Array.from(shortTermGenreSet), ...Array.from(longTermGenreSet)]);
+  const unionCount = unionSet.size;
+
+  const stabilityScore = unionCount > 0 
+    ? Number((overlapCount / unionCount).toFixed(3))
+    : 1;
+
+  // 6. Recency Concentration (Overlap of recently played with top tracks)
+  const topTrackIds = new Set(topTracks.map((t) => t.id).filter(Boolean));
+  let recentInTopCount = 0;
+
+  recentlyPlayed.forEach((item) => {
+    if (item.track?.id && topTrackIds.has(item.track.id)) {
+      recentInTopCount += 1;
+    }
+  });
+
+  const recencyConcentration = totalRecentCount > 0 
+    ? Number((recentInTopCount / totalRecentCount).toFixed(3))
+    : 0;
+
+  return {
+    genreDiversity: {
+      shannonEntropy: Number(shannonEntropy.toFixed(3)),
+      normalizedEntropy: Number(normalizedEntropy.toFixed(3)),
+      uniqueGenreCount,
+    },
+    topGenreDistribution,
+    listeningHourDistribution,
+    listeningDayDistribution,
+    peakListeningHour,
+    nightListenerRatio,
+    artistLoyalty,
+    avgArtistPopularity,
+    genreSpreadAcrossTimeRanges: {
+      stabilityScore,
+      shortTermGenreCount: shortTermGenreSet.size,
+      longTermGenreCount: longTermGenreSet.size,
+      overlapCount,
+    },
+    recencyConcentration,
+  };
+}
