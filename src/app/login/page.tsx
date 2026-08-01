@@ -24,7 +24,7 @@ function LoginContent() {
   const handleSpotifyLogin = async () => {
     try {
       setIsLoading(true);
-      await signIn("spotify", { callbackUrl: "http://127.0.0.1:3000/dashboard" });
+      await signIn("spotify", { callbackUrl: "/dashboard" });
     } catch (err) {
       console.error("Initiating Spotify signin failed:", err);
       setIsLoading(false);
