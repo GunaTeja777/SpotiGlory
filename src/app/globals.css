@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-base: #0A0A0C;
+    --spotify-green: #1DB954;
+    --spotify-green-hover: #1ED760;
+    --violet-accent: #6B21A8;
+    
+    /* Liquid Glass tokens */
+    --glass-bg: rgba(255, 255, 255, 0.06);
+    --glass-bg-hover: rgba(255, 255, 255, 0.09);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-border-hover: rgba(255, 255, 255, 0.22);
+    --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.25);
+    --glass-specular-bright: inset 0 1px 1px 0 rgba(255, 255, 255, 0.45);
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: #F3F4F6;
+    font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+    selection-background-color: var(--spotify-green);
+    selection-color: #000000;
+  }
+}
+
+/* Base Ambient Animated Gradient Mesh */
+.ambient-gradient-mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  background-color: #0A0A0C;
+}
+
+.ambient-gradient-mesh::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -15%;
+  width: 70vw;
+  height: 70vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(29, 185, 84, 0.14) 0%, rgba(29, 185, 84, 0.04) 50%, transparent 75%);
+  filter: blur(80px);
+  animation: meshDrift 24s ease-in-out infinite alternate;
+}
+
+.ambient-gradient-mesh::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  width: 65vw;
+  height: 65vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(107, 33, 168, 0.18) 0%, rgba(139, 92, 246, 0.05) 55%, transparent 80%);
+  filter: blur(90px);
+  animation: meshDriftReverse 30s ease-in-out infinite alternate;
+}
+
+.ambient-gradient-mesh-accent {
+  position: absolute;
+  top: 35%;
+  left: 45%;
+  width: 50vw;
+  height: 50vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(29, 185, 84, 0.08) 0%, rgba(107, 33, 168, 0.06) 60%, transparent 80%);
+  filter: blur(100px);
+  animation: pulseGlow 8s ease-in-out infinite alternate;
+}
+
+/* Liquid Glass Utilities */
+.glass-panel {
+  background-color: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.25), 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.glass-panel-interactive:hover {
+  background-color: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4), 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+.glass-panel-elevated {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.35), 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+}
+
+/* Dynamic Refraction Specular Sheen (Custom CSS Properties) */
+.glass-refraction-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-refraction-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.12),
+    rgba(29, 185, 84, 0.05) 40%,
+    transparent 70%
+  );
+  opacity: var(--mouse-opacity, 0);
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.glass-refraction-container:hover .glass-refraction-overlay {
+  opacity: 1;
+}
+
+/* Keyframes */
+@keyframes meshDrift {
+  0% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(45px, -35px) scale(1.1); }
+  100% { transform: translate(-35px, 25px) scale(0.95); }
+}
+
+@keyframes meshDriftReverse {
+  0% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(-55px, 45px) scale(1.12); }
+  100% { transform: translate(35px, -25px) scale(0.92); }
+}
+
+@keyframes pulseGlow {
+  0% { opacity: 0.25; }
+  100% { opacity: 0.55; }
+}
+
+/* Heading Typography */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
