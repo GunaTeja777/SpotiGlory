@@ -1,26 +1,72 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassSkeleton } from "./GlassSkeleton";
+import { SpotifyArtist, SpotifyTrack, SpotifyPlayHistory } from "@/lib/spotify";
 import { 
   Disc, 
   BarChart2, 
   Clock, 
   Zap, 
   TrendingUp, 
-  Activity, 
   PieChart, 
   Calendar,
-  Layers,
-  Sparkles
+  Sparkles,
+  AlertCircle
 } from "lucide-react";
 
 export interface OverviewTabProps {
   isLoading?: boolean;
 }
 
-export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading = false }) => {
+export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoading = false }) => {
+  const [topArtists, setTopArtists] = useState<SpotifyArtist[]>([]);
+  const [topTracks, setTopTracks] = useState<SpotifyTrack[]>([]);
+  const [recentlyPlayed, setRecentlyPlayed] = useState<SpotifyPlayHistory[]>([]);
+  const [dataLoading, setDataLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAllData = async () => {
+      setDataLoading(true);
+      setError(null);
+      try {
+        const [artistsRes, tracksRes, recentRes] = await Promise.all([
+          fetch("/api/spotify/top-artists?time_range=medium_term&limit=20"),
+          fetch("/api/spotify/top-tracks?time_range=medium_term&limit=20"),
+          fetch("/api/spotify/recently-played?limit=50"),
+        ]);
+
+        const artistsData = artistsRes.ok ? await artistsRes.json() : { items: [] };
+        const tracksData = tracksRes.ok ? await tracksRes.json() : { items: [] };
+        const recentData = recentRes.ok ? await recentRes.json() : { items: [] };
+
+        if (isMounted) {
+          setTopArtists(artistsData.items || []);
+          setTopTracks(tracksData.items || []);
+          setRecentlyPlayed(recentData.items || []);
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setError(err.message || "Failed to fetch Spotify analytics data");
+        }
+      } finally {
+        if (isMounted) {
+          setDataLoading(false);
+        }
+      }
+    };
+
+    fetchAllData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const isLoading = propIsLoading || dataLoading;
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
@@ -51,46 +97,110 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading = false }) =
     );
   }
 
+  // 1. Calculate Top Genre & Genre Breakdown
+  const genreMap: Record<string, number> = {};
+  topArtists.forEach((artist) => {
+    artist.genres?.forEach((genre) => {
+      genreMap[genre] = (genreMap[genre] || 0) + 1;
+    });
+  });
+
+  const sortedGenres = Object.entries(genreMap)
+    .sort(([, a], [, b]) => b - a)
+    .map(([genre, count]) => ({ genre, count }));
+
+  const totalGenreCount = sortedGenres.reduce((acc, curr) => acc + curr.count, 0);
+  const topGenreName = sortedGenres[0]?.genre || "Eclectic Mix";
+  const topGenrePercentage = totalGenreCount > 0 
+    ? Math.round((sortedGenres[0]?.count / totalGenreCount) * 100)
+    : 0;
+
+  const top5Genres = sortedGenres.slice(0, 5).map((g) => ({
+    ...g,
+    percentage: totalGenreCount > 0 ? Math.round((g.count / totalGenreCount) * 100) : 0,
+  }));
+
+  // 2. Calculate Total Unique Tracks Analyzed
+  const totalAnalyzed = topTracks.length + recentlyPlayed.length;
+
+  // 3. Calculate Most Active Listening Hour from Recently Played
+  const hourCounts: number[] = Array(24).fill(0);
+  recentlyPlayed.forEach((item) => {
+    if (!item.played_at) return;
+    const hour = new Date(item.played_at).getHours();
+    hourCounts[hour] += 1;
+  });
+
+  let peakHour = 0;
+  let maxHourCount = 0;
+  hourCounts.forEach((c, h) => {
+    if (c > maxHourCount) {
+      maxHourCount = c;
+      peakHour = h;
+    }
+  });
+
+  const formatHour = (h: number) => {
+    const period = h >= 12 ? "PM" : "AM";
+    const displayH = h % 12 === 0 ? 12 : h % 12;
+    return `${displayH}:00 ${period}`;
+  };
+
+  const isNightOwl = peakHour >= 22 || peakHour <= 4;
+
+  // 4. Calculate Average Popularity (Acoustic Energy Index)
+  const avgPopularity = topTracks.length > 0
+    ? Math.round(topTracks.reduce((acc, t) => acc + t.popularity, 0) / topTracks.length)
+    : 75;
+
   const statCards = [
     {
       title: "Top Genre",
-      value: "Synthwave",
-      subtitle: "34% of total listening",
-      badge: "+14% this month",
+      value: topGenreName.charAt(0).toUpperCase() + topGenreName.slice(1),
+      subtitle: `${topGenrePercentage}% of genre affinity`,
+      badge: "Mode Genre",
       icon: <Disc className="w-5 h-5 text-[#1DB954]" />,
       badgeColor: "bg-[#1DB954]/15 text-[#1DB954] border-[#1DB954]/30",
     },
     {
       title: "Total Tracks Analyzed",
-      value: "1,248",
-      subtitle: "Unique stream events",
+      value: totalAnalyzed > 0 ? totalAnalyzed.toLocaleString() : "0",
+      subtitle: "Combined stream events",
       badge: "100% Synced",
       icon: <BarChart2 className="w-5 h-5 text-purple-400" />,
       badgeColor: "bg-purple-500/15 text-purple-400 border-purple-500/30",
     },
     {
       title: "Most Active Listening Hour",
-      value: "1:30 AM",
-      subtitle: "Night-Owl archetype",
+      value: recentlyPlayed.length > 0 ? formatHour(peakHour) : "12:00 PM",
+      subtitle: isNightOwl ? "Night-Owl archetype" : "Daytime Listener",
       badge: "Peak Circadian Vibe",
       icon: <Clock className="w-5 h-5 text-indigo-400" />,
       badgeColor: "bg-indigo-500/15 text-indigo-400 border-indigo-500/30",
     },
     {
-      title: "Acoustic Energy Index",
-      value: "78% High",
-      subtitle: "High BPM & Danceability",
-      badge: "Vibrant Energy",
+      title: "Energy & Popularity Index",
+      value: `${avgPopularity}% Avg`,
+      subtitle: "Chart affinity score",
+      badge: "High Vibrancy",
       icon: <Zap className="w-5 h-5 text-cyan-400" />,
       badgeColor: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
     },
   ];
 
-  // Placeholder heatmap data matrix (7 days x 12 time slots)
+  const donutColors = ["#1DB954", "#8B5CF6", "#06B6D4", "#F59E0B", "#EC4899"];
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Error Alert */}
+      {error && (
+        <div className="p-4 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-200 text-xs flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
       {/* Overview Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {statCards.map((card) => (
@@ -114,7 +224,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading = false }) =
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
                 {card.title}
               </p>
-              <h3 className="text-2xl font-black text-white tracking-tight mt-1">
+              <h3 className="text-2xl font-black text-white tracking-tight mt-1 truncate">
                 {card.value}
               </h3>
             </div>
@@ -128,7 +238,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading = false }) =
 
       {/* Chart Containers Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* 1. Genre Distribution Placeholder Chart */}
+        {/* 1. Genre Distribution Chart */}
         <div className="lg:col-span-7">
           <GlassCard
             variant="elevated"
@@ -152,98 +262,80 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading = false }) =
 
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-[10px] font-mono text-gray-300">
                   <Sparkles className="w-3 h-3 text-[#1DB954]" />
-                  <span>Realtime AI Parse</span>
+                  <span>Realtime Spotify Parse</span>
                 </div>
               </div>
 
-              {/* Graphic Donut / Bar Chart Placeholder Visualization */}
+              {/* SVG Ring Donut Visualization */}
               <div className="my-4 p-5 rounded-2xl bg-black/40 border border-white/10 relative overflow-hidden flex flex-col items-center justify-center gap-4 min-h-[220px]">
-                {/* SVG Ring Chart Graphic Placeholder */}
-                <div className="relative w-44 h-44 flex items-center justify-center">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="38" stroke="rgba(255,255,255,0.08)" strokeWidth="12" fill="none" />
-                    {/* Segment 1: Synthwave (34%) */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="38"
-                      stroke="#1DB954"
-                      strokeWidth="12"
-                      fill="none"
-                      strokeDasharray="81 238"
-                      strokeDashoffset="0"
-                      className="filter drop-shadow-[0_0_6px_rgba(29,185,84,0.6)]"
-                    />
-                    {/* Segment 2: Indie Pop (26%) */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="38"
-                      stroke="#8B5CF6"
-                      strokeWidth="12"
-                      fill="none"
-                      strokeDasharray="62 238"
-                      strokeDashoffset="-81"
-                    />
-                    {/* Segment 3: Deep House (20%) */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="38"
-                      stroke="#06B6D4"
-                      strokeWidth="12"
-                      fill="none"
-                      strokeDasharray="48 238"
-                      strokeDashoffset="-143"
-                    />
-                    {/* Segment 4: Cyberpunk (12%) */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="38"
-                      stroke="#F59E0B"
-                      strokeWidth="12"
-                      fill="none"
-                      strokeDasharray="28 238"
-                      strokeDashoffset="-191"
-                    />
-                  </svg>
-                  <div className="absolute flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-black text-white font-mono">34%</span>
-                    <span className="text-[10px] text-[#1DB954] font-bold uppercase">Synthwave</span>
-                  </div>
-                </div>
+                {top5Genres.length > 0 ? (
+                  <>
+                    <div className="relative w-44 h-44 flex items-center justify-center">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="38" stroke="rgba(255,255,255,0.08)" strokeWidth="12" fill="none" />
+                        {top5Genres.map((g, idx) => {
+                          const circumference = 238; // 2 * pi * 38
+                          const strokeDasharray = `${(g.percentage / 100) * circumference} ${circumference}`;
+                          
+                          // Calculate cumulative offset
+                          const priorPercentage = top5Genres
+                            .slice(0, idx)
+                            .reduce((sum, item) => sum + item.percentage, 0);
+                          const strokeDashoffset = -((priorPercentage / 100) * circumference);
 
-                {/* Genre Legend Pills */}
-                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#1DB954]" />
-                    <span className="text-gray-300">Synthwave (34%)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
-                    <span className="text-gray-300">Indie Pop (26%)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-500" />
-                    <span className="text-gray-300">Deep House (20%)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                    <span className="text-gray-300">Cyberpunk (12%)</span>
-                  </div>
-                </div>
+                          return (
+                            <circle
+                              key={g.genre}
+                              cx="50"
+                              cy="50"
+                              r="38"
+                              stroke={donutColors[idx % donutColors.length]}
+                              strokeWidth="12"
+                              fill="none"
+                              strokeDasharray={strokeDasharray}
+                              strokeDashoffset={strokeDashoffset}
+                              className="transition-all duration-500"
+                            />
+                          );
+                        })}
+                      </svg>
+                      <div className="absolute flex flex-col items-center justify-center text-center max-w-[100px]">
+                        <span className="text-xl font-black text-white font-mono">{topGenrePercentage}%</span>
+                        <span className="text-[10px] text-[#1DB954] font-bold uppercase truncate max-w-full">
+                          {topGenreName}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Genre Legend Pills */}
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                      {top5Genres.map((g, idx) => (
+                        <div key={g.genre} className="flex items-center gap-1.5 text-xs">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: donutColors[idx % donutColors.length] }}
+                          />
+                          <span className="text-gray-300 capitalize">
+                            {g.genre} ({g.percentage}%)
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-gray-400">Listen to more artists on Spotify to view your genre breakdown.</p>
+                )}
               </div>
             </div>
 
             <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
-              <span>Interactive Data Binding</span>
-              <span className="text-[#1DB954] font-mono">Ready for Spotify API</span>
+              <span>Spotify Web API Endpoint</span>
+              <span className="text-[#1DB954] font-mono">Live Session Data</span>
             </div>
           </GlassCard>
         </div>
 
-        {/* 2. Listening-Time Heatmap Placeholder Chart */}
+        {/* 2. Listening-Time Heatmap Chart */}
         <div className="lg:col-span-5">
           <GlassCard
             variant="elevated"
@@ -261,16 +353,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading = false }) =
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white leading-none">Listening-Time Heatmap</h3>
-                    <p className="text-[11px] text-gray-400 mt-0.5">24h Circadian Activity</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">Recently Played Activity</p>
                   </div>
                 </div>
 
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  LATE NIGHTS
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase">
+                  {isNightOwl ? "LATE NIGHTS" : "DAYTIME"}
                 </span>
               </div>
 
-              {/* Heatmap Matrix Grid Placeholder */}
+              {/* Heatmap Grid Matrix */}
               <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col gap-2 min-h-[220px]">
                 <div className="flex justify-between text-[10px] text-gray-400 font-mono px-1">
                   <span>12AM</span>
@@ -281,22 +373,25 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading = false }) =
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  {days.map((day, i) => (
-                    <div key={day} className="flex items-center gap-2">
-                      <span className="w-6 text-[10px] font-mono text-gray-400">{day}</span>
+                  {days.map((dayLabel, i) => (
+                    <div key={dayLabel} className="flex items-center gap-2">
+                      <span className="w-6 text-[10px] font-mono text-gray-400">{dayLabel}</span>
                       <div className="flex-1 grid grid-cols-12 gap-1">
                         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((col) => {
-                          // Highlight late night (cols 0-2 & 10-11)
-                          const isHigh = (col <= 2 || col >= 10) && (i === 1 || i === 4 || i === 5);
-                          const isMed = col >= 8 && col <= 10;
+                          const hasRecentActivity = recentlyPlayed.some((item) => {
+                            if (!item.played_at) return false;
+                            const d = new Date(item.played_at);
+                            const day = d.getDay() === 0 ? 6 : d.getDay() - 1;
+                            const hourBucket = Math.floor(d.getHours() / 2);
+                            return day === i && hourBucket === col;
+                          });
+
                           return (
                             <div
                               key={col}
                               className={`h-4 rounded-md transition-all ${
-                                isHigh
+                                hasRecentActivity
                                   ? "bg-[#1DB954] shadow-[0_0_8px_rgba(29,185,84,0.6)]"
-                                  : isMed
-                                  ? "bg-[#1DB954]/50"
                                   : "bg-white/[0.06]"
                               }`}
                             />
@@ -307,20 +402,19 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading = false }) =
                   ))}
                 </div>
 
-                {/* Heatmap Intensity Legend */}
+                {/* Heatmap Legend */}
                 <div className="flex items-center justify-end gap-2 pt-3 text-[10px] text-gray-400 font-mono">
-                  <span>Less</span>
+                  <span>Inactive</span>
                   <span className="w-3 h-3 rounded bg-white/[0.06]" />
-                  <span className="w-3 h-3 rounded bg-[#1DB954]/50" />
                   <span className="w-3 h-3 rounded bg-[#1DB954]" />
-                  <span>More</span>
+                  <span>Streamed</span>
                 </div>
               </div>
             </div>
 
             <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
               <span>Timestamp Parsing</span>
-              <span className="text-indigo-400 font-mono">Peak: 1:30 AM</span>
+              <span className="text-indigo-400 font-mono">Peak: {formatHour(peakHour)}</span>
             </div>
           </GlassCard>
         </div>

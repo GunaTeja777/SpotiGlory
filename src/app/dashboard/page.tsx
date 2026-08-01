@@ -6,18 +6,16 @@ import { useSession } from "next-auth/react";
 import { DashboardSidebar, NavTab } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { OverviewTab } from "@/components/dashboard/OverviewTab";
+import { TopTracksTab } from "@/components/dashboard/TopTracksTab";
+import { TopArtistsTab } from "@/components/dashboard/TopArtistsTab";
+import { ListeningPatternsTab } from "@/components/dashboard/ListeningPatternsTab";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { SpotifyIcon } from "@/components/landing/LandingNav";
 import { 
-  Music2, 
-  UserCheck, 
-  Clock, 
   Settings, 
-  Lock, 
   ArrowRight,
-  Terminal,
-  Sparkles
+  Terminal
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -74,7 +72,7 @@ export default function DashboardPage() {
         {/* Top User Profile Header Bar */}
         <DashboardHeader />
 
-        {/* Debug Toggle Bar */}
+        {/* Header & Debug Toggle Bar */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-black text-white tracking-tight capitalize">
@@ -111,38 +109,11 @@ export default function DashboardPage() {
           </GlassCard>
         )}
 
-        {/* Tab Views */}
+        {/* Active Tab Views */}
         {activeTab === "overview" && <OverviewTab isLoading={isLoading} />}
-
-        {activeTab === "top-tracks" && (
-          <GlassCard variant="elevated" radius="3xl" className="p-8 border-white/18 text-center">
-            <Music2 className="w-10 h-10 text-[#1DB954] mx-auto mb-3" />
-            <h3 className="text-xl font-bold text-white mb-2">Top Tracks Module</h3>
-            <p className="text-xs text-gray-300 max-w-md mx-auto">
-              This module will fetch and display your top 50 Spotify tracks across short, medium, and long-term time ranges.
-            </p>
-          </GlassCard>
-        )}
-
-        {activeTab === "top-artists" && (
-          <GlassCard variant="elevated" radius="3xl" className="p-8 border-white/18 text-center">
-            <UserCheck className="w-10 h-10 text-purple-400 mx-auto mb-3" />
-            <h3 className="text-xl font-bold text-white mb-2">Top Artists Module</h3>
-            <p className="text-xs text-gray-300 max-w-md mx-auto">
-              This module will render your top Spotify artists with genre tag clouds, acoustic affinity scores, and artist aura cards.
-            </p>
-          </GlassCard>
-        )}
-
-        {activeTab === "listening-patterns" && (
-          <GlassCard variant="elevated" radius="3xl" className="p-8 border-white/18 text-center">
-            <Clock className="w-10 h-10 text-indigo-400 mx-auto mb-3" />
-            <h3 className="text-xl font-bold text-white mb-2">Listening Patterns Module</h3>
-            <p className="text-xs text-gray-300 max-w-md mx-auto">
-              Analyze your circadian listening clock, late-night mood spikes, and temporal energy trends.
-            </p>
-          </GlassCard>
-        )}
+        {activeTab === "top-tracks" && <TopTracksTab />}
+        {activeTab === "top-artists" && <TopArtistsTab />}
+        {activeTab === "listening-patterns" && <ListeningPatternsTab />}
 
         {activeTab === "settings" && (
           <GlassCard variant="elevated" radius="3xl" className="p-8 border-white/18 text-left max-w-2xl">
@@ -167,7 +138,7 @@ export default function DashboardPage() {
                   <p className="text-[11px] text-gray-400 mt-0.5">Scopes: top-read, recently-played, email, profile</p>
                 </div>
                 <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] border border-emerald-500/30">
-                  OAUTH READY
+                  OAUTH ACTIVE
                 </span>
               </div>
             </div>
