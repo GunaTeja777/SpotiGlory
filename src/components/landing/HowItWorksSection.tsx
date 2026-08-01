@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ShieldCheck, Cpu, Compass, ArrowRight } from "lucide-react";
 
@@ -33,7 +33,7 @@ export const HowItWorksSection: React.FC = () => {
     },
   ];
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: {},
     visible: {
       transition: {
@@ -42,7 +42,14 @@ export const HowItWorksSection: React.FC = () => {
     },
   };
 
-
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
+  };
 
   return (
     <section id="how-it-works" className="py-20 md:py-28 px-4 md:px-8 max-w-7xl mx-auto relative z-10 scroll-mt-20">

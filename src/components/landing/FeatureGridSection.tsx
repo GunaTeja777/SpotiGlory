@@ -146,10 +146,24 @@ export const FeatureGridSection: React.FC = () => {
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/20">
             One-Tap Share
           </span>
-        </div>
-      ),
+
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.1,
+      },
     },
-  ];
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 25 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
+  };
+
 
 
 
