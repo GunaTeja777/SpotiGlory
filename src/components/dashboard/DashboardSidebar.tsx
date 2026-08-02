@@ -100,7 +100,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               <span className="text-lg font-bold tracking-tight text-white leading-none">
                 Spoti<span className="text-[#1DB954]">Glory</span>
               </span>
-              <span className="text-[10px] font-mono text-gray-400 mt-1">LIQUID GLASS APP</span>
+              <span className="text-[10px] font-mono text-gray-400 mt-1">SPOTIGLORY ANALYTICS</span>
             </div>
           </Link>
 
@@ -152,9 +152,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         {/* Sidebar Footer Badge */}
         <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 flex items-center gap-2.5">
           <div className="w-2 h-2 rounded-full bg-[#1DB954] animate-ping" />
-          <div className="text-[11px]">
-            <p className="font-bold text-white leading-tight">Liquid Glass Engine</p>
-            <p className="text-gray-400 text-[10px]">Realtime Session Sync</p>
+          <div className="min-w-0">
+            <p className="font-bold text-white leading-tight">SpotiGlory Engine</p>
+            <p className="text-[11px] text-gray-400">OAuth 2.0 Synced</p>
           </div>
         </div>
       </aside>

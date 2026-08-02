@@ -81,7 +81,7 @@ export default function DashboardPage() {
               {activeTab.replace("-", " ")}
             </h1>
             <p className="text-xs text-gray-400 mt-0.5">
-              SpotiGlory Liquid Glass Personality & Audio Analytics
+              SpotiGlory Personality & Audio Analytics
             </p>
           </div>
 
@@ -129,7 +129,7 @@ export default function DashboardPage() {
               <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex justify-between items-center">
                 <div>
                   <p className="font-bold text-white">Theme & Glass Specular Intensity</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">Liquid Glass refraction active</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">Analytics engine active</p>
                 </div>
                 <span className="px-2.5 py-1 rounded-full bg-[#1DB954]/20 text-[#1DB954] font-mono text-[10px] border border-[#1DB954]/30">
                   INTENSE GLASS

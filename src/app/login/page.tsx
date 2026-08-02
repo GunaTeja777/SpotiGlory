@@ -110,7 +110,7 @@ function LoginContent() {
           Connect Your Spotify
         </h1>
         <p className="text-xs text-gray-300 mb-8 leading-relaxed">
-          Sign in securely with Spotify to generate your liquid glass OCEAN personality radar and listening profile.
+          Sign in securely with Spotify to generate your OCEAN personality radar and listening profile.
         </p>
 
         {/* Primary CTA Button */}

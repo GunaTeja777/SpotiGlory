@@ -41,8 +41,8 @@ export const FooterSection: React.FC = () => {
               </span>
             </Link>
             <p className="text-xs text-gray-400 max-w-sm leading-relaxed">
-              Unlocking the psychological dimension of music listening. Built with Liquid Glass UI, 
-              Spotify Web API, and Big Five personality machine learning models.
+              Unlocking the psychological dimension of music listening. Built with Next.js, 
+              Spotify Web API, and Big Five personality psychometric models.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a
@@ -55,7 +55,7 @@ export const FooterSection: React.FC = () => {
                 <TwitterIcon className="w-4 h-4" />
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/GunaTeja777/SpotiGlory"
                 target="_blank"
                 rel="noreferrer"
                 className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/[0.12] transition-colors"
@@ -131,7 +131,7 @@ export const FooterSection: React.FC = () => {
           <div className="flex items-center gap-1.5 text-gray-400">
             <span>Crafted with</span>
             <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
-            <span>& Liquid Glass Technology</span>
+            <span>& SpotiGlory Analytics</span>
           </div>
         </div>
       </div>

@@ -71,8 +71,8 @@ export const HeroSection: React.FC = () => {
 
           {/* Subheadline */}
           <p className="text-base sm:text-lg text-gray-300 max-w-2xl font-normal leading-relaxed">
-            SpotiGlory transforms your Spotify listening history into an interactive liquid glass 
-            OCEAN personality radar, temporal vibe clock, and acoustic identity profile.
+            SpotiGlory transforms your Spotify listening history into an interactive 
+          OCEAN personality radar, temporal vibe clock, and acoustic identity profile.
           </p>
 
           {/* Primary & Secondary CTAs */}

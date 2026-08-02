@@ -169,7 +169,7 @@ export default function DesignPreviewPage() {
               </h2>
             </div>
             <p className="text-sm text-gray-400 max-w-md">
-              Curated color tokens, frosted layer opacities, and specular highlight ratios defining the Liquid Glass experience.
+              Curated color tokens, frosted layer opacities, and specular highlight ratios defining the SpotiGlory experience.
             </p>
           </div>
 
@@ -447,7 +447,7 @@ export default function DesignPreviewPage() {
                       Now Playing • Liquid Audio Hi-Res
                     </span>
                     <h3 className="text-3xl font-extrabold text-white tracking-tight mt-1">
-                      Liquid Specular Dreams
+                      Spotify Design Aesthetic
                     </h3>
                     <p className="text-sm text-gray-300 mt-1">Spotify Original Design System • 324 kbps FLAC</p>
                   </div>
@@ -524,7 +524,7 @@ export default function DesignPreviewPage() {
 
       {/* Footer */}
       <footer className="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/10 text-center text-xs text-gray-400 space-y-2">
-        <p className="font-semibold text-white">SpotiGlory Liquid Glass Design System</p>
+        <p className="font-semibold text-white">SpotiGlory Design System</p>
         <p>Built with Next.js 14 App Router • Tailwind CSS • Glass Refraction Engine</p>
       </footer>
     </div>

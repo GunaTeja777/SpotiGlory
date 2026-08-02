@@ -121,7 +121,7 @@ flowchart TD
 ### Step 1: Clone the Repository & Install Dependencies
 
 ```bash
-git clone https://github.com/your-username/SpotiGlory.git
+git clone https://github.com/GunaTeja777/SpotiGlory.git
 cd SpotiGlory/SpotiGlory
 npm install
 ```
