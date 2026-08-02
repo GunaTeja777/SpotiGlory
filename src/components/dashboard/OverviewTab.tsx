@@ -161,8 +161,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
   const isNightOwl = peakHour >= 22 || peakHour <= 4;
 
   // 4. Calculate Average Popularity (Acoustic Energy Index)
-  const avgPopularity = topTracks.length > 0
-    ? Math.round(topTracks.reduce((acc, t) => acc + t.popularity, 0) / topTracks.length)
+  const validPopularityTracks = topTracks.filter((t) => typeof t?.popularity === "number");
+  const avgPopularity = validPopularityTracks.length > 0
+    ? Math.round(validPopularityTracks.reduce((acc, t) => acc + (t.popularity || 0), 0) / validPopularityTracks.length)
     : 75;
 
   const statCards = [
