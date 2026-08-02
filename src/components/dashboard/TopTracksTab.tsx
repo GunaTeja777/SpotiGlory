@@ -149,45 +149,47 @@ export const TopTracksTab: React.FC = () => {
                 radius="2xl"
                 enableRefraction={true}
                 refractionIntensity="subtle"
-                className="p-3.5 border-white/14 flex items-center gap-3.5 group hover:border-white/30 transition-all duration-300"
+                className="p-3.5 border-white/14 flex items-center justify-between gap-3.5 group hover:border-white/30 transition-all duration-300"
               >
-                {/* Rank Badge */}
-                <div className="w-8 text-center shrink-0">
-                  <span className={`text-sm font-black font-mono ${index < 3 ? "text-[#1DB954]" : "text-gray-500"}`}>
-                    #{index + 1}
-                  </span>
-                </div>
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  {/* Rank Badge */}
+                  <div className="w-7 text-center shrink-0">
+                    <span className={`text-sm font-black font-mono ${index < 3 ? "text-[#1DB954]" : "text-gray-500"}`}>
+                      #{index + 1}
+                    </span>
+                  </div>
 
-                {/* Album Cover Art */}
-                <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0 group-hover:scale-105 transition-transform duration-300">
-                  {albumCover ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={albumCover} alt={track.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-white/[0.05]">
-                      <Music2 className="w-6 h-6 text-gray-500" />
+                  {/* Album Cover Art */}
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0 group-hover:scale-105 transition-transform duration-300">
+                    {albumCover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={albumCover} alt={track.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-white/[0.05]">
+                        <Music2 className="w-5 h-5 text-gray-500" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Track Details */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs font-bold text-white truncate group-hover:text-[#1DB954] transition-colors">
+                      {track.name}
+                    </h4>
+                    <p className="text-[11px] text-gray-400 truncate mt-0.5">
+                      {artistNames}
+                    </p>
+                    
+                    <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-400 font-mono">
+                      <span className="flex items-center gap-1 shrink-0">
+                        <Clock className="w-3 h-3 text-gray-500" />
+                        {formatDuration(track.duration_ms)}
+                      </span>
+                      <span className="flex items-center gap-1 text-[#1DB954] shrink-0">
+                        <TrendingUp className="w-3 h-3" />
+                        {typeof track.popularity === "number" ? track.popularity : 0}% pop
+                      </span>
                     </div>
-                  )}
-                </div>
-
-                {/* Track Details */}
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-white truncate group-hover:text-[#1DB954] transition-colors">
-                    {track.name}
-                  </h4>
-                  <p className="text-xs text-gray-400 truncate mt-0.5">
-                    {artistNames}
-                  </p>
-                  
-                  <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400 font-mono">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-gray-500" />
-                      {formatDuration(track.duration_ms)}
-                    </span>
-                    <span className="flex items-center gap-1 text-[#1DB954]">
-                      <TrendingUp className="w-3 h-3" />
-                      {typeof track.popularity === "number" ? track.popularity : 0}% pop
-                    </span>
                   </div>
                 </div>
 
@@ -196,10 +198,10 @@ export const TopTracksTab: React.FC = () => {
                   href={track.external_urls?.spotify || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2.5 rounded-xl bg-white/[0.05] border border-white/10 hover:bg-[#1DB954]/20 hover:border-[#1DB954]/40 text-gray-400 hover:text-[#1DB954] transition-all shrink-0 ml-auto self-center"
+                  className="p-2 rounded-xl bg-white/[0.05] border border-white/10 hover:bg-[#1DB954]/20 hover:border-[#1DB954]/40 text-gray-400 hover:text-[#1DB954] transition-all shrink-0 self-center"
                   title="Open in Spotify"
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </GlassCard>
             );

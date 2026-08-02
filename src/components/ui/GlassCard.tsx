@@ -64,8 +64,7 @@ export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
         className={cn(
           "relative overflow-hidden glass-refraction-container text-gray-100",
           radiusClasses,
-          variantClasses,
-          className
+          variantClasses
         )}
         {...props}
       >
@@ -73,7 +72,7 @@ export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
         {(enableRefraction || variant === "interactive") && (
           <div className="glass-refraction-overlay" aria-hidden="true" />
         )}
-        <div className="relative z-10">{children}</div>
+        <div className={cn("relative z-10 h-full w-full", className)}>{children}</div>
       </div>
     );
   }
