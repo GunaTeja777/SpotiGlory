@@ -16,6 +16,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SpotiGlory — Music Personality & Audio DNA",
   description: "Discover your Big Five music personality traits and audio DNA with Liquid Glass UI.",
+  icons: {
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.ico" }
+    ],
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
