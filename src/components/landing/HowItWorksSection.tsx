@@ -107,15 +107,16 @@ export const HowItWorksSection: React.FC = () => {
                 </p>
               </div>
 
-              {/* Connecting Indicator Arrow for desktop */}
-              {index < steps.length - 1 && (
-                <div className="hidden md:block absolute -right-4 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                  <div className="w-8 h-8 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-gray-400 backdrop-blur-md">
-                    <ArrowRight className="w-4 h-4 text-[#1DB954]" />
-                  </div>
-                </div>
-              )}
             </GlassCard>
+
+            {/* Connecting Indicator Arrow for desktop (outside GlassCard so overflow-hidden does not clip it) */}
+            {index < steps.length - 1 && (
+              <div className="hidden lg:flex absolute -right-5 lg:-right-6 top-1/2 -translate-y-1/2 z-30 pointer-events-none items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-[#0A0A0C] border border-white/20 shadow-[0_0_15px_rgba(0,0,0,0.9)] flex items-center justify-center text-gray-400 backdrop-blur-md">
+                  <ArrowRight className="w-4 h-4 text-[#1DB954]" />
+                </div>
+              </div>
+            )}
           </motion.div>
         ))}
       </motion.div>
