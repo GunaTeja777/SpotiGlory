@@ -33,18 +33,30 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
       setDataLoading(true);
       setError(null);
       try {
-        const [artistsRes, tracksRes, recentRes] = await Promise.all([
+        const [artistsRes, shortArtistsRes, longArtistsRes, tracksRes, recentRes] = await Promise.all([
           fetch("/api/spotify/top-artists?time_range=medium_term&limit=20"),
+          fetch("/api/spotify/top-artists?time_range=short_term&limit=20"),
+          fetch("/api/spotify/top-artists?time_range=long_term&limit=20"),
           fetch("/api/spotify/top-tracks?time_range=medium_term&limit=20"),
           fetch("/api/spotify/recently-played?limit=50"),
         ]);
 
         const artistsData = artistsRes.ok ? await artistsRes.json() : { items: [] };
+        const shortData = shortArtistsRes.ok ? await shortArtistsRes.json() : { items: [] };
+        const longData = longArtistsRes.ok ? await longArtistsRes.json() : { items: [] };
         const tracksData = tracksRes.ok ? await tracksRes.json() : { items: [] };
         const recentData = recentRes.ok ? await recentRes.json() : { items: [] };
 
+        // Combine all unique artists across time ranges to maximize genre coverage
+        const artistMap = new Map<string, SpotifyArtist>();
+        [...(artistsData.items || []), ...(shortData.items || []), ...(longData.items || [])].forEach((a) => {
+          if (a && a.id && !artistMap.has(a.id)) {
+            artistMap.set(a.id, a);
+          }
+        });
+
         if (isMounted) {
-          setTopArtists(artistsData.items || []);
+          setTopArtists(Array.from(artistMap.values()));
           setTopTracks(tracksData.items || []);
           setRecentlyPlayed(recentData.items || []);
         }
@@ -323,7 +335,18 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
                     </div>
                   </>
                 ) : (
-                  <p className="text-xs text-gray-400">Listen to more artists on Spotify to view your genre breakdown.</p>
+                  <div className="text-center p-6 flex flex-col items-center justify-center max-w-sm">
+                    <PieChart className="w-10 h-10 text-gray-500 mb-3 animate-pulse" />
+                    <p className="text-xs font-bold text-white mb-1">No Spotify Genre Tags Found</p>
+                    <p className="text-[11px] text-gray-400 leading-relaxed mb-4">
+                      Spotify has not assigned explicit genre tags to your top streamed artists yet, or your listening history is very fresh.
+                    </p>
+                    <div className="flex items-center gap-2 text-[10px] font-mono text-gray-400 bg-white/[0.05] px-3 py-1.5 rounded-full border border-white/10">
+                      <span>Tip: Play more tracks or check the </span>
+                      <span className="text-[#1DB954] font-bold">Upload Deep History</span>
+                      <span> tab</span>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
