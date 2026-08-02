@@ -174,7 +174,7 @@ export const PersonalityTab: React.FC = () => {
               <Sparkles className="w-3.5 h-3.5 text-purple-300" />
               <span>{narrative.listeningPersona || "The Sonic Explorer"}</span>
               {data.isAiGenerated && (
-                <span className="text-[10px] text-[#1DB954] font-normal lowercase">(Claude 3.7 AI)</span>
+                <span className="text-[10px] text-[#1DB954] font-normal lowercase">(OpenRouter AI)</span>
               )}
             </div>
 

@@ -57,12 +57,63 @@ export async function GET() {
     const clusters = computeClusterDistribution(features.topGenreDistribution);
     const ocean = computeOceanScores(features, clusters);
 
-    // 2. Generate Narrative (Anthropic Messages API or Fallback)
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    // 2. Generate Narrative (OpenRouter API, Anthropic API, or Fallback)
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
     let narrative: NarrativeProfile;
     let isAiGenerated = false;
 
-    if (apiKey && apiKey !== "your_anthropic_api_key_here") {
+    if (openRouterKey && openRouterKey !== "your_openrouter_api_key_here") {
+      try {
+        const { systemPrompt, userPrompt } = buildNarrativePrompt(
+          ocean,
+          features,
+          features.topGenreDistribution,
+          topArtists
+        );
+
+        const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${openRouterKey}`,
+            "HTTP-Referer": "https://spotiglory.vercel.app",
+            "X-Title": "SpotiGlory",
+          },
+          body: JSON.stringify({
+            model: "anthropic/claude-3.5-sonnet",
+            max_tokens: 1000,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+          }),
+        });
+
+        if (apiResponse.ok) {
+          const apiJson = await apiResponse.json();
+          const responseText = apiJson.choices?.[0]?.message?.content || "";
+          
+          // Clean potential markdown blocks
+          const cleanedText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+          const parsedNarrative = JSON.parse(cleanedText);
+
+          if (parsedNarrative && parsedNarrative.headline && parsedNarrative.summary) {
+            narrative = parsedNarrative;
+            isAiGenerated = true;
+          } else {
+            throw new Error("Parsed OpenRouter JSON missing required fields");
+          }
+        } else {
+          const errText = await apiResponse.text();
+          console.warn(`OpenRouter API request failed with status ${apiResponse.status}: ${errText}`);
+          narrative = generateFallbackNarrative(ocean, features, features.topGenreDistribution, topArtists);
+        }
+      } catch (err) {
+        console.error("Failed to generate AI narrative from OpenRouter API:", err);
+        narrative = generateFallbackNarrative(ocean, features, features.topGenreDistribution, topArtists);
+      }
+    } else if (anthropicKey && anthropicKey !== "your_anthropic_api_key_here") {
       try {
         const { systemPrompt, userPrompt } = buildNarrativePrompt(
           ocean,
@@ -75,7 +126,7 @@ export async function GET() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-api-key": apiKey,
+            "x-api-key": anthropicKey,
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
@@ -83,10 +134,7 @@ export async function GET() {
             max_tokens: 1000,
             system: systemPrompt,
             messages: [
-              {
-                role: "user",
-                content: userPrompt,
-              },
+              { role: "user", content: userPrompt },
             ],
           }),
         });
@@ -95,7 +143,6 @@ export async function GET() {
           const apiJson = await apiResponse.json();
           const responseText = apiJson.content?.[0]?.text || "";
           
-          // Clean potential markdown blocks
           const cleanedText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
           const parsedNarrative = JSON.parse(cleanedText);
 
@@ -106,7 +153,6 @@ export async function GET() {
             throw new Error("Parsed Anthropic JSON missing required fields");
           }
         } else {
-          console.warn(`Anthropic API request failed with status ${apiResponse.status}, falling back.`);
           narrative = generateFallbackNarrative(ocean, features, features.topGenreDistribution, topArtists);
         }
       } catch (err) {
@@ -114,7 +160,7 @@ export async function GET() {
         narrative = generateFallbackNarrative(ocean, features, features.topGenreDistribution, topArtists);
       }
     } else {
-      // No Anthropic API Key provided, use template fallback
+      // Template fallback generator
       narrative = generateFallbackNarrative(ocean, features, features.topGenreDistribution, topArtists);
     }
 
