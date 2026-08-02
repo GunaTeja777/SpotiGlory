@@ -128,10 +128,30 @@ export const FooterSection: React.FC = () => {
         {/* Bottom Copyright Bar */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
           <p>© 2026 SpotiGlory. All rights reserved.</p>
-          <div className="flex items-center gap-1.5 text-gray-400">
-            <span>Crafted with</span>
-            <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
-            <span>& SpotiGlory Analytics</span>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-1 text-gray-400">
+              <span>Crafted with</span>
+              <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
+              <span>by</span>
+              <a
+                href="https://github.com/GunaTeja777"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-white font-medium transition-colors"
+              >
+                GunaTeja777
+              </a>
+            </div>
+            <span className="text-gray-600 hidden sm:inline">•</span>
+            <a
+              href="https://github.com/GunaTeja777/SpotiGlory"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 hover:bg-white/[0.1] text-[11px] text-gray-300 hover:text-white transition-all"
+            >
+              <GithubIcon className="w-3.5 h-3.5" />
+              <span>Star on GitHub</span>
+            </a>
           </div>
         </div>
       </div>
