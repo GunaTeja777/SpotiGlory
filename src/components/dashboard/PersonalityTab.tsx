@@ -248,22 +248,44 @@ export const PersonalityTab: React.FC = () => {
               </div>
 
               {/* Recharts Radar Graphic */}
-              <div className="w-full h-80 my-2">
+              <div className="w-full h-84 my-2 relative">
+                {/* Background Ambient Glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#1DB954]/15 rounded-full blur-3xl pointer-events-none" />
+
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-                    <PolarGrid stroke="rgba(255, 255, 255, 0.15)" />
+                    <defs>
+                      <radialGradient id="oceanRadarGlow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#1DB954" stopOpacity="0.75" />
+                        <stop offset="100%" stopColor="#059669" stopOpacity="0.25" />
+                      </radialGradient>
+                    </defs>
+                    <PolarGrid stroke="rgba(255, 255, 255, 0.15)" gridType="polygon" />
                     <PolarAngleAxis
                       dataKey="trait"
-                      stroke="#E2E8F0"
-                      tick={{ fill: "#E2E8F0", fontSize: 12, fontWeight: 700 }}
+                      tick={({ payload, x, y, textAnchor }) => (
+                        <text
+                          x={x}
+                          y={y}
+                          textAnchor={textAnchor}
+                          fill="#FFFFFF"
+                          fontSize={12}
+                          fontWeight={800}
+                          className="font-mono drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                        >
+                          {payload.value}
+                        </text>
+                      )}
                     />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="rgba(255, 255, 255, 0.3)" />
+                    <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
                     <Radar
                       name="OCEAN Trait Score"
                       dataKey="score"
                       stroke="#1DB954"
-                      fill="#1DB954"
-                      fillOpacity={0.45}
+                      strokeWidth={3}
+                      fill="url(#oceanRadarGlow)"
+                      fillOpacity={0.8}
+                      dot={{ r: 4, fill: "#1DB954", stroke: "#FFFFFF", strokeWidth: 2 }}
                     />
                   </RadarChart>
                 </ResponsiveContainer>
