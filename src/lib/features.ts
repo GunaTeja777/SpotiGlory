@@ -43,9 +43,23 @@ export function computeBehavioralFeatures(
   shortTermArtists: SpotifyArtist[] = [],
   longTermArtists: SpotifyArtist[] = []
 ): BehavioralFeatures {
+  // Combine all unique artists across time ranges (medium, short, long term) to maximize genre and popularity recovery
+  const artistMap = new Map<string, SpotifyArtist>();
+  [...topArtists, ...shortTermArtists, ...longTermArtists].forEach((a) => {
+    if (a && (a.id || a.name)) {
+      const key = a.id || a.name;
+      if (!artistMap.has(key)) {
+        artistMap.set(key, a);
+      }
+    }
+  });
+
+  const allArtists = Array.from(artistMap.values());
+  const effectiveArtists = allArtists.length > 0 ? allArtists : topArtists;
+
   // 1. Genre Frequency & Shannon Entropy
   const genreMap: Record<string, number> = {};
-  topArtists.forEach((artist) => {
+  effectiveArtists.forEach((artist) => {
     artist.genres?.forEach((genre) => {
       const normalizedGenre = genre.trim().toLowerCase();
       if (normalizedGenre) {
@@ -134,10 +148,11 @@ export function computeBehavioralFeatures(
     : 1;
 
   // 4. Average Artist Popularity
-  const totalPopularity = topArtists.reduce((sum, a) => sum + (a.popularity || 0), 0);
-  const avgArtistPopularity = topArtists.length > 0 
-    ? Math.round(totalPopularity / topArtists.length)
-    : 0;
+  const validPopularityArtists = effectiveArtists.filter((a) => typeof a?.popularity === "number" && a.popularity > 0);
+  const totalPopularity = validPopularityArtists.reduce((sum, a) => sum + a.popularity, 0);
+  const avgArtistPopularity = validPopularityArtists.length > 0 
+    ? Math.round(totalPopularity / validPopularityArtists.length)
+    : (topTracks.length > 0 ? Math.round(topTracks.reduce((sum, t) => sum + (t.popularity || 0), 0) / topTracks.length) : 0);
 
   // 5. Genre Spread Across Time Ranges (Jaccard Similarity)
   const shortArtistsList = shortTermArtists.length > 0 ? shortTermArtists : topArtists;
