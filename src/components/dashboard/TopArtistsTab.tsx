@@ -190,7 +190,7 @@ export const TopArtistsTab: React.FC = () => {
                     </span>
                     <span className="flex items-center gap-1 text-[#1DB954]">
                       <TrendingUp className="w-3.5 h-3.5" />
-                      {artist.popularity}% pop
+                      {typeof artist.popularity === "number" ? artist.popularity : 0}% pop
                     </span>
                   </div>
 

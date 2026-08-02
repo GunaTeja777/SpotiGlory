@@ -186,17 +186,17 @@ export const TopTracksTab: React.FC = () => {
                     </span>
                     <span className="flex items-center gap-1 text-[#1DB954]">
                       <TrendingUp className="w-3 h-3" />
-                      {track.popularity}% pop
+                      {typeof track.popularity === "number" ? track.popularity : 0}% pop
                     </span>
                   </div>
                 </div>
 
                 {/* Open in Spotify Link */}
                 <a
-                  href={track.external_urls.spotify}
+                  href={track.external_urls?.spotify || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-white/[0.05] border border-white/10 hover:bg-[#1DB954]/20 hover:border-[#1DB954]/40 text-gray-400 hover:text-[#1DB954] transition-all shrink-0"
+                  className="p-2.5 rounded-xl bg-white/[0.05] border border-white/10 hover:bg-[#1DB954]/20 hover:border-[#1DB954]/40 text-gray-400 hover:text-[#1DB954] transition-all shrink-0 ml-auto self-center"
                   title="Open in Spotify"
                 >
                   <ExternalLink className="w-4 h-4" />
