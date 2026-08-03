@@ -60,6 +60,21 @@ export default function IndividualJamRoomPage() {
   const [isBotTyping, setIsBotTyping] = useState<boolean>(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
+  // Poll room chat messages
+  const fetchChatStream = async () => {
+    try {
+      const res = await fetch(`/api/jam-rooms/${roomIdSlug}/chat`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.messages && data.messages.length > 0) {
+          setChatMessages(data.messages);
+        }
+      }
+    } catch (e) {
+      // Ignore polling error
+    }
+  };
+
   useEffect(() => {
     // 1. Fetch room details
     const foundRoom = getRoomBySlug(roomIdSlug) || getRoomById(roomIdSlug) || getRoomBySlug("midnight-neon-sanctuary");
@@ -67,25 +82,17 @@ export default function IndividualJamRoomPage() {
       setRoom(foundRoom);
       const bot = getBotCompanion(foundRoom.slug);
       setBotConfig(bot);
-
-      // Seed initial chat with bot greeting
-      setChatMessages([
-        {
-          id: "msg_init_greeting",
-          senderId: bot.id,
-          senderName: bot.name,
-          senderAvatar: bot.avatar,
-          isAiCompanion: true,
-          text: bot.greetingMessage,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      ]);
     }
 
     // 2. Fetch room playlist from roomPlaylistSource
     getRoomPlaylist(roomIdSlug).then((pl) => {
       setPlaylist(pl);
     });
+
+    // 3. Initial chat fetch & periodic poll
+    fetchChatStream();
+    const interval = setInterval(fetchChatStream, 3000);
+    return () => clearInterval(interval);
   }, [roomIdSlug]);
 
   useEffect(() => {
@@ -122,40 +129,60 @@ export default function IndividualJamRoomPage() {
     setActivePlayingId(track.id);
   };
 
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const trimmed = inputMessage.trim();
     if (!trimmed || !botConfig) return;
 
-    const userMsg: ChatMessage = {
-      id: `user_msg_${Date.now()}`,
-      senderId: "user_active",
-      senderName: "You",
-      senderAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=You",
-      isAiCompanion: false,
-      text: trimmed,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    };
-
-    setChatMessages((prev) => [...prev, userMsg]);
     setInputMessage("");
-    setIsBotTyping(true);
 
-    // Simulate natural AI Companion response timing
-    setTimeout(() => {
-      const replyText = generateCompanionReply(room?.slug || roomIdSlug, trimmed);
-      const botMsg: ChatMessage = {
-        id: `bot_msg_${Date.now()}`,
-        senderId: botConfig.id,
-        senderName: botConfig.name,
-        senderAvatar: botConfig.avatar,
-        isAiCompanion: true,
-        text: replyText,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-      setChatMessages((prev) => [...prev, botMsg]);
+    try {
+      // 1. Post user message to room chat channel
+      const res = await fetch(`/api/jam-rooms/${roomIdSlug}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          senderId: "user_active",
+          senderName: "You",
+          senderAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=You",
+          text: trimmed,
+        }),
+      });
+
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data.message) {
+        setChatMessages((prev) => [...prev, data.message]);
+      }
+
+      // 2. Handle bot reply if triggered by multi-user logic
+      if (data.shouldBotReply) {
+        setIsBotTyping(true);
+        const delay = data.botDelayMs || 1400;
+
+        setTimeout(async () => {
+          try {
+            const botRes = await fetch(`/api/jam-rooms/${roomIdSlug}/bot-reply`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ triggerMessageText: trimmed }),
+            });
+
+            if (botRes.ok) {
+              const botData = await botRes.json();
+              if (botData.botMessage) {
+                setChatMessages((prev) => [...prev, botData.botMessage]);
+              }
+            }
+          } finally {
+            setIsBotTyping(false);
+          }
+        }, delay);
+      }
+    } catch (err) {
       setIsBotTyping(false);
-    }, 1200);
+    }
   };
 
   const formatMs = (ms?: number) => {
