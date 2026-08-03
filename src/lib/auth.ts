@@ -87,17 +87,16 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, account, user }) {
       // Initial sign-in
       if (account && user) {
-        return {
-          accessToken: account.access_token,
-          refreshToken: account.refresh_token,
-          accessTokenExpires: account.expires_at ? account.expires_at * 1000 : Date.now() + 3600 * 1000,
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            image: user.image,
-          },
+        token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
+        token.accessTokenExpires = account.expires_at ? account.expires_at * 1000 : Date.now() + 3600 * 1000;
+        token.user = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
         };
+        return token;
       }
 
       // Return previous token if the access token has not expired yet (with 1 min buffer)
