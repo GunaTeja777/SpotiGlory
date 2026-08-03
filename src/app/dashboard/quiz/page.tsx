@@ -1,12 +1,23 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { IpipQuizTab } from "@/components/dashboard/IpipQuizTab";
-import { Sparkles, BrainCircuit } from "lucide-react";
+import { Sparkles, BrainCircuit, ArrowLeft } from "lucide-react";
 
 export default function IpipQuizPage() {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto">
+      {/* Back to Dashboard Navigation Link */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-white transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Dashboard</span>
+        </Link>
+      </div>
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
