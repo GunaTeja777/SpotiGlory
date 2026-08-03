@@ -6,7 +6,7 @@ import { ClusterDistribution } from "./genreClusters";
 
 describe("Big Five (OCEAN) Personality Scoring Engine", () => {
   const mockFeatures: BehavioralFeatures = {
-    genreDiversity: { shannonEntropy: 2.5, normalizedEntropy: 0.8, uniqueGenreCount: 6 },
+    genreDiversity: { shannonEntropy: 2.5, normalizedEntropy: 0.8, uniqueGenreCount: 6, state: "MULTI_GENRE", stateMessage: "Diverse multi-genre affinity spectrum" },
     topGenreDistribution: [
       { genre: "jazz", count: 10, percentage: 50 },
       { genre: "indie folk", count: 10, percentage: 50 },
@@ -19,6 +19,7 @@ describe("Big Five (OCEAN) Personality Scoring Engine", () => {
     avgArtistPopularity: 45,
     genreSpreadAcrossTimeRanges: { stabilityScore: 0.5, shortTermGenreCount: 4, longTermGenreCount: 6, overlapCount: 3 },
     recencyConcentration: 0.6,
+    inferredMood: { label: "Harmonious & Focused", emoji: "🎧", valenceEstimate: 60, energyEstimate: 60 },
   };
 
   const mockClusterDist: ClusterDistribution = {

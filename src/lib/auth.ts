@@ -9,8 +9,8 @@ const SPOTIFY_SCOPES = [
   "user-read-private",
 ].join(" ");
 
-const CLIENT_ID = (process.env.SPOTIFY_CLIENT_ID || "13aa24a4ecea4a5e8564a56e564513b9").trim();
-const CLIENT_SECRET = (process.env.SPOTIFY_CLIENT_SECRET || "b65a8bf05ae442458a88d56599659c33").trim();
+const CLIENT_ID = (process.env.SPOTIFY_CLIENT_ID || "").trim();
+const CLIENT_SECRET = (process.env.SPOTIFY_CLIENT_SECRET || "").trim();
 
 /**
  * Helper to refresh Spotify access token using the refresh token
@@ -64,8 +64,8 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 export const authOptions: NextAuthOptions = {
   providers: [
     SpotifyProvider({
-      clientId: process.env.SPOTIFY_CLIENT_ID || CLIENT_ID,
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET || CLIENT_SECRET,
+      clientId: process.env.SPOTIFY_CLIENT_ID || "",
+      clientSecret: process.env.SPOTIFY_CLIENT_SECRET || "",
       authorization: {
         params: {
           scope: SPOTIFY_SCOPES,
@@ -73,7 +73,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET || "7VzK9pX3mWq2L8yR1tN4bF0vC5xJ6zQ8sA3uP9dE2gY=",
+  secret: process.env.NEXTAUTH_SECRET,
   useSecureCookies: process.env.NODE_ENV === "production",
   cookies: {
     sessionToken: {
