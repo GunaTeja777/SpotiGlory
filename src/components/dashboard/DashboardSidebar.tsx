@@ -22,6 +22,7 @@ export type NavTab =
   | "listening-patterns" 
   | "debug-features"
   | "personality" 
+  | "ipip-quiz"
   | "upload-history" 
   | "settings";
 
