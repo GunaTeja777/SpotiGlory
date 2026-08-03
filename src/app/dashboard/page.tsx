@@ -11,7 +11,7 @@ import { TopTracksTab } from "@/components/dashboard/TopTracksTab";
 import { TopArtistsTab } from "@/components/dashboard/TopArtistsTab";
 import { ListeningPatternsTab } from "@/components/dashboard/ListeningPatternsTab";
 import { PersonalityTab } from "@/components/dashboard/PersonalityTab";
-import { JamPartnersTab } from "@/components/dashboard/JamPartnersTab";
+import { JamRoomsTab } from "@/components/dashboard/JamRoomsTab";
 import { UploadHistoryTab } from "@/components/dashboard/UploadHistoryTab";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
@@ -124,7 +124,7 @@ function DashboardContent() {
         {activeTab === "top-artists" && <TopArtistsTab />}
         {activeTab === "listening-patterns" && <ListeningPatternsTab />}
         {activeTab === "personality" && <PersonalityTab />}
-        {activeTab === "jam-partners" && <JamPartnersTab />}
+        {activeTab === "jam-rooms" && <JamRoomsTab />}
         {activeTab === "upload-history" && <UploadHistoryTab />}
 
         {activeTab === "settings" && (
