@@ -47,6 +47,7 @@ Output ONLY valid JSON matching this exact structure:
   "headline": "Punchy 1-2 sentence conversational summary without uppercased tokens or colliding adjectives",
   "summary": "Rich 2-3 sentence paragraph capturing their listening identity in a warm, perceptive tone",
   "motivationalLine": "One short specific sentence combining persona title + current mood + real top artist name",
+  "uniqueSignature": "One sentence explaining how this listener's music taste and psychometric fingerprint contrast with average listeners",
   "traits": [
     { "trait": "Openness", "label": "Exact Label Provided", "insight": "2 sentence insight" },
     { "trait": "Conscientiousness", "label": "Exact Label Provided", "insight": "2 sentence insight" },

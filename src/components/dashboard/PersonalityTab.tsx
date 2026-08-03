@@ -210,22 +210,35 @@ export const PersonalityTab: React.FC = () => {
           <div className="flex-1">
             {/* Persona Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-mono font-bold tracking-wider uppercase mb-3 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
-              <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+              <BrainCircuit className="w-3.5 h-3.5 text-purple-300" />
               <span>{narrative.listeningPersona || "The Sonic Explorer"}</span>
               {data.isAiGenerated && (
-                <span className="text-[10px] text-[#1DB954] font-normal lowercase">(OpenRouter AI)</span>
+                <span className="text-[10px] text-[#1DB954] font-normal lowercase">(OpenRouter GenAI)</span>
               )}
             </div>
 
-            {/* Headline */}
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-3">
-              "{narrative.headline}"
+            {/* Distinct Taste Signature Headline */}
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-2">
+              What Makes Your Music Taste Unique
             </h2>
 
-            {/* Summary */}
-            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-3xl">
-              {narrative.summary}
-            </p>
+            {/* Dedicated Unique Signature Box */}
+            <div className="p-4 rounded-2xl bg-[#1DB954]/10 border border-[#1DB954]/30 flex items-start gap-3.5 shadow-[0_0_20px_rgba(29,185,84,0.15)] my-3">
+              <div className="w-8 h-8 rounded-xl bg-[#1DB954]/20 border border-[#1DB954]/40 flex items-center justify-center shrink-0 mt-0.5">
+                <Compass className="w-4 h-4 text-[#1DB954]" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-bold text-white">Sonic Fingerprint & Contrast Analysis</span>
+                  <span className="px-2 py-0.5 rounded-full bg-[#1DB954]/20 text-[#1DB954] text-[10px] font-mono font-bold border border-[#1DB954]/30">
+                    DISTINCT PROFILE
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-200 leading-relaxed font-medium">
+                  {narrative.uniqueSignature || narrative.summary}
+                </p>
+              </div>
+            </div>
 
             {/* GenAI Telemetry Observability Bar */}
             {data.telemetry && (

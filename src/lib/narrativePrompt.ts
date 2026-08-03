@@ -12,6 +12,7 @@ export interface NarrativeProfile {
   summary: string; // 2-3 sentences
   listeningPersona: string; // Evocative title like "The Nocturnal Explorer"
   motivationalLine?: string; // Short sentence combining persona + mood + real top artist
+  uniqueSignature?: string;
   traits: TraitInsight[];
   funFacts: string[]; // 2-3 specific data-driven observations
 }
@@ -153,12 +154,14 @@ export function generateFallbackNarrative(
 
   const currentMood = features.inferredMood?.label || "Reflective";
   const motivationalLine = `Channeling your ${listeningPersona} vibe while feeling ${currentMood}, let the deep resonance of ${topArtistName} fuel your day.`;
+  const uniqueSignature = `Unlike average listeners who cycle through standard charts, your sonic signature is defined by ${cleanGenre} depth, a ${features.nightListenerRatio}% night-listening focus, and an Openness score of ${ocean.openness.score}/100 — setting your musical DNA apart as a highly intentional audio curator.`;
 
   return {
     headline,
     summary,
     listeningPersona,
     motivationalLine,
+    uniqueSignature,
     traits,
     funFacts,
   };
