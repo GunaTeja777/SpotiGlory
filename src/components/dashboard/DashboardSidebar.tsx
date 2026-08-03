@@ -12,7 +12,8 @@ import {
   UploadCloud, 
   Settings, 
   Lock,
-  Sparkles
+  Sparkles,
+  BarChart3
 } from "lucide-react";
 
 export type NavTab = 
