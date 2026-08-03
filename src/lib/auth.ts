@@ -63,11 +63,7 @@ export const authOptions: NextAuthOptions = {
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID ?? "",
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET ?? "",
-      authorization: {
-        params: {
-          scope: SPOTIFY_SCOPES,
-        },
-      },
+      authorization: `https://accounts.spotify.com/authorize?scope=${encodeURIComponent(SPOTIFY_SCOPES)}&show_dialog=true`,
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
