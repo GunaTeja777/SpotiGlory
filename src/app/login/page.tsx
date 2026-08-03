@@ -45,7 +45,7 @@ function LoginContent() {
       case "OAuthCreateAccount":
         return {
           title: "Authentication Connection Error",
-          description: "Unable to complete Spotify OAuth handshake. Ensure 'http://localhost:3000/api/auth/callback/spotify' is added in your Spotify Developer Dashboard under Redirect URIs, and your Spotify account email is added under Users and Access.",
+          description: "Unable to complete Spotify OAuth handshake. Please verify that your callback URI (e.g. 'https://spoti-glory.vercel.app/api/auth/callback/spotify' or 'http://localhost:3000/api/auth/callback/spotify') is added in your Spotify Developer Dashboard under Redirect URIs, AND your Spotify email address is added under Users and Access.",
         };
       case "Configuration":
         return {
