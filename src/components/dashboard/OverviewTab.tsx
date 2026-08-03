@@ -20,8 +20,20 @@ import {
   Music2,
   Play,
   Pause,
-  ExternalLink
+  ExternalLink,
+  Moon,
+  Flame,
+  Sun,
+  Wind
 } from "lucide-react";
+
+const MOOD_CONFIG = [
+  { label: "Reflective", icon: Moon },
+  { label: "Energized", icon: Zap },
+  { label: "Fiery", icon: Flame },
+  { label: "Upbeat", icon: Sun },
+  { label: "Calm", icon: Wind },
+];
 
 export interface OverviewTabProps {
   isLoading?: boolean;
@@ -34,9 +46,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
   const [narrativeData, setNarrativeData] = useState<any>(null);
   const [oceanData, setOceanData] = useState<any>(null);
   const [featuresData, setFeaturesData] = useState<BehavioralFeatures | null>(null);
-  const [activeMood, setActiveMood] = useState<{ label: string; emoji: string }>({
+  const [activeMood, setActiveMood] = useState<{ label: string }>({
     label: "Reflective",
-    emoji: "🌙",
   });
   const [moodOverridden, setMoodOverridden] = useState<boolean>(false);
   const [recommendedTracks, setRecommendedTracks] = useState<SpotifyTrack[]>([]);
@@ -73,7 +84,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
         const narrativeParsed = narrativeRes.ok ? await narrativeRes.json() : null;
         const featuresParsed = featuresRes.ok ? await featuresRes.json() : null;
 
-        // Combine all unique artists across time ranges to maximize genre coverage
         const artistMap = new Map<string, SpotifyArtist>();
         [...(artistsData.items || []), ...(shortData.items || []), ...(longData.items || [])].forEach((a) => {
           if (a && a.id && !artistMap.has(a.id)) {
@@ -90,10 +100,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
           setFeaturesData(featuresParsed?.features || null);
 
           if (featuresParsed?.features?.inferredMood) {
-            setActiveMood({
-              label: featuresParsed.features.inferredMood.label.split(" ")[0] || "Reflective",
-              emoji: featuresParsed.features.inferredMood.emoji || "🌙",
-            });
+            const raw = featuresParsed.features.inferredMood.label.split(" ")[0] || "Reflective";
+            setActiveMood({ label: raw });
           }
         }
       } catch (err: any) {
@@ -113,7 +121,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
     };
   }, []);
 
-  // Fetch recommendations whenever active mood or dominant cluster updates
   useEffect(() => {
     let isMounted = true;
     const fetchRecs = async () => {
@@ -170,153 +177,92 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
     window.open(searchUrl, "_blank");
   };
 
-  const handleMoodOverride = (label: string, emoji: string) => {
-    setActiveMood({ label, emoji });
+  const handleMoodOverride = (label: string) => {
+    setActiveMood({ label });
     setMoodOverridden(true);
     const inferred = featuresData?.inferredMood?.label || "Reflective";
-    saveMoodFeedbackSample(inferred, label, emoji);
+    saveMoodFeedbackSample(inferred, label, label);
   };
 
   const isLoading = propIsLoading || dataLoading;
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-6">
-        {/* Hero Skeleton */}
-        <div className="p-8 rounded-3xl bg-white/[0.05] border border-white/10 flex flex-col gap-4">
-          <GlassSkeleton className="w-48 h-6 rounded-lg" />
-          <GlassSkeleton className="w-3/4 h-8 rounded-xl" />
-          <GlassSkeleton className="w-full h-16 rounded-xl" />
-        </div>
-
-        {/* Stat Cards Skeleton Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {[1, 2, 3, 4].map((n) => (
-            <div key={n} className="p-5 rounded-3xl bg-white/[0.05] border border-white/10 flex flex-col gap-3">
-              <GlassSkeleton className="w-8 h-8 rounded-xl" />
-              <GlassSkeleton className="w-24 h-4 rounded-md" />
-              <GlassSkeleton className="w-32 h-7 rounded-lg" />
-              <GlassSkeleton className="w-20 h-3 rounded-md" />
-            </div>
-          ))}
-        </div>
-
-        {/* Charts Skeleton Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7 p-6 rounded-3xl bg-white/[0.05] border border-white/10 flex flex-col gap-4">
-            <GlassSkeleton className="w-48 h-6 rounded-lg" />
-            <GlassSkeleton className="w-full h-64 rounded-2xl" />
-          </div>
-          <div className="lg:col-span-5 p-6 rounded-3xl bg-white/[0.05] border border-white/10 flex flex-col gap-4">
-            <GlassSkeleton className="w-44 h-6 rounded-lg" />
-            <GlassSkeleton className="w-full h-64 rounded-2xl" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 1. Calculate Top Genre & Genre Breakdown
-  const genreMap: Record<string, number> = {};
-  topArtists.forEach((artist) => {
-    artist.genres?.forEach((genre) => {
-      genreMap[genre] = (genreMap[genre] || 0) + 1;
-    });
-  });
-
-  const sortedGenres = Object.entries(genreMap)
-    .sort(([, a], [, b]) => b - a)
-    .map(([genre, count]) => ({ genre, count }));
-
-  const totalGenreCount = sortedGenres.reduce((acc, curr) => acc + curr.count, 0);
-  const topGenreName = sortedGenres[0]?.genre || "Eclectic Mix";
-  const topGenrePercentage = totalGenreCount > 0 
-    ? Math.round((sortedGenres[0]?.count / totalGenreCount) * 100)
-    : 0;
-
-  const top5Genres = sortedGenres.slice(0, 5).map((g) => ({
-    ...g,
-    percentage: totalGenreCount > 0 ? Math.round((g.count / totalGenreCount) * 100) : 0,
-  }));
-
-  // 2. Calculate Total Unique Tracks Analyzed
-  const totalAnalyzed = topTracks.length + recentlyPlayed.length;
-
-  // 3. Calculate Most Active Listening Hour from Recently Played
-  const hourCounts: number[] = Array(24).fill(0);
-  recentlyPlayed.forEach((item) => {
-    if (!item.played_at) return;
-    const hour = new Date(item.played_at).getHours();
-    hourCounts[hour] += 1;
-  });
-
-  let peakHour = 0;
-  let maxHourCount = 0;
-  hourCounts.forEach((c, h) => {
-    if (c > maxHourCount) {
-      maxHourCount = c;
-      peakHour = h;
-    }
-  });
-
-  const formatHour = (h: number) => {
-    const period = h >= 12 ? "PM" : "AM";
-    const displayH = h % 12 === 0 ? 12 : h % 12;
-    return `${displayH}:00 ${period}`;
-  };
-
-  const isNightOwl = peakHour >= 22 || peakHour <= 4;
-
-  // 4. Calculate Average Popularity (Acoustic Energy Index)
-  const validPopularityTracks = topTracks.filter((t) => typeof t?.popularity === "number");
-  const avgPopularity = validPopularityTracks.length > 0
-    ? Math.round(validPopularityTracks.reduce((acc, t) => acc + (t.popularity || 0), 0) / validPopularityTracks.length)
-    : 75;
-
   const statCards = [
     {
-      title: "Top Genre",
-      value: topGenreName.charAt(0).toUpperCase() + topGenreName.slice(1),
-      subtitle: `${topGenrePercentage}% of genre affinity`,
+      title: "Top Genre Focus",
+      value: featuresData?.topGenreDistribution?.[0]?.genre || "Eclectic",
+      subtitle: `${featuresData?.topGenreDistribution?.[0]?.percentage || 0}% of listening profile`,
       badge: "Mode Genre",
       icon: <Disc className="w-5 h-5 text-[#1DB954]" />,
       badgeColor: "bg-[#1DB954]/15 text-[#1DB954] border-[#1DB954]/30",
     },
     {
-      title: "Total Tracks Analyzed",
-      value: totalAnalyzed > 0 ? totalAnalyzed.toLocaleString() : "0",
-      subtitle: "Combined stream events",
-      badge: "100% Synced",
-      icon: <BarChart2 className="w-5 h-5 text-purple-400" />,
-      badgeColor: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+      title: "Mainstream Popularity",
+      value: `${featuresData?.avgArtistPopularity ?? 0}%`,
+      subtitle: "Avg track popularity score",
+      badge: "Popularity Index",
+      icon: <BarChart2 className="w-5 h-5 text-emerald-400" />,
+      badgeColor: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
     },
     {
-      title: "Most Active Listening Hour",
-      value: recentlyPlayed.length > 0 ? formatHour(peakHour) : "12:00 PM",
-      subtitle: isNightOwl ? "Night-Owl archetype" : "Daytime Listener",
-      badge: "Peak Circadian Vibe",
-      icon: <Clock className="w-5 h-5 text-indigo-400" />,
-      badgeColor: "bg-indigo-500/15 text-indigo-400 border-indigo-500/30",
-    },
-    {
-      title: "Energy & Popularity Index",
-      value: `${avgPopularity}% Avg`,
-      subtitle: "Chart affinity score",
-      badge: "High Vibrancy",
-      icon: <Zap className="w-5 h-5 text-cyan-400" />,
+      title: "Peak Listening Window",
+      value: `${featuresData?.peakListeningHour ?? 22}:00 UTC`,
+      subtitle: `${featuresData?.nightListenerRatio ?? 0}% late-night streams`,
+      badge: "Circadian Pulse",
+      icon: <Clock className="w-5 h-5 text-cyan-400" />,
       badgeColor: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
+    },
+    {
+      title: "Taste Diversity Index",
+      value: `${featuresData?.genreDiversity?.normalizedEntropy ?? 0.8}`,
+      subtitle: `${featuresData?.genreDiversity?.uniqueGenreCount ?? 0} unique genre clusters`,
+      badge: "Entropy Score",
+      icon: <Zap className="w-5 h-5 text-[#1DB954]" />,
+      badgeColor: "bg-[#1DB954]/15 text-[#1DB954] border-[#1DB954]/30",
     },
   ];
 
-  const donutColors = ["#1DB954", "#8B5CF6", "#06B6D4", "#F59E0B", "#EC4899"];
+  const top5Genres = (featuresData?.topGenreDistribution || []).slice(0, 5);
+  const topGenrePercentage = top5Genres[0]?.percentage || 0;
+  const topGenreName = top5Genres[0]?.genre || "Eclectic";
+  const peakHour = featuresData?.peakListeningHour ?? 22;
+  const isNightOwl = peakHour >= 22 || peakHour <= 4;
+  const formatHour = (h: number) => {
+    const period = h >= 12 ? "PM" : "AM";
+    const displayH = h % 12 === 0 ? 12 : h % 12;
+    return `${displayH}:00 ${period}`;
+  };
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const donutColors = ["#1DB954", "#8B5CF6", "#06B6D4", "#F59E0B", "#EC4899"];
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {[1, 2, 3, 4].map((i) => (
+            <GlassCard key={i} variant="elevated" radius="3xl" className="p-6 border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <GlassSkeleton className="w-24 h-4 rounded" />
+                <GlassSkeleton className="w-8 h-8 rounded-2xl" />
+              </div>
+              <GlassSkeleton className="w-32 h-8 rounded-lg mb-2" />
+              <GlassSkeleton className="w-40 h-3 rounded" />
+            </GlassCard>
+          ))}
+        </div>
+        <GlassCard variant="elevated" radius="3xl" className="p-8 border-white/10">
+          <GlassSkeleton className="w-48 h-6 rounded mb-4" />
+          <GlassSkeleton className="w-full h-40 rounded-2xl" />
+        </GlassCard>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
       {/* Error Alert */}
       {error && (
-        <div className="p-4 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-200 text-xs flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -329,16 +275,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
         refractionIntensity="intense"
         className="p-6 sm:p-8 border-purple-500/30 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_50px_rgba(168,85,247,0.2)] relative overflow-hidden"
       >
-        {/* Glow Element */}
         <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col gap-6">
-          {/* Header Row: Persona Title + Inferred Mood Control */}
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-5">
             <div className="flex-1">
-              {/* Persona Title */}
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-mono font-bold tracking-wider uppercase mb-2 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
-                <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+                <BrainCircuit className="w-3.5 h-3.5 text-purple-300" />
                 <span>{narrativeData?.narrative?.listeningPersona || "The Sonic Explorer"}</span>
               </div>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">
@@ -349,53 +292,51 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
               </p>
             </div>
 
-            {/* Mood Control Box */}
             <div className="w-full md:w-auto p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col gap-2 shrink-0">
               <div className="flex items-center justify-between gap-3 text-xs font-mono">
                 <span className="text-gray-400">CURRENT MOOD:</span>
                 <span className="text-[#1DB954] font-bold flex items-center gap-1.5">
-                  <span>{activeMood.emoji}</span>
+                  {(() => {
+                    const CurrentIcon = MOOD_CONFIG.find((m) => m.label === activeMood.label)?.icon || Moon;
+                    return <CurrentIcon className="w-4 h-4 text-[#1DB954]" />;
+                  })()}
                   <span>Feeling: {activeMood.label}</span>
                   {moodOverridden && <span className="text-[10px] text-purple-300">(User Set ✓)</span>}
                 </span>
               </div>
 
-              {/* Tappable Emoji Options */}
               <div className="flex items-center justify-between gap-1.5 pt-1">
-                {[
-                  { label: "Reflective", emoji: "🌙" },
-                  { label: "Energized", emoji: "⚡" },
-                  { label: "Fiery", emoji: "🔥" },
-                  { label: "Upbeat", emoji: "✨" },
-                  { label: "Calm", emoji: "🧘" },
-                ].map((m) => (
-                  <button
-                    key={m.label}
-                    onClick={() => handleMoodOverride(m.label, m.emoji)}
-                    className={`p-2 rounded-xl border text-base transition-all ${
-                      activeMood.label === m.label
-                        ? "bg-[#1DB954]/30 border-[#1DB954] scale-110 shadow-[0_0_12px_rgba(29,185,84,0.5)] font-bold"
-                        : "bg-white/[0.04] border-white/10 hover:bg-white/[0.1] hover:border-white/20"
-                    }`}
-                    title={`Set mood to ${m.label}`}
-                  >
-                    {m.emoji}
-                  </button>
-                ))}
+                {MOOD_CONFIG.map((m) => {
+                  const Icon = m.icon;
+                  const isActive = activeMood.label === m.label;
+                  return (
+                    <button
+                      key={m.label}
+                      onClick={() => handleMoodOverride(m.label)}
+                      className={`p-2.5 rounded-xl border flex items-center justify-center transition-all ${
+                        isActive
+                          ? "bg-[#1DB954]/25 border-[#1DB954] text-[#1DB954] scale-105 shadow-[0_0_12px_rgba(29,185,84,0.4)]"
+                          : "bg-white/[0.04] border-white/10 text-gray-400 hover:bg-white/[0.1] hover:border-white/20 hover:text-white"
+                      }`}
+                      title={`Set mood to ${m.label}`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          {/* Motivational Line Banner */}
-          <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center gap-3 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
-            <Heart className="w-5 h-5 text-purple-300 shrink-0" />
-            <p className="text-xs sm:text-sm font-medium text-purple-200 leading-snug">
-              {narrativeData?.narrative?.motivationalLine ||
-                `Channeling your ${narrativeData?.narrative?.listeningPersona || "Sonic Explorer"} vibe while feeling ${activeMood.label}, let the music fuel your day.`}
-            </p>
-          </div>
+          {narrativeData?.narrative?.motivationalLine && (
+            <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3">
+              <Heart className="w-4 h-4 text-[#1DB954] shrink-0" />
+              <p className="text-xs text-gray-200 font-medium italic leading-relaxed">
+                &ldquo;{narrativeData.narrative.motivationalLine}&rdquo;
+              </p>
+            </div>
+          )}
 
-          {/* OCEAN Mini-Summary Badges */}
           {oceanData?.scores && (
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider mr-1">OCEAN SPECTRUM:</span>
@@ -419,7 +360,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
         </div>
       </GlassCard>
 
-      {/* 🎧 Recommended For You Right Now Section */}
       <GlassCard
         variant="elevated"
         radius="3xl"
@@ -428,7 +368,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
         className="p-6 border-white/18 shadow-[0_20px_45px_-15px_rgba(0,0,0,0.8)]"
       >
         <div className="flex flex-col gap-5">
-          {/* Section Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-[#1DB954]/20 border border-[#1DB954]/40 flex items-center justify-center shadow-[0_0_15px_rgba(29,185,84,0.3)]">
@@ -437,7 +376,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
               <div>
                 <h3 className="text-lg font-bold text-white leading-tight">Recommended For You Right Now</h3>
                 <p className="text-xs text-gray-400">
-                  Seeded by feeling <span className="text-[#1DB954] font-bold">{activeMood.emoji} {activeMood.label}</span> & {oceanData?.dominantCluster || "Reflective & Complex"}
+                  Seeded by feeling <span className="text-[#1DB954] font-bold">{activeMood.label}</span> & {oceanData?.dominantCluster || "Reflective & Complex"}
                 </p>
               </div>
             </div>
@@ -534,7 +473,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
           {/* "More like this" Playlist Generator Button */}
           <div className="pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
             <span className="text-xs text-gray-400 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-[#1DB954]" />
+              <Music2 className="w-4 h-4 text-[#1DB954]" />
               Generate an expanded Spotify mix based on your {activeMood.label} mood & {oceanData?.dominantCluster || "Reflective"} cluster.
             </span>
 
@@ -542,7 +481,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
               variant="primary"
               size="md"
               onClick={handleMoreLikeThis}
-              leftIcon={<Sparkles className="w-4 h-4 text-black" />}
+              leftIcon={<Music2 className="w-4 h-4 text-black" />}
               className="w-full sm:w-auto font-bold text-xs shadow-[0_0_20px_rgba(29,185,84,0.5)] shrink-0"
             >
               {playlistCreated ? "Playlist Mix Opened ✓" : "More like this"}
@@ -611,7 +550,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
                 </div>
 
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-[10px] font-mono text-gray-300">
-                  <Sparkles className="w-3 h-3 text-[#1DB954]" />
+                  <Disc className="w-3 h-3 text-[#1DB954]" />
                   <span>Realtime Spotify Parse</span>
                 </div>
               </div>
