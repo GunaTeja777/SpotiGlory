@@ -24,6 +24,7 @@ import {
   Sun,
   Wind,
   Info,
+  HelpCircle,
 } from "lucide-react";
 
 const MOOD_ICONS: Record<MoodType, React.ReactNode> = {
@@ -137,7 +138,23 @@ export const JamPartnersTab: React.FC = () => {
         </div>
       </GlassCard>
 
-      {/* 2. Top 5 Compatibility Match Cards Grid */}
+      {/* 2. Experimental Model Research Disclaimer Alert */}
+      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-xl text-left flex items-start gap-3 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+        <HelpCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <h4 className="text-xs font-bold text-emerald-200 uppercase tracking-wide flex items-center gap-2">
+            <span>Experimental Similarity Model</span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-[9px] font-mono border border-emerald-500/30 text-emerald-300">
+              DISCLAIMER
+            </span>
+          </h4>
+          <p className="text-xs text-emerald-300/90 mt-1 leading-relaxed">
+            Matches are computed from your Big Five traits, music taste clusters, and current mood — this is an experimental similarity model, not a validated compatibility measurement.
+          </p>
+        </div>
+      </div>
+
+      {/* 3. Top 5 Compatibility Match Cards Grid */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
