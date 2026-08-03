@@ -9,13 +9,16 @@ const SPOTIFY_SCOPES = [
   "user-read-private",
 ].join(" ");
 
+const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || "f139c88faa15496bbd458ee7394fb2dd";
+const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || "062f355d18e84c02933320f77f802e4f";
+
 /**
  * Helper to refresh Spotify access token using the refresh token
  */
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
-    const clientId = process.env.SPOTIFY_CLIENT_ID;
-    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+    const clientId = process.env.SPOTIFY_CLIENT_ID || CLIENT_ID;
+    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET || CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
       throw new Error("Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET environment variables.");
@@ -61,8 +64,8 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 export const authOptions: NextAuthOptions = {
   providers: [
     SpotifyProvider({
-      clientId: process.env.SPOTIFY_CLIENT_ID ?? "",
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET ?? "",
+      clientId: process.env.SPOTIFY_CLIENT_ID || CLIENT_ID,
+      clientSecret: process.env.SPOTIFY_CLIENT_SECRET || CLIENT_SECRET,
       authorization: {
         params: {
           scope: SPOTIFY_SCOPES,
