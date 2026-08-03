@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "description": "Versioned psychometric scoring weights mapping 0..1 normalized features to Big Five OCEAN traits",
+  "weights": {
+    "openness": {
+      "reflectiveComplex": 0.45,
+      "normalizedEntropy": 0.35,
+      "artistLoyaltyInverted": 0.20,
+      "bias": 10
+    },
+    "conscientiousness": {
+      "genreStability": 0.50,
+      "recencyConcentration": 0.30,
+      "artistRepeatLoyalty": 0.20,
+      "bias": 15
+    },
+    "extraversion": {
+      "upbeatConventional": 0.40,
+      "energeticRhythmic": 0.35,
+      "avgPopularityNormalized": 0.25,
+      "bias": 10
+    },
+    "agreeableness": {
+      "upbeatConventional": 0.45,
+      "acousticPopularityBalance": 0.35,
+      "genreStability": 0.20,
+      "bias": 20
+    },
+    "neuroticism": {
+      "nightListenerRatioNormalized": 0.50,
+      "recencyConcentration": 0.30,
+      "entropyImbalance": 0.20,
+      "bias": 5
+    }
+  }
+}

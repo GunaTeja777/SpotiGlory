@@ -68,7 +68,13 @@ export const navItems: NavItemConfig[] = [
   {
     id: "personality",
     label: "Personality Profile",
-    icon: <BrainCircuit className="w-4 h-4 text-purple-400" />,
+    icon: <Sparkles className="w-4 h-4 text-[#1DB954]" />,
+  },
+  {
+    id: "ipip-quiz",
+    label: "IPIP Validation Quiz",
+    icon: <BarChart3 className="w-4 h-4 text-cyan-400" />,
+    href: "/dashboard/quiz",
   },
   {
     id: "upload-history",

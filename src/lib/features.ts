@@ -6,10 +6,14 @@ export interface GenreDistributionItem {
   percentage: number;
 }
 
+export type GenreDiversityState = "NO_DATA" | "SINGLE_GENRE" | "MULTI_GENRE";
+
 export interface GenreDiversityMetric {
   shannonEntropy: number; // Raw Shannon entropy in bits
-  normalizedEntropy: number; // 0..1 scale (H / log2(N))
+  normalizedEntropy: number; // 0..1 scale (H / log2(N)) for N > 1
   uniqueGenreCount: number;
+  state: GenreDiversityState;
+  stateMessage: string;
 }
 
 export interface GenreSpreadMetric {
@@ -57,7 +61,7 @@ export function computeBehavioralFeatures(
   const allArtists = Array.from(artistMap.values());
   const effectiveArtists = allArtists.length > 0 ? allArtists : topArtists;
 
-  // 1. Genre Frequency & Shannon Entropy
+  // 1. Genre Frequency & Shannon Entropy with explicit states (NO_DATA, SINGLE_GENRE, MULTI_GENRE)
   const genreMap: Record<string, number> = {};
   effectiveArtists.forEach((artist) => {
     artist.genres?.forEach((genre) => {
@@ -91,34 +95,41 @@ export function computeBehavioralFeatures(
         genreMap[rule.category] = matches * 2;
       }
     });
-
-    // Guaranteed baseline genre spectrum if Spotify genre array is completely unindexed
-    if (Object.keys(genreMap).length === 0) {
-      genreMap["indie pop"] = 5;
-      genreMap["alternative rock"] = 4;
-      genreMap["electronic"] = 3;
-      genreMap["ambient chill"] = 2;
-    }
   }
 
   const genreEntries = Object.entries(genreMap).sort(([, a], [, b]) => b - a);
   const totalGenreTokens = genreEntries.reduce((sum, [, count]) => sum + count, 0);
   const uniqueGenreCount = genreEntries.length;
 
+  let state: GenreDiversityState = "NO_DATA";
+  let stateMessage = "No listening data available to compute genre diversity";
   let shannonEntropy = 0;
-  if (totalGenreTokens > 0) {
+  let normalizedEntropy = 0;
+
+  if (uniqueGenreCount === 0) {
+    state = "NO_DATA";
+    stateMessage = "No genre data available from active listening history";
+    shannonEntropy = 0;
+    normalizedEntropy = 0;
+  } else if (uniqueGenreCount === 1) {
+    state = "SINGLE_GENRE";
+    stateMessage = "Hyper-focused single genre affinity";
+    shannonEntropy = 0;
+    normalizedEntropy = 0;
+  } else {
+    state = "MULTI_GENRE";
+    stateMessage = "Diverse multi-genre affinity spectrum";
     genreEntries.forEach(([, count]) => {
       const p = count / totalGenreTokens;
       if (p > 0) {
         shannonEntropy -= p * Math.log2(p);
       }
     });
+    const maxPossibleEntropy = Math.log2(uniqueGenreCount);
+    normalizedEntropy = maxPossibleEntropy > 0
+      ? Math.min(1, Math.max(0, shannonEntropy / maxPossibleEntropy))
+      : 0;
   }
-
-  const maxPossibleEntropy = uniqueGenreCount > 1 ? Math.log2(uniqueGenreCount) : 1;
-  const normalizedEntropy = uniqueGenreCount > 1 
-    ? Math.min(1, Math.max(0, shannonEntropy / maxPossibleEntropy))
-    : 0;
 
   // Top 10 Genre Distribution
   const topGenreDistribution: GenreDistributionItem[] = genreEntries.slice(0, 10).map(([genre, count]) => ({
@@ -236,6 +247,8 @@ export function computeBehavioralFeatures(
       shannonEntropy: Number(shannonEntropy.toFixed(3)),
       normalizedEntropy: Number(normalizedEntropy.toFixed(3)),
       uniqueGenreCount,
+      state,
+      stateMessage,
     },
     topGenreDistribution,
     listeningHourDistribution,

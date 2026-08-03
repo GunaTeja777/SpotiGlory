@@ -400,8 +400,11 @@ export const PersonalityTab: React.FC = () => {
               </div>
 
               <div className="pt-3 mt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-400 font-mono">
-                <span>AI Trait Analysis</span>
-                <span className="text-[#1DB954]">Grounded</span>
+                <span className="flex items-center gap-1.5 text-gray-300">
+                  <span className={`w-1.5 h-1.5 rounded-full ${t.confidence === "high" ? "bg-[#1DB954]" : t.confidence === "medium" ? "bg-amber-400" : "bg-red-400"}`} />
+                  {t.confidence ? `${t.confidence.toUpperCase()} CONFIDENCE (${t.reliabilityScore || 80}%)` : "GROUNDED"}
+                </span>
+                <span className="text-purple-300">v1.0.0 Model</span>
               </div>
             </GlassCard>
           );
