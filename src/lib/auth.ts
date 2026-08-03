@@ -69,16 +69,7 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: {
           scope: SPOTIFY_SCOPES,
-          show_dialog: "true",
         },
-      },
-      profile(profile) {
-        return {
-          id: profile.id || profile.email || "spotify_user",
-          name: profile.display_name || profile.id || "Spotify Listener",
-          email: profile.email || `${profile.id || "user"}@spotify.com`,
-          image: profile.images?.[0]?.url || profile.images?.[1]?.url || null,
-        };
       },
     }),
   ],
@@ -89,13 +80,7 @@ export const authOptions: NextAuthOptions = {
     error: "/login",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === "spotify") {
-        if (!account.access_token) {
-          console.error("Spotify signin failed: No access_token returned by Spotify token endpoint.");
-          return false;
-        }
-      }
+    async signIn() {
       return true;
     },
 
