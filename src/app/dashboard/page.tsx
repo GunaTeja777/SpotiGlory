@@ -27,42 +27,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<NavTab>("overview");
   const [showDebugJson, setShowDebugJson] = useState(false);
 
-  // Unauthenticated fallback prompt
-  if (status === "unauthenticated") {
-    return (
-      <main className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-radial from-[#1DB954]/15 to-transparent blur-3xl pointer-events-none" />
-        <GlassCard
-          variant="elevated"
-          radius="3xl"
-          enableRefraction={true}
-          refractionIntensity="intense"
-          className="p-8 max-w-md w-full border-white/20 text-center shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)]"
-        >
-          <div className="w-14 h-14 rounded-full bg-[#1DB954]/20 border border-[#1DB954]/50 flex items-center justify-center mx-auto mb-5 shadow-[0_0_20px_rgba(29,185,84,0.5)]">
-            <SpotifyIcon className="w-8 h-8 text-[#1DB954]" />
-          </div>
-          <h2 className="text-2xl font-black text-white tracking-tight mb-2">
-            Authentication Required
-          </h2>
-          <p className="text-xs text-gray-300 mb-6 leading-relaxed">
-            Connect your Spotify account to access your music personality dashboard, audio DNA, and listening metrics.
-          </p>
-          <Link href="/login">
-            <GlassButton
-              variant="primary"
-              size="lg"
-              leftIcon={<SpotifyIcon className="w-5 h-5 text-black" />}
-              rightIcon={<ArrowRight className="w-4 h-4 text-black" />}
-              className="w-full justify-center font-bold text-sm shadow-[0_0_25px_rgba(29,185,84,0.5)]"
-            >
-              Log in with Spotify
-            </GlassButton>
-          </Link>
-        </GlassCard>
-      </main>
-    );
-  }
+  // Allow unauthenticated users to explore in Demo Mode
 
   const isLoading = status === "loading";
 

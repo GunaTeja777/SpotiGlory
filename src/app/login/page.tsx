@@ -113,17 +113,30 @@ function LoginContent() {
           Sign in securely with Spotify to generate your OCEAN personality radar and listening profile.
         </p>
 
-        {/* Primary CTA Button */}
-        <GlassButton
-          variant="primary"
-          size="lg"
-          isLoading={isLoading}
-          onClick={handleSpotifyLogin}
-          leftIcon={<SpotifyIcon className="w-5 h-5 text-black" />}
-          className="w-full justify-center font-bold text-base shadow-[0_0_25px_0_rgba(29,185,84,0.6)] py-3 mb-6"
-        >
-          Continue with Spotify
-        </GlassButton>
+        {/* Buttons Group */}
+        <div className="flex flex-col gap-3 mb-6">
+          <GlassButton
+            variant="primary"
+            size="lg"
+            isLoading={isLoading}
+            onClick={handleSpotifyLogin}
+            leftIcon={<SpotifyIcon className="w-5 h-5 text-black" />}
+            className="w-full justify-center font-bold text-base shadow-[0_0_25px_0_rgba(29,185,84,0.6)] py-3"
+          >
+            Continue with Spotify
+          </GlassButton>
+
+          <Link href="/dashboard" className="w-full">
+            <GlassButton
+              variant="secondary"
+              size="md"
+              leftIcon={<RefreshCw className="w-4 h-4 text-purple-400" />}
+              className="w-full justify-center font-semibold text-xs border-purple-500/30 text-purple-200 hover:bg-purple-500/10"
+            >
+              Explore Demo Mode (Instant Preview)
+            </GlassButton>
+          </Link>
+        </div>
 
         {/* Privacy Note */}
         <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 mb-6 flex items-start gap-2 text-left">
