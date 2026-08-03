@@ -117,9 +117,10 @@ export function generateFallbackNarrative(
     listeningPersona = "The Methodical Rhythm Strategist";
   }
 
-  const headline = `Driven by ${topGenre.toUpperCase()} and deep ${ocean.openness.label.toLowerCase()} musical curiosity`;
+  const cleanGenre = topGenre.toLowerCase();
+  const headline = `Your library weaves rich ${cleanGenre} soundscapes with artist staples like ${topArtistName}.`;
 
-  const summary = `Your listening habits showcase a strong affinity for ${topGenre} alongside artist staples like ${topArtistName}. With a peak ${timeOfDayDesc} and a ${ocean.openness.label.toLowerCase()} openness score (${ocean.openness.score}/100), your library balances familiar favorites with sonic exploration.`;
+  const summary = `Your listening habits showcase a strong affinity for ${cleanGenre} alongside artist staples like ${topArtistName}. With a peak ${timeOfDayDesc} and a ${ocean.openness.label.toLowerCase()} openness score (${ocean.openness.score}/100), your library balances familiar favorites with sonic exploration.`;
 
   const traits: TraitInsight[] = [
     {
@@ -146,7 +147,7 @@ export function generateFallbackNarrative(
 
   const funFacts = [
     `Peak Activity: Your heaviest streaming pulse occurs during the ${timeOfDayDesc}, anchoring your daily rhythm.`,
-    `Genre Anchor: ${topGenre.toUpperCase()} represents your most frequent genre token, anchoring ${topGenres[0]?.percentage || 30}% of your primary genre distribution.`,
+    `Genre Anchor: ${cleanGenre} represents your most frequent genre focus, anchoring ${topGenres[0]?.percentage || 30}% of your primary genre distribution.`,
     `Taste Dynamics: Your short-term vs long-term genre stability score of ${features.genreSpreadAcrossTimeRanges.stabilityScore} shows steady loyalty to core musical pillars.`,
   ];
 

@@ -84,4 +84,11 @@ describe("Synthetic Evaluation Test Suite for GenAI Narrative Pipeline", () => {
     assert.strictEqual(fallback.traits.length, 5);
     assert.strictEqual(fallback.funFacts.length, 3);
   });
+
+  test("generates fallback narrative without uppercased genre tokens or colliding adjectives", () => {
+    const fallback = generateFallbackNarrative(dummyOcean, dummyFeatures, dummyFeatures.topGenreDistribution, []);
+    assert.strictEqual(fallback.headline.includes("ELECTRONIC"), false);
+    assert.strictEqual(fallback.headline.includes("Driven by"), false);
+    assert.strictEqual(fallback.headline.includes("deep moderate"), false);
+  });
 });

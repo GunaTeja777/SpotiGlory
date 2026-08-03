@@ -14,9 +14,9 @@ import { computeNarrativeGrounding } from "@/lib/narrativeBands";
 import { 
   PROMPT_VERSION, 
   RECOMMENDED_TEMPERATURE, 
-  SYSTEM_PROMPT_V1, 
-  buildUserPromptV1 
-} from "@/prompts/persona_v1.0.0";
+  SYSTEM_PROMPT_V1_1, 
+  buildUserPromptV1_1 
+} from "@/prompts/persona_v1.1.0";
 import { validateNarrativeJson, build1ShotCorrectionPrompt } from "@/lib/narrativeSchema";
 import { generateFallbackNarrative, NarrativeProfile } from "@/lib/narrativePrompt";
 
@@ -76,7 +76,7 @@ export async function GET() {
 
     if (openRouterKey && openRouterKey !== "your_openrouter_api_key_here") {
       modelUsed = "anthropic/claude-3.5-sonnet (via OpenRouter)";
-      const userPrompt = buildUserPromptV1(groundedContext, features, features.topGenreDistribution, topArtists);
+      const userPrompt = buildUserPromptV1_1(groundedContext, features, features.topGenreDistribution, topArtists);
 
       try {
         let apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -92,7 +92,7 @@ export async function GET() {
             temperature: RECOMMENDED_TEMPERATURE,
             max_tokens: 1000,
             messages: [
-              { role: "system", content: SYSTEM_PROMPT_V1 },
+              { role: "system", content: SYSTEM_PROMPT_V1_1 },
               { role: "user", content: userPrompt },
             ],
           }),
@@ -137,7 +137,7 @@ export async function GET() {
                 temperature: 0.1,
                 max_tokens: 1000,
                 messages: [
-                  { role: "system", content: SYSTEM_PROMPT_V1 },
+                  { role: "system", content: SYSTEM_PROMPT_V1_1 },
                   { role: "user", content: userPrompt },
                   { role: "assistant", content: responseText },
                   { role: "user", content: retryPrompt },
