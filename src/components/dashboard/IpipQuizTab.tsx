@@ -231,7 +231,7 @@ export const IpipQuizTab: React.FC = () => {
               </div>
 
               <GlassButton
-                variant="secondary"
+                variant="subtle"
                 size="sm"
                 onClick={() => {
                   setIsCompleted(false);
@@ -284,7 +284,7 @@ export const IpipQuizTab: React.FC = () => {
           </div>
 
           <GlassButton
-            variant="secondary"
+            variant="subtle"
             size="sm"
             onClick={handleTrainRidgeRegression}
             leftIcon={<Layers className="w-3.5 h-3.5" />}
