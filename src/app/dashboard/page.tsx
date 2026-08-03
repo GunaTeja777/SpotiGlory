@@ -17,7 +17,8 @@ import { SpotifyIcon } from "@/components/landing/LandingNav";
 import { 
   Settings, 
   ArrowRight,
-  Terminal
+  Terminal,
+  Sparkles
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -126,6 +127,30 @@ export default function DashboardPage() {
               <h3 className="text-lg font-bold text-white">App & Session Settings</h3>
             </div>
             <div className="flex flex-col gap-4 text-xs text-gray-300">
+              {/* Optional IPIP Validation Quiz Link */}
+              <Link
+                href="/dashboard/quiz"
+                className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 hover:border-purple-500/60 hover:bg-purple-500/20 transition-all flex justify-between items-center group cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Sparkles className="w-4 h-4 text-purple-300" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white group-hover:text-purple-200 transition-colors">
+                      Help improve accuracy (optional, 2 min)
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      Take the 10-item Mini-IPIP quiz to validate Spotify scores and train Ridge Regression weights
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-mono text-purple-300 font-bold group-hover:translate-x-1 transition-transform">
+                  <span>Take Quiz</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
+              </Link>
+
               <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex justify-between items-center">
                 <div>
                   <p className="font-bold text-white">Theme & Glass Specular Intensity</p>

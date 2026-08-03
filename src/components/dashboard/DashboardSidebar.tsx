@@ -81,12 +81,6 @@ export const navItems: NavItemConfig[] = [
     icon: <Sparkles className="w-4 h-4 text-[#1DB954]" />,
   },
   {
-    id: "ipip-quiz",
-    label: "IPIP Validation Quiz",
-    icon: <BarChart3 className="w-4 h-4 text-cyan-400" />,
-    href: "/dashboard/quiz",
-  },
-  {
     id: "upload-history",
     label: "Upload Deep History",
     icon: <UploadCloud className="w-4 h-4 text-cyan-400" />,
