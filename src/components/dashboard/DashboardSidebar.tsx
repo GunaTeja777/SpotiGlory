@@ -14,7 +14,8 @@ import {
   Settings, 
   Lock,
   Sparkles,
-  BarChart3
+  BarChart3,
+  Users
 } from "lucide-react";
 
 export type NavTab = 
@@ -25,6 +26,7 @@ export type NavTab =
   | "debug-features"
   | "model-diff"
   | "personality" 
+  | "jam-partners"
   | "ipip-quiz"
   | "upload-history" 
   | "settings";
@@ -79,6 +81,12 @@ export const navItems: NavItemConfig[] = [
     id: "personality",
     label: "Personality Profile",
     icon: <Sparkles className="w-4 h-4 text-[#1DB954]" />,
+  },
+  {
+    id: "jam-partners",
+    label: "Jam Partners",
+    icon: <Users className="w-4 h-4 text-emerald-400" />,
+    href: "/dashboard/jam-partners",
   },
   {
     id: "upload-history",
