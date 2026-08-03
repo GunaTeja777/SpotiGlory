@@ -9,6 +9,7 @@ import {
   UserCheck, 
   Clock, 
   BrainCircuit, 
+  GitCompare,
   UploadCloud, 
   Settings, 
   Lock,
@@ -22,6 +23,7 @@ export type NavTab =
   | "top-artists" 
   | "listening-patterns" 
   | "debug-features"
+  | "model-diff"
   | "personality" 
   | "ipip-quiz"
   | "upload-history" 
@@ -66,6 +68,12 @@ export const navItems: NavItemConfig[] = [
     label: "Debug Features",
     icon: <BrainCircuit className="w-4 h-4 text-purple-400" />,
     href: "/dashboard/debug-features",
+  },
+  {
+    id: "model-diff",
+    label: "Model Diff",
+    icon: <GitCompare className="w-4 h-4 text-purple-400" />,
+    href: "/dashboard/model-diff",
   },
   {
     id: "personality",

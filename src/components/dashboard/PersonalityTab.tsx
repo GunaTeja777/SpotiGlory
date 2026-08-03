@@ -13,7 +13,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { NarrativeLoading } from "./NarrativeLoading";
 import { ModelAccuracyChart } from "./ModelAccuracyChart";
-import { OceanScoresResult } from "@/lib/oceanScoring";
+import { OceanScoresResult, explainTraitScore } from "@/lib/oceanScoring";
 import { ClusterDistribution } from "@/lib/genreClusters";
 import { NarrativeProfile } from "@/lib/narrativePrompt";
 import { saveTraitFeedbackSample, FeedbackRating, getTraitFeedbackSamples } from "@/lib/feedbackStore";
@@ -47,11 +47,17 @@ export const PersonalityTab: React.FC = () => {
       modelUsed: string;
     };
     user?: { name: string };
+    features?: any;
   } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
   const [submittedRatings, setSubmittedRatings] = useState<Record<string, FeedbackRating>>({});
+  const [expandedDrawers, setExpandedDrawers] = useState<Record<string, boolean>>({});
+
+  const toggleDrawer = (traitKey: string) => {
+    setExpandedDrawers((prev) => ({ ...prev, [traitKey]: !prev[traitKey] }));
+  };
 
   useEffect(() => {
     const existing = getTraitFeedbackSamples();
@@ -409,6 +415,15 @@ export const PersonalityTab: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {traitList.map((item) => {
           const t = item.data;
+          const contributions = data
+            ? explainTraitScore(item.key, data.features || {}, data.clusters)
+            : [];
+          const topDriverSummary = contributions.length >= 2
+            ? `driven ${contributions[0].percentage}% by ${contributions[0].featureName}, ${contributions[1].percentage}% by ${contributions[1].featureName}`
+            : contributions.length === 1
+            ? `driven ${contributions[0].percentage}% by ${contributions[0].featureName}`
+            : "";
+
           return (
             <GlassCard
               key={t.trait}
@@ -444,6 +459,60 @@ export const PersonalityTab: React.FC = () => {
                 <p className="text-xs text-gray-300 leading-relaxed">
                   {item.insight}
                 </p>
+
+                {/* Expandable "Why this score?" Drawer */}
+                <div className="mt-3 pt-3 border-t border-white/10 flex flex-col gap-2">
+                  <button
+                    onClick={() => toggleDrawer(item.key)}
+                    className="flex items-center justify-between text-xs font-mono text-purple-300 hover:text-white transition-colors"
+                  >
+                    <span className="flex items-center gap-1.5 font-bold">
+                      <HelpCircle className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Why this score?</span>
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-normal">
+                      {expandedDrawers[item.key] ? "Hide Breakdown ▲" : "Show Drivers ▼"}
+                    </span>
+                  </button>
+
+                  {/* Ranked Driver Summary Line */}
+                  {topDriverSummary && (
+                    <p className="text-[11px] text-gray-300 font-mono leading-tight">
+                      <span className="font-bold text-white">{t.trait} ({t.score}/100)</span> — {topDriverSummary}
+                    </p>
+                  )}
+
+                  {expandedDrawers[item.key] && contributions.length > 0 && (
+                    <div className="mt-2 p-3 rounded-2xl bg-black/60 border border-white/10 flex flex-col gap-2.5">
+                      {/* Horizontal Stacked Bar */}
+                      <div className="w-full h-2.5 rounded-full bg-white/10 overflow-hidden flex">
+                        {contributions.map((c, i) => (
+                          <div
+                            key={i}
+                            className={`h-full ${
+                              i === 0 ? "bg-cyan-400" : i === 1 ? "bg-purple-400" : "bg-[#1DB954]"
+                            }`}
+                            style={{ width: `${c.percentage}%` }}
+                            title={`${c.featureName}: ${c.percentage}%`}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Ranked Feature List */}
+                      <div className="flex flex-col gap-1.5">
+                        {contributions.map((c, i) => (
+                          <div key={i} className="flex items-center justify-between text-[11px] font-mono">
+                            <span className="flex items-center gap-1.5 text-gray-300">
+                              <span className={`w-2 h-2 rounded-full ${i === 0 ? "bg-cyan-400" : i === 1 ? "bg-purple-400" : "bg-[#1DB954]"}`} />
+                              {c.featureName}
+                            </span>
+                            <span className="font-bold text-white">{c.percentage}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Liquid-Glass Feedback Row */}
                 <div className="mt-4 pt-3 border-t border-white/10 flex flex-col gap-2">

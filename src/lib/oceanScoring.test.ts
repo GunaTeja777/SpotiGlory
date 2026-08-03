@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { test, describe } from "node:test";
-import { computeOceanScores } from "./oceanScoring";
+import { computeOceanScores, explainTraitScore } from "./oceanScoring";
 import { BehavioralFeatures } from "./features";
 import { ClusterDistribution } from "./genreClusters";
 
@@ -42,7 +42,6 @@ describe("Big Five (OCEAN) Personality Scoring Engine", () => {
 
   test("boosts Openness score when Reflective/Complex cluster and genre entropy are high", () => {
     const res = computeOceanScores(mockFeatures, mockClusterDist);
-    // High entropy (0.8) and high reflective (60%) should yield high openness
     assert.strictEqual(res.openness.score >= 60, true);
     assert.strictEqual(res.openness.label, "High");
   });
@@ -51,5 +50,15 @@ describe("Big Five (OCEAN) Personality Scoring Engine", () => {
     const res = computeOceanScores(mockFeatures, mockClusterDist);
     assert.ok(res.disclaimer.includes("Rentfrow & Gosling"));
     assert.ok(res.disclaimer.includes("experimental estimate"));
+  });
+
+  test("explainTraitScore returns feature contributions that sum to exactly 100%", () => {
+    const traits = ["openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"] as const;
+    traits.forEach((t) => {
+      const contributions = explainTraitScore(t, mockFeatures, mockClusterDist);
+      assert.ok(contributions.length > 0);
+      const totalPct = contributions.reduce((sum, c) => sum + c.percentage, 0);
+      assert.strictEqual(totalPct, 100);
+    });
   });
 });
