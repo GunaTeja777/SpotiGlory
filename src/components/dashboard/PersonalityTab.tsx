@@ -12,6 +12,7 @@ import {
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { NarrativeLoading } from "./NarrativeLoading";
+import { ModelAccuracyChart } from "./ModelAccuracyChart";
 import { OceanScoresResult } from "@/lib/oceanScoring";
 import { ClusterDistribution } from "@/lib/genreClusters";
 import { NarrativeProfile } from "@/lib/narrativePrompt";
@@ -401,7 +402,10 @@ export const PersonalityTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. 5 OCEAN Trait Cards Matrix with Claude Insights */}
+      {/* 4. Model Accuracy Over Time Recharts Line Chart */}
+      <ModelAccuracyChart />
+
+      {/* 5. 5 OCEAN Trait Cards Matrix with Claude Insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {traitList.map((item) => {
           const t = item.data;

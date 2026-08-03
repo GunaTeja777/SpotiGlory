@@ -11,6 +11,7 @@ import {
   SelfReportedOceanScores 
 } from "@/lib/ipipQuiz";
 import { fitRidgeRegression, RidgeRegressionModel } from "@/lib/ridgeRegression";
+import { ModelAccuracyChart } from "./ModelAccuracyChart";
 import { 
   BrainCircuit, 
   Sparkles, 
@@ -339,6 +340,9 @@ export const IpipQuizTab: React.FC = () => {
           </div>
         )}
       </GlassCard>
+
+      {/* Model Accuracy Over Time Recharts Chart */}
+      <ModelAccuracyChart />
     </div>
   );
 };
