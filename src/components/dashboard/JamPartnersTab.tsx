@@ -186,26 +186,14 @@ export const JamPartnersTab: React.FC = () => {
               People with similar taste and current vibe — calculated in real time using multi-vector cosine similarity across your OCEAN personality spectrum, genre clusters, and active mood.
             </p>
 
-            {/* Mood Selector Switcher */}
-            <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-white/10">
-              <span className="text-xs text-gray-400 font-medium mr-1">Your Vibe Seed:</span>
-              {MOOD_OPTIONS.map((mood) => {
-                const isActive = activeMood === mood;
-                return (
-                  <button
-                    key={mood}
-                    onClick={() => setActiveMood(mood)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                      isActive
-                        ? "bg-[#1DB954] text-black shadow-[0_0_15px_rgba(29,185,84,0.6)] font-bold scale-105"
-                        : "bg-white/[0.06] hover:bg-white/[0.12] text-gray-300 border border-white/10"
-                    }`}
-                  >
-                    {MOOD_ICONS[mood]}
-                    <span>{mood}</span>
-                  </button>
-                );
-              })}
+            {/* Automatic Recent Songs Vibe Indicator */}
+            <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-white/10 text-xs font-mono">
+              <span className="text-gray-400 font-medium">ACTIVE VIBE:</span>
+              <div className="px-3 py-1.5 rounded-full bg-[#1DB954]/20 border border-[#1DB954]/40 text-[#1DB954] font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(29,185,84,0.3)]">
+                {MOOD_ICONS[activeMood]}
+                <span>Feeling: {activeMood}</span>
+                <span className="text-[10px] text-gray-400 font-normal lowercase">(Auto-Inferred from Recent Songs)</span>
+              </div>
             </div>
           </div>
 

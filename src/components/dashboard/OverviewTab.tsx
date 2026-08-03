@@ -177,13 +177,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
     window.open(searchUrl, "_blank");
   };
 
-  const handleMoodOverride = (label: string) => {
-    setActiveMood({ label });
-    setMoodOverridden(true);
-    const inferred = featuresData?.inferredMood?.label || "Reflective";
-    saveMoodFeedbackSample(inferred, label, label);
-  };
-
   const isLoading = propIsLoading || dataLoading;
 
   const statCards = [
@@ -293,37 +286,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
             </div>
 
             <div className="w-full md:w-auto p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col gap-2 shrink-0">
-              <div className="flex items-center justify-between gap-3 text-xs font-mono">
-                <span className="text-gray-400">CURRENT MOOD:</span>
-                <span className="text-[#1DB954] font-bold flex items-center gap-1.5">
-                  {(() => {
-                    const CurrentIcon = MOOD_CONFIG.find((m) => m.label === activeMood.label)?.icon || Moon;
-                    return <CurrentIcon className="w-4 h-4 text-[#1DB954]" />;
-                  })()}
-                  <span>Feeling: {activeMood.label}</span>
-                  {moodOverridden && <span className="text-[10px] text-purple-300">(User Set ✓)</span>}
+              <div className="flex items-center justify-between gap-3 text-[11px] font-mono">
+                <span className="text-gray-400 uppercase">CURRENT MOOD:</span>
+                <span className="px-2 py-0.5 rounded-full bg-[#1DB954]/15 text-[#1DB954] font-bold border border-[#1DB954]/30 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1DB954] animate-pulse" />
+                  <span>Auto-Inferred from Recent Songs</span>
                 </span>
               </div>
 
-              <div className="flex items-center justify-between gap-1.5 pt-1">
-                {MOOD_CONFIG.map((m) => {
-                  const Icon = m.icon;
-                  const isActive = activeMood.label === m.label;
-                  return (
-                    <button
-                      key={m.label}
-                      onClick={() => handleMoodOverride(m.label)}
-                      className={`p-2.5 rounded-xl border flex items-center justify-center transition-all ${
-                        isActive
-                          ? "bg-[#1DB954]/25 border-[#1DB954] text-[#1DB954] scale-105 shadow-[0_0_12px_rgba(29,185,84,0.4)]"
-                          : "bg-white/[0.04] border-white/10 text-gray-400 hover:bg-white/[0.1] hover:border-white/20 hover:text-white"
-                      }`}
-                      title={`Set mood to ${m.label}`}
-                    >
-                      <Icon className="w-4 h-4" />
-                    </button>
-                  );
-                })}
+              <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 flex items-center gap-2.5 text-sm font-bold text-white">
+                {(() => {
+                  const CurrentIcon = MOOD_CONFIG.find((m) => m.label === activeMood.label)?.icon || Moon;
+                  return <CurrentIcon className="w-4 h-4 text-[#1DB954]" />;
+                })()}
+                <span>Feeling: {featuresData?.inferredMood?.label || activeMood.label}</span>
               </div>
             </div>
           </div>
