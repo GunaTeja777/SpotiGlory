@@ -15,6 +15,7 @@ import { NarrativeLoading } from "./NarrativeLoading";
 import { OceanScoresResult } from "@/lib/oceanScoring";
 import { ClusterDistribution } from "@/lib/genreClusters";
 import { NarrativeProfile } from "@/lib/narrativePrompt";
+import { saveTraitFeedbackSample, FeedbackRating, getTraitFeedbackSamples } from "@/lib/feedbackStore";
 import { 
   BrainCircuit, 
   Sparkles, 
@@ -49,6 +50,25 @@ export const PersonalityTab: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [submittedRatings, setSubmittedRatings] = useState<Record<string, FeedbackRating>>({});
+
+  useEffect(() => {
+    const existing = getTraitFeedbackSamples();
+    const map: Record<string, FeedbackRating> = {};
+    existing.forEach((s) => {
+      map[s.trait] = s.rating;
+    });
+    setSubmittedRatings(map);
+  }, []);
+
+  const handleFeedback = (
+    traitKey: "openness" | "conscientiousness" | "extraversion" | "agreeableness" | "neuroticism",
+    score: number,
+    rating: FeedbackRating
+  ) => {
+    saveTraitFeedbackSample(traitKey, score, rating);
+    setSubmittedRatings((prev) => ({ ...prev, [traitKey]: rating }));
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -125,6 +145,7 @@ export const PersonalityTab: React.FC = () => {
 
   const traitList = [
     {
+      key: "openness" as const,
       data: ocean.openness,
       insight: getInsightForTrait("Openness", ocean.openness.description),
       icon: <Compass className="w-5 h-5 text-cyan-400" />,
@@ -132,6 +153,7 @@ export const PersonalityTab: React.FC = () => {
       barColor: "bg-cyan-400",
     },
     {
+      key: "conscientiousness" as const,
       data: ocean.conscientiousness,
       insight: getInsightForTrait("Conscientiousness", ocean.conscientiousness.description),
       icon: <CheckCircle2 className="w-5 h-5 text-purple-400" />,
@@ -139,6 +161,7 @@ export const PersonalityTab: React.FC = () => {
       barColor: "bg-purple-400",
     },
     {
+      key: "extraversion" as const,
       data: ocean.extraversion,
       insight: getInsightForTrait("Extraversion", ocean.extraversion.description),
       icon: <Zap className="w-5 h-5 text-[#1DB954]" />,
@@ -146,6 +169,7 @@ export const PersonalityTab: React.FC = () => {
       barColor: "bg-[#1DB954]",
     },
     {
+      key: "agreeableness" as const,
       data: ocean.agreeableness,
       insight: getInsightForTrait("Agreeableness", ocean.agreeableness.description),
       icon: <Heart className="w-5 h-5 text-pink-400" />,
@@ -153,6 +177,7 @@ export const PersonalityTab: React.FC = () => {
       barColor: "bg-pink-400",
     },
     {
+      key: "neuroticism" as const,
       data: ocean.neuroticism,
       insight: getInsightForTrait("Neuroticism", ocean.neuroticism.description),
       icon: <Activity className="w-5 h-5 text-amber-400" />,
@@ -415,6 +440,53 @@ export const PersonalityTab: React.FC = () => {
                 <p className="text-xs text-gray-300 leading-relaxed">
                   {item.insight}
                 </p>
+
+                {/* Liquid-Glass Feedback Row */}
+                <div className="mt-4 pt-3 border-t border-white/10 flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-[10px] font-mono text-gray-400">
+                    <span className="uppercase tracking-wider">Rating Feedback</span>
+                    {submittedRatings[item.key] && (
+                      <span className="text-[#1DB954] font-bold">Feedback Recorded ✓</span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      onClick={() => handleFeedback(item.key, t.score, "accurate")}
+                      className={`px-2 py-1.5 rounded-xl border text-[11px] font-mono transition-all flex items-center justify-center gap-1 ${
+                        submittedRatings[item.key] === "accurate"
+                          ? "bg-[#1DB954]/25 border-[#1DB954] text-white font-bold"
+                          : "bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:border-white/20"
+                      }`}
+                    >
+                      <span>Accurate</span>
+                      <span>👍</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleFeedback(item.key, t.score, "somewhat")}
+                      className={`px-2 py-1.5 rounded-xl border text-[11px] font-mono transition-all flex items-center justify-center gap-1 ${
+                        submittedRatings[item.key] === "somewhat"
+                          ? "bg-amber-500/25 border-amber-500 text-white font-bold"
+                          : "bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:border-white/20"
+                      }`}
+                    >
+                      <span>Somewhat</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleFeedback(item.key, t.score, "not_accurate")}
+                      className={`px-2 py-1.5 rounded-xl border text-[11px] font-mono transition-all flex items-center justify-center gap-1 ${
+                        submittedRatings[item.key] === "not_accurate"
+                          ? "bg-red-500/25 border-red-500 text-white font-bold"
+                          : "bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:border-white/20"
+                      }`}
+                    >
+                      <span>Not accurate</span>
+                      <span>👎</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="pt-3 mt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-400 font-mono">
