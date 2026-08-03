@@ -66,12 +66,20 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: {
           scope: SPOTIFY_SCOPES,
-          show_dialog: true,
+          show_dialog: "true",
         },
+      },
+      profile(profile) {
+        return {
+          id: profile.id || profile.email || "spotify_user",
+          name: profile.display_name || profile.id || "Spotify Listener",
+          email: profile.email || `${profile.id || "user"}@spotify.com`,
+          image: profile.images?.[0]?.url || profile.images?.[1]?.url || null,
+        };
       },
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "7VzK9pX3mWq2L8yR1tN4bF0vC5xJ6zQ8sA3uP9dE2gY=",
   debug: process.env.NODE_ENV === "development",
   pages: {
     signIn: "/login",
