@@ -54,6 +54,7 @@ export function validateNarrativeJson(obj: any): ValidationResult {
       listeningPersona: obj.listeningPersona.trim(),
       headline: obj.headline.trim(),
       summary: obj.summary.trim(),
+      motivationalLine: typeof obj.motivationalLine === "string" ? obj.motivationalLine.trim() : undefined,
       traits: obj.traits.map((t: any) => ({
         trait: String(t.trait).trim(),
         label: String(t.label || "").trim(),

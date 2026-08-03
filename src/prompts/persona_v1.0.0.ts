@@ -21,6 +21,7 @@ CRITICAL CONSTRAINTS:
   "listeningPersona": "Short 2-4 word evocative title (e.g. 'The Nocturnal Alchemist')",
   "headline": "Punchy 6-12 word headline summarizing their sonic mind",
   "summary": "Rich 2-3 sentence paragraph capturing their listening identity",
+  "motivationalLine": "One short specific sentence combining persona title + current mood + real top artist name",
   "traits": [
     { "trait": "Openness", "label": "Exact Label Provided", "insight": "2 sentence insight" },
     { "trait": "Conscientiousness", "label": "Exact Label Provided", "insight": "2 sentence insight" },

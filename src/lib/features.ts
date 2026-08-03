@@ -23,6 +23,13 @@ export interface GenreSpreadMetric {
   overlapCount: number;
 }
 
+export interface InferredMood {
+  label: string;
+  emoji: string;
+  valenceEstimate: number;
+  energyEstimate: number;
+}
+
 export interface BehavioralFeatures {
   genreDiversity: GenreDiversityMetric;
   topGenreDistribution: GenreDistributionItem[];
@@ -34,6 +41,7 @@ export interface BehavioralFeatures {
   avgArtistPopularity: number; // Mean popularity (0..100)
   genreSpreadAcrossTimeRanges: GenreSpreadMetric;
   recencyConcentration: number; // Ratio 0..1 of recently-played tracks present in top tracks
+  inferredMood: InferredMood;
 }
 
 /**
@@ -242,6 +250,27 @@ export function computeBehavioralFeatures(
     ? Number((recentInTopCount / totalRecentCount).toFixed(3))
     : 0;
 
+  // 7. Inferred Mood (Valence & Energy Estimation from stream features)
+  const energyEstimate = Math.round(avgArtistPopularity * 0.5 + (100 - nightListenerRatio) * 0.5);
+  const valenceEstimate = Math.round((normalizedEntropy * 50) + (100 - (artistLoyalty * 50)));
+
+  let moodLabel = "Harmonious & Focused";
+  let moodEmoji = "🎧";
+
+  if (energyEstimate > 60 && valenceEstimate > 60) {
+    moodLabel = "Energized & Vibrant";
+    moodEmoji = "⚡";
+  } else if (energyEstimate > 60 && valenceEstimate <= 60) {
+    moodLabel = "Fiery & Intense";
+    moodEmoji = "🔥";
+  } else if (energyEstimate <= 60 && nightListenerRatio > 30) {
+    moodLabel = "Reflective & Nocturnal";
+    moodEmoji = "🌙";
+  } else if (valenceEstimate > 60) {
+    moodLabel = "Upbeat & Melodic";
+    moodEmoji = "✨";
+  }
+
   return {
     genreDiversity: {
       shannonEntropy: Number(shannonEntropy.toFixed(3)),
@@ -264,5 +293,11 @@ export function computeBehavioralFeatures(
       overlapCount,
     },
     recencyConcentration,
+    inferredMood: {
+      label: moodLabel,
+      emoji: moodEmoji,
+      valenceEstimate,
+      energyEstimate,
+    },
   };
 }

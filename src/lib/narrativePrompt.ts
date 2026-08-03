@@ -11,6 +11,7 @@ export interface NarrativeProfile {
   headline: string;
   summary: string; // 2-3 sentences
   listeningPersona: string; // Evocative title like "The Nocturnal Explorer"
+  motivationalLine?: string; // Short sentence combining persona + mood + real top artist
   traits: TraitInsight[];
   funFacts: string[]; // 2-3 specific data-driven observations
 }
@@ -149,10 +150,14 @@ export function generateFallbackNarrative(
     `Taste Dynamics: Your short-term vs long-term genre stability score of ${features.genreSpreadAcrossTimeRanges.stabilityScore} shows steady loyalty to core musical pillars.`,
   ];
 
+  const currentMood = features.inferredMood?.label || "Reflective";
+  const motivationalLine = `Channeling your ${listeningPersona} vibe while feeling ${currentMood}, let the deep resonance of ${topArtistName} fuel your day.`;
+
   return {
     headline,
     summary,
     listeningPersona,
+    motivationalLine,
     traits,
     funFacts,
   };

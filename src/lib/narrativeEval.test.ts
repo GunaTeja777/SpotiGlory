@@ -29,6 +29,7 @@ describe("Synthetic Evaluation Test Suite for GenAI Narrative Pipeline", () => {
     avgArtistPopularity: 48,
     genreSpreadAcrossTimeRanges: { stabilityScore: 0.65, shortTermGenreCount: 5, longTermGenreCount: 8, overlapCount: 4 },
     recencyConcentration: 0.35,
+    inferredMood: { label: "Reflective & Nocturnal", emoji: "🌙", valenceEstimate: 50, energyEstimate: 40 },
   };
 
   test("computes qualitative grounding context without errors", () => {
@@ -79,6 +80,7 @@ describe("Synthetic Evaluation Test Suite for GenAI Narrative Pipeline", () => {
     const fallback = generateFallbackNarrative(dummyOcean, dummyFeatures, dummyFeatures.topGenreDistribution, []);
     assert.ok(fallback.listeningPersona);
     assert.ok(fallback.headline);
+    assert.ok(fallback.motivationalLine);
     assert.strictEqual(fallback.traits.length, 5);
     assert.strictEqual(fallback.funFacts.length, 3);
   });

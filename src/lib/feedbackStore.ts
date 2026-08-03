@@ -124,3 +124,44 @@ function mirrorToIpipPairedSamples(feedback: TraitFeedbackSample) {
     // Ignore
   }
 }
+
+export interface MoodFeedbackSample {
+  id: string;
+  timestamp: string;
+  inferredMood: string;
+  selectedMood: string;
+  emoji: string;
+}
+
+export const MOOD_STORAGE_KEY = "spotiglory_mood_feedback_samples";
+
+export function saveMoodFeedbackSample(inferredMood: string, selectedMood: string, emoji: string): MoodFeedbackSample {
+  const sample: MoodFeedbackSample = {
+    id: `mood_${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    inferredMood,
+    selectedMood,
+    emoji,
+  };
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      const existing = getMoodFeedbackSamples();
+      localStorage.setItem(MOOD_STORAGE_KEY, JSON.stringify([...existing, sample]));
+    } catch (e) {
+      // Ignore
+    }
+  }
+  return sample;
+}
+
+export function getMoodFeedbackSamples(): MoodFeedbackSample[] {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return [];
+  }
+  try {
+    const raw = localStorage.getItem(MOOD_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}

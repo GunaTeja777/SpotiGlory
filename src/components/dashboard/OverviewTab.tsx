@@ -1,9 +1,9 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassSkeleton } from "./GlassSkeleton";
 import { SpotifyArtist, SpotifyTrack, SpotifyPlayHistory } from "@/lib/spotify";
+import { BehavioralFeatures } from "@/lib/features";
+import { saveMoodFeedbackSample } from "@/lib/feedbackStore";
 import { 
   Disc, 
   BarChart2, 
@@ -13,7 +13,9 @@ import {
   PieChart, 
   Calendar,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Heart,
+  BrainCircuit
 } from "lucide-react";
 
 export interface OverviewTabProps {
@@ -24,6 +26,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
   const [topArtists, setTopArtists] = useState<SpotifyArtist[]>([]);
   const [topTracks, setTopTracks] = useState<SpotifyTrack[]>([]);
   const [recentlyPlayed, setRecentlyPlayed] = useState<SpotifyPlayHistory[]>([]);
+  const [narrativeData, setNarrativeData] = useState<any>(null);
+  const [oceanData, setOceanData] = useState<any>(null);
+  const [featuresData, setFeaturesData] = useState<BehavioralFeatures | null>(null);
+  const [activeMood, setActiveMood] = useState<{ label: string; emoji: string }>({
+    label: "Reflective",
+    emoji: "🌙",
+  });
+  const [moodOverridden, setMoodOverridden] = useState<boolean>(false);
   const [dataLoading, setDataLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,12 +43,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
       setDataLoading(true);
       setError(null);
       try {
-        const [artistsRes, shortArtistsRes, longArtistsRes, tracksRes, recentRes] = await Promise.all([
+        const [artistsRes, shortArtistsRes, longArtistsRes, tracksRes, recentRes, oceanRes, narrativeRes, featuresRes] = await Promise.all([
           fetch("/api/spotify/top-artists?time_range=medium_term&limit=20"),
           fetch("/api/spotify/top-artists?time_range=short_term&limit=20"),
           fetch("/api/spotify/top-artists?time_range=long_term&limit=20"),
           fetch("/api/spotify/top-tracks?time_range=medium_term&limit=20"),
           fetch("/api/spotify/recently-played?limit=50"),
+          fetch("/api/analysis/ocean"),
+          fetch("/api/analysis/narrative"),
+          fetch("/api/analysis/features"),
         ]);
 
         const artistsData = artistsRes.ok ? await artistsRes.json() : { items: [] };
@@ -46,6 +59,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
         const longData = longArtistsRes.ok ? await longArtistsRes.json() : { items: [] };
         const tracksData = tracksRes.ok ? await tracksRes.json() : { items: [] };
         const recentData = recentRes.ok ? await recentRes.json() : { items: [] };
+        const oceanParsed = oceanRes.ok ? await oceanRes.json() : null;
+        const narrativeParsed = narrativeRes.ok ? await narrativeRes.json() : null;
+        const featuresParsed = featuresRes.ok ? await featuresRes.json() : null;
 
         // Combine all unique artists across time ranges to maximize genre coverage
         const artistMap = new Map<string, SpotifyArtist>();
@@ -59,6 +75,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
           setTopArtists(Array.from(artistMap.values()));
           setTopTracks(tracksData.items || []);
           setRecentlyPlayed(recentData.items || []);
+          setOceanData(oceanParsed);
+          setNarrativeData(narrativeParsed);
+          setFeaturesData(featuresParsed?.features || null);
+
+          if (featuresParsed?.features?.inferredMood) {
+            setActiveMood({
+              label: featuresParsed.features.inferredMood.label.split(" ")[0] || "Reflective",
+              emoji: featuresParsed.features.inferredMood.emoji || "🌙",
+            });
+          }
         }
       } catch (err: any) {
         if (isMounted) {
@@ -77,11 +103,25 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
     };
   }, []);
 
+  const handleMoodOverride = (label: string, emoji: string) => {
+    setActiveMood({ label, emoji });
+    setMoodOverridden(true);
+    const inferred = featuresData?.inferredMood?.label || "Reflective";
+    saveMoodFeedbackSample(inferred, label, emoji);
+  };
+
   const isLoading = propIsLoading || dataLoading;
 
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
+        {/* Hero Skeleton */}
+        <div className="p-8 rounded-3xl bg-white/[0.05] border border-white/10 flex flex-col gap-4">
+          <GlassSkeleton className="w-48 h-6 rounded-lg" />
+          <GlassSkeleton className="w-3/4 h-8 rounded-xl" />
+          <GlassSkeleton className="w-full h-16 rounded-xl" />
+        </div>
+
         {/* Stat Cards Skeleton Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[1, 2, 3, 4].map((n) => (
@@ -213,6 +253,104 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
           <span>{error}</span>
         </div>
       )}
+
+      {/* 🌟 Overview Hero Section */}
+      <GlassCard
+        variant="elevated"
+        radius="3xl"
+        enableRefraction={true}
+        refractionIntensity="intense"
+        className="p-6 sm:p-8 border-purple-500/30 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_50px_rgba(168,85,247,0.2)] relative overflow-hidden"
+      >
+        {/* Glow Element */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col gap-6">
+          {/* Header Row: Persona Title + Inferred Mood Control */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-5">
+            <div className="flex-1">
+              {/* Persona Title */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-mono font-bold tracking-wider uppercase mb-2 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+                <span>{narrativeData?.narrative?.listeningPersona || "The Sonic Explorer"}</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">
+                {narrativeData?.narrative?.headline || "Your Psychometric Overview"}
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-3xl mt-1.5">
+                {narrativeData?.narrative?.summary || "Analyzing streaming patterns and psychometric personality spectrum."}
+              </p>
+            </div>
+
+            {/* Mood Control Box */}
+            <div className="w-full md:w-auto p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col gap-2 shrink-0">
+              <div className="flex items-center justify-between gap-3 text-xs font-mono">
+                <span className="text-gray-400">CURRENT MOOD:</span>
+                <span className="text-[#1DB954] font-bold flex items-center gap-1.5">
+                  <span>{activeMood.emoji}</span>
+                  <span>Feeling: {activeMood.label}</span>
+                  {moodOverridden && <span className="text-[10px] text-purple-300">(User Set ✓)</span>}
+                </span>
+              </div>
+
+              {/* Tappable Emoji Options */}
+              <div className="flex items-center justify-between gap-1.5 pt-1">
+                {[
+                  { label: "Reflective", emoji: "🌙" },
+                  { label: "Energized", emoji: "⚡" },
+                  { label: "Fiery", emoji: "🔥" },
+                  { label: "Upbeat", emoji: "✨" },
+                  { label: "Calm", emoji: "🧘" },
+                ].map((m) => (
+                  <button
+                    key={m.label}
+                    onClick={() => handleMoodOverride(m.label, m.emoji)}
+                    className={`p-2 rounded-xl border text-base transition-all ${
+                      activeMood.label === m.label
+                        ? "bg-[#1DB954]/30 border-[#1DB954] scale-110 shadow-[0_0_12px_rgba(29,185,84,0.5)] font-bold"
+                        : "bg-white/[0.04] border-white/10 hover:bg-white/[0.1] hover:border-white/20"
+                    }`}
+                    title={`Set mood to ${m.label}`}
+                  >
+                    {m.emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Motivational Line Banner */}
+          <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center gap-3 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+            <Heart className="w-5 h-5 text-purple-300 shrink-0" />
+            <p className="text-xs sm:text-sm font-medium text-purple-200 leading-snug">
+              {narrativeData?.narrative?.motivationalLine ||
+                `Channeling your ${narrativeData?.narrative?.listeningPersona || "Sonic Explorer"} vibe while feeling ${activeMood.label}, let the music fuel your day.`}
+            </p>
+          </div>
+
+          {/* OCEAN Mini-Summary Badges */}
+          {oceanData?.scores && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider mr-1">OCEAN SPECTRUM:</span>
+              {[
+                { name: "Openness", val: oceanData.scores.openness?.score, color: "border-cyan-500/40 text-cyan-300 bg-cyan-500/10" },
+                { name: "Conscientiousness", val: oceanData.scores.conscientiousness?.score, color: "border-purple-500/40 text-purple-300 bg-purple-500/10" },
+                { name: "Extraversion", val: oceanData.scores.extraversion?.score, color: "border-[#1DB954]/40 text-[#1DB954] bg-[#1DB954]/10" },
+                { name: "Agreeableness", val: oceanData.scores.agreeableness?.score, color: "border-pink-500/40 text-pink-300 bg-pink-500/10" },
+                { name: "Neuroticism", val: oceanData.scores.neuroticism?.score, color: "border-amber-500/40 text-amber-300 bg-amber-500/10" },
+              ].map((t) => (
+                <span
+                  key={t.name}
+                  className={`px-2.5 py-1 rounded-full border text-[11px] font-mono font-bold flex items-center gap-1 ${t.color}`}
+                >
+                  <span>{t.name}:</span>
+                  <span>{t.val ?? "--"}/100</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </GlassCard>
 
       {/* Overview Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
