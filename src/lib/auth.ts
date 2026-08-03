@@ -9,8 +9,8 @@ const SPOTIFY_SCOPES = [
   "user-read-private",
 ].join(" ");
 
-const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || "f139c88faa15496bbd458ee7394fb2dd";
-const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || "062f355d18e84c02933320f77f802e4f";
+const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || "13aa24a4ecea4a5e8564a56e564513b9";
+const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || "b65a8bf05ae442458a88d56599659c33";
 
 /**
  * Helper to refresh Spotify access token using the refresh token
