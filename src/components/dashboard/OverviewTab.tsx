@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { GlassButton } from "@/components/ui/GlassButton";
 import { GlassSkeleton } from "./GlassSkeleton";
 import { SpotifyArtist, SpotifyTrack, SpotifyPlayHistory } from "@/lib/spotify";
 import { BehavioralFeatures } from "@/lib/features";
@@ -15,7 +16,11 @@ import {
   Sparkles,
   AlertCircle,
   Heart,
-  BrainCircuit
+  BrainCircuit,
+  Music2,
+  Play,
+  Pause,
+  ExternalLink
 } from "lucide-react";
 
 export interface OverviewTabProps {
@@ -34,6 +39,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
     emoji: "🌙",
   });
   const [moodOverridden, setMoodOverridden] = useState<boolean>(false);
+  const [recommendedTracks, setRecommendedTracks] = useState<SpotifyTrack[]>([]);
+  const [recLoading, setRecLoading] = useState<boolean>(false);
+  const [activePlayingId, setActivePlayingId] = useState<string | null>(null);
+  const [audioObj, setAudioObj] = useState<HTMLAudioElement | null>(null);
+  const [playlistCreated, setPlaylistCreated] = useState<boolean>(false);
   const [dataLoading, setDataLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -102,6 +112,63 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
       isMounted = false;
     };
   }, []);
+
+  // Fetch recommendations whenever active mood or dominant cluster updates
+  useEffect(() => {
+    let isMounted = true;
+    const fetchRecs = async () => {
+      setRecLoading(true);
+      try {
+        const clusterStr = oceanData?.dominantCluster || "Reflective & Complex";
+        const res = await fetch(
+          `/api/spotify/recommendations?mood=${encodeURIComponent(activeMood.label)}&dominantCluster=${encodeURIComponent(clusterStr)}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setRecommendedTracks(data.tracks || []);
+          }
+        }
+      } catch (e) {
+        // Ignore
+      } finally {
+        if (isMounted) {
+          setRecLoading(false);
+        }
+      }
+    };
+
+    fetchRecs();
+    return () => {
+      isMounted = false;
+    };
+  }, [activeMood.label, oceanData?.dominantCluster]);
+
+  const togglePlayPreview = (track: SpotifyTrack) => {
+    if (!track.preview_url) return;
+    if (activePlayingId === track.id) {
+      audioObj?.pause();
+      setActivePlayingId(null);
+      return;
+    }
+
+    if (audioObj) {
+      audioObj.pause();
+    }
+
+    const newAudio = new Audio(track.preview_url);
+    newAudio.play();
+    newAudio.onended = () => setActivePlayingId(null);
+    setAudioObj(newAudio);
+    setActivePlayingId(track.id);
+  };
+
+  const handleMoreLikeThis = () => {
+    setPlaylistCreated(true);
+    const primaryArtist = topArtists[0]?.name || "Spotify";
+    const searchUrl = `https://open.spotify.com/search/${encodeURIComponent(`${primaryArtist} ${activeMood.label}`)}`;
+    window.open(searchUrl, "_blank");
+  };
 
   const handleMoodOverride = (label: string, emoji: string) => {
     setActiveMood({ label, emoji });
@@ -349,6 +416,138 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
               ))}
             </div>
           )}
+        </div>
+      </GlassCard>
+
+      {/* 🎧 Recommended For You Right Now Section */}
+      <GlassCard
+        variant="elevated"
+        radius="3xl"
+        enableRefraction={true}
+        refractionIntensity="medium"
+        className="p-6 border-white/18 shadow-[0_20px_45px_-15px_rgba(0,0,0,0.8)]"
+      >
+        <div className="flex flex-col gap-5">
+          {/* Section Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#1DB954]/20 border border-[#1DB954]/40 flex items-center justify-center shadow-[0_0_15px_rgba(29,185,84,0.3)]">
+                <Music2 className="w-5 h-5 text-[#1DB954]" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white leading-tight">Recommended For You Right Now</h3>
+                <p className="text-xs text-gray-400">
+                  Seeded by feeling <span className="text-[#1DB954] font-bold">{activeMood.emoji} {activeMood.label}</span> & {oceanData?.dominantCluster || "Reflective & Complex"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-[#1DB954]/15 border border-[#1DB954]/30 text-xs font-mono text-[#1DB954]">
+                5 Dynamic Recommendations
+              </span>
+            </div>
+          </div>
+
+          {/* 5 Recommended Track Cards Grid */}
+          {recLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <div key={n} className="p-3 rounded-2xl bg-white/[0.05] border border-white/10 flex flex-col gap-2">
+                  <GlassSkeleton className="w-full h-28 rounded-xl" />
+                  <GlassSkeleton className="w-20 h-4 rounded" />
+                  <GlassSkeleton className="w-16 h-3 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : recommendedTracks.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+              {recommendedTracks.slice(0, 5).map((track, idx) => {
+                const cover = track.album?.images?.[0]?.url || "";
+                const artistStr = track.artists?.map((a) => a.name).join(", ") || "Unknown Artist";
+                const isPlaying = activePlayingId === track.id;
+
+                return (
+                  <GlassCard
+                    key={track.id || idx}
+                    variant="interactive"
+                    radius="2xl"
+                    className="p-3 border-white/14 flex flex-col justify-between gap-3 group hover:border-[#1DB954]/40 transition-all duration-300 relative overflow-hidden"
+                  >
+                    {/* Album Art & Play Overlay */}
+                    <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black/40 border border-white/10 group-hover:scale-[1.02] transition-transform">
+                      {cover ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={cover} alt={track.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-white/[0.05]">
+                          <Music2 className="w-6 h-6 text-gray-500" />
+                        </div>
+                      )}
+
+                      {/* Play Preview Overlay Button */}
+                      {track.preview_url && (
+                        <button
+                          onClick={() => togglePlayPreview(track)}
+                          className={`absolute inset-0 m-auto w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition-all ${
+                            isPlaying
+                              ? "bg-[#1DB954] text-black scale-110 shadow-[0_0_15px_rgba(29,185,84,0.8)] font-bold"
+                              : "bg-black/60 text-white opacity-0 group-hover:opacity-100 hover:bg-[#1DB954] hover:text-black"
+                          }`}
+                          title={isPlaying ? "Pause Preview" : "Play 30s Preview"}
+                        >
+                          {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Track Info */}
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <h4 className="text-xs font-bold text-white truncate group-hover:text-[#1DB954] transition-colors">
+                        {track.name}
+                      </h4>
+                      <p className="text-[11px] text-gray-400 truncate">{artistStr}</p>
+                    </div>
+
+                    {/* Spotify Direct Link */}
+                    {track.external_urls?.spotify && (
+                      <a
+                        href={track.external_urls.spotify}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-gray-400 hover:text-[#1DB954] transition-colors"
+                      >
+                        <span>Open Spotify</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </GlassCard>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-xs text-gray-400">
+              No recommendations returned for this mood seed yet. Try selecting another mood above!
+            </div>
+          )}
+
+          {/* "More like this" Playlist Generator Button */}
+          <div className="pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-xs text-gray-400 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-[#1DB954]" />
+              Generate an expanded Spotify mix based on your {activeMood.label} mood & {oceanData?.dominantCluster || "Reflective"} cluster.
+            </span>
+
+            <GlassButton
+              variant="primary"
+              size="md"
+              onClick={handleMoreLikeThis}
+              leftIcon={<Sparkles className="w-4 h-4 text-black" />}
+              className="w-full sm:w-auto font-bold text-xs shadow-[0_0_20px_rgba(29,185,84,0.5)] shrink-0"
+            >
+              {playlistCreated ? "Playlist Mix Opened ✓" : "More like this"}
+            </GlassButton>
+          </div>
         </div>
       </GlassCard>
 
