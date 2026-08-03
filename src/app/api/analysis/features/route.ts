@@ -14,10 +14,14 @@ export async function GET() {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
-      return NextResponse.json(
-        { error: "Unauthorized: Active Spotify session required" },
-        { status: 401 }
-      );
+      const features = computeBehavioralFeatures([], [], [], [], []);
+      return NextResponse.json({
+        status: "success",
+        isDemo: true,
+        timestamp: new Date().toISOString(),
+        sampleCounts: { topTracksCount: 0, topArtistsCount: 0, recentlyPlayedCount: 0, shortTermArtistsCount: 0, longTermArtistsCount: 0 },
+        features,
+      });
     }
 
     const token = session.accessToken;

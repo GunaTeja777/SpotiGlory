@@ -16,10 +16,18 @@ export async function GET() {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
-      return NextResponse.json(
-        { error: "Unauthorized: Active Spotify session required" },
-        { status: 401 }
-      );
+      const features = computeBehavioralFeatures([], [], [], [], []);
+      const clusters = computeClusterDistribution(features.topGenreDistribution);
+      const ocean = computeOceanScores(features, clusters);
+      return NextResponse.json({
+        status: "success",
+        isDemo: true,
+        timestamp: new Date().toISOString(),
+        user: { name: "Demo Listener", image: null },
+        clusters,
+        ocean,
+        disclaimer: ocean.disclaimer,
+      });
     }
 
     const token = session.accessToken;

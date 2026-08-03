@@ -128,7 +128,7 @@ function LoginContent() {
 
           <Link href="/dashboard" className="w-full">
             <GlassButton
-              variant="secondary"
+              variant="subtle"
               size="md"
               leftIcon={<RefreshCw className="w-4 h-4 text-purple-400" />}
               className="w-full justify-center font-semibold text-xs border-purple-500/30 text-purple-200 hover:bg-purple-500/10"

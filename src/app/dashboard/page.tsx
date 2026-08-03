@@ -38,6 +38,37 @@ export default function DashboardPage() {
 
       {/* 2. Main Dashboard Content Container */}
       <main className="flex-1 md:ml-72 p-4 md:p-8 pb-24 md:pb-12 max-w-7xl mx-auto w-full transition-all">
+        {/* Demo Mode Banner when unauthenticated */}
+        {status === "unauthenticated" && (
+          <div className="mb-6 p-4 rounded-2xl bg-purple-500/15 border border-purple-500/30 backdrop-blur-xl text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_25px_rgba(168,85,247,0.2)]">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-xs font-bold text-purple-200 uppercase tracking-wide flex items-center gap-2">
+                  <span>Demo Guest Preview Mode</span>
+                  <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-[9px] font-mono border border-purple-500/30 text-purple-300">
+                    PREVIEW
+                  </span>
+                </h4>
+                <p className="text-xs text-purple-300/90 mt-1 leading-relaxed">
+                  You are exploring SpotiGlory in Demo Mode with synthetic music analytics. Connect your Spotify account anytime to analyze your live listening data.
+                </p>
+              </div>
+            </div>
+
+            <Link href="/login" className="shrink-0 w-full sm:w-auto">
+              <GlassButton
+                variant="primary"
+                size="sm"
+                leftIcon={<SpotifyIcon className="w-4 h-4 text-black" />}
+                className="font-bold text-xs shadow-[0_0_15px_rgba(29,185,84,0.5)] w-full sm:w-auto justify-center"
+              >
+                Connect Spotify
+              </GlassButton>
+            </Link>
+          </div>
+        )}
+
         {/* Top User Profile Header Bar */}
         <DashboardHeader />
 
