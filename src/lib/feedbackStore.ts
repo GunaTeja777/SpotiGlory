@@ -6,6 +6,7 @@
  */
 
 import { PairedScoreSample, SelfReportedOceanScores } from "./ipipQuiz";
+import { retrainModel } from "./ridgeRegression";
 
 export type FeedbackRating = "accurate" | "somewhat" | "not_accurate";
 
@@ -40,6 +41,7 @@ export function calculateTargetCorrection(predictedScore: number, rating: Feedba
 
 /**
  * Creates and persists a trait feedback sample.
+ * Triggers retrainModel automatically when 10 feedback samples accumulate.
  */
 export function saveTraitFeedbackSample(
   trait: "openness" | "conscientiousness" | "extraversion" | "agreeableness" | "neuroticism",
@@ -65,6 +67,11 @@ export function saveTraitFeedbackSample(
 
     // Mirror to spotiglory_ipip_samples format for Pearson r & Ridge Regression solver integration
     mirrorToIpipPairedSamples(sample);
+
+    // Auto-trigger model retraining when 10 feedback samples accumulate
+    if (updated.length % 10 === 0) {
+      retrainModel({ threshold: 10, force: true });
+    }
   }
 
   return sample;
