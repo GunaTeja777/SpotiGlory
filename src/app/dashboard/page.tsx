@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { DashboardSidebar, NavTab } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -22,10 +23,18 @@ import {
   Sparkles
 } from "lucide-react";
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { data: session, status } = useSession();
-  const [activeTab, setActiveTab] = useState<NavTab>("overview");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab") as NavTab | null;
+  const [activeTab, setActiveTab] = useState<NavTab>(tabParam || "overview");
   const [showDebugJson, setShowDebugJson] = useState(false);
+
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   // Allow unauthenticated users to explore in Demo Mode
 
@@ -173,5 +182,17 @@ export default function DashboardPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0A0A0E] text-white flex items-center justify-center p-8 text-xs font-mono">
+        Loading SpotiGlory Analytics...
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }

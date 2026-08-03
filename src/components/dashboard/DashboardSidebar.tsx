@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { SpotifyIcon } from "@/components/landing/LandingNav";
 import { 
   LayoutDashboard, 
@@ -104,6 +105,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   activeTab,
   onSelectTab,
 }) => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [showDevMode, setShowDevMode] = React.useState<boolean>(false);
 
   React.useEffect(() => {
@@ -120,6 +123,27 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     setShowDevMode(next);
     if (typeof window !== "undefined") {
       localStorage.setItem("spotiglory_dev_mode", next ? "true" : "false");
+    }
+  };
+
+  const handleNavClick = (item: NavItemConfig) => {
+    if (item.isComingSoon) return;
+
+    if (item.href) {
+      if (pathname !== item.href) {
+        router.push(item.href);
+      }
+      return;
+    }
+
+    if (pathname !== "/dashboard") {
+      if (item.id === "overview") {
+        router.push("/dashboard");
+      } else {
+        router.push(`/dashboard?tab=${item.id}`);
+      }
+    } else {
+      onSelectTab(item.id);
     }
   };
 
@@ -154,9 +178,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               const isActive = activeTab === item.id;
               const isDisabled = item.isComingSoon;
 
-              const content = (
+              return (
                 <button
-                  onClick={() => !isDisabled && !item.href && onSelectTab(item.id)}
+                  key={item.id}
+                  onClick={() => handleNavClick(item)}
                   disabled={isDisabled}
                   className={`w-full px-3.5 py-2.5 rounded-2xl text-xs font-semibold flex items-center justify-between transition-all duration-200 text-left ${
                     isActive
@@ -179,16 +204,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   )}
                 </button>
               );
-
-              if (item.href && !isDisabled) {
-                return (
-                  <Link key={item.id} href={item.href}>
-                    {content}
-                  </Link>
-                );
-              }
-
-              return <React.Fragment key={item.id}>{content}</React.Fragment>;
             })}
           </nav>
         </div>
@@ -224,7 +239,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             return (
               <button
                 key={item.id}
-                onClick={() => onSelectTab(item.id)}
+                onClick={() => handleNavClick(item)}
                 className={`p-2.5 rounded-full shrink-0 flex flex-col items-center gap-1 transition-all ${
                   isActive
                     ? "bg-[#1DB954] text-black shadow-[0_0_15px_rgba(29,185,84,0.6)] font-bold scale-105"
