@@ -526,10 +526,10 @@ export const PersonalityTab: React.FC = () => {
                   <div className="grid grid-cols-3 gap-1.5">
                     <button
                       onClick={() => handleFeedback(item.key, t.score, "accurate")}
-                      className={`px-2 py-1.5 rounded-xl border text-[11px] font-mono transition-all flex items-center justify-center gap-1 ${
+                      className={`px-2 py-1.5 rounded-xl border text-[11px] font-mono transition-all flex items-center justify-center gap-1 shadow-sm ${
                         submittedRatings[item.key] === "accurate"
-                          ? "bg-[#1DB954]/25 border-[#1DB954] text-white font-bold"
-                          : "bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:border-white/20"
+                          ? "bg-[#1DB954]/30 border-[#1DB954] text-white font-bold shadow-[0_0_15px_rgba(29,185,84,0.4)]"
+                          : "bg-white/[0.06] border-white/14 text-gray-200 hover:bg-[#1DB954]/20 hover:border-[#1DB954]/50 hover:text-white"
                       }`}
                     >
                       <span>Accurate</span>
@@ -538,10 +538,10 @@ export const PersonalityTab: React.FC = () => {
 
                     <button
                       onClick={() => handleFeedback(item.key, t.score, "somewhat")}
-                      className={`px-2 py-1.5 rounded-xl border text-[11px] font-mono transition-all flex items-center justify-center gap-1 ${
+                      className={`px-2 py-1.5 rounded-xl border text-[11px] font-mono transition-all flex items-center justify-center gap-1 shadow-sm ${
                         submittedRatings[item.key] === "somewhat"
-                          ? "bg-amber-500/25 border-amber-500 text-white font-bold"
-                          : "bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:border-white/20"
+                          ? "bg-amber-500/30 border-amber-500 text-white font-bold shadow-[0_0_15px_rgba(245,158,11,0.4)]"
+                          : "bg-white/[0.06] border-white/14 text-gray-200 hover:bg-amber-500/20 hover:border-amber-500/50 hover:text-white"
                       }`}
                     >
                       <span>Somewhat</span>
@@ -549,10 +549,10 @@ export const PersonalityTab: React.FC = () => {
 
                     <button
                       onClick={() => handleFeedback(item.key, t.score, "not_accurate")}
-                      className={`px-2 py-1.5 rounded-xl border text-[11px] font-mono transition-all flex items-center justify-center gap-1 ${
+                      className={`px-2 py-1.5 rounded-xl border text-[11px] font-mono transition-all flex items-center justify-center gap-1 shadow-sm ${
                         submittedRatings[item.key] === "not_accurate"
-                          ? "bg-red-500/25 border-red-500 text-white font-bold"
-                          : "bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:border-white/20"
+                          ? "bg-red-500/30 border-red-500 text-white font-bold shadow-[0_0_15px_rgba(239,68,68,0.4)]"
+                          : "bg-white/[0.06] border-white/14 text-gray-200 hover:bg-red-500/20 hover:border-red-500/50 hover:text-white"
                       }`}
                     >
                       <span>Not accurate</span>

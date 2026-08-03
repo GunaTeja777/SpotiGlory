@@ -102,6 +102,32 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   activeTab,
   onSelectTab,
 }) => {
+  const [showDevMode, setShowDevMode] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("spotiglory_dev_mode");
+      if (saved === "true") {
+        setShowDevMode(true);
+      }
+    }
+  }, []);
+
+  const toggleDevMode = () => {
+    const next = !showDevMode;
+    setShowDevMode(next);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("spotiglory_dev_mode", next ? "true" : "false");
+    }
+  };
+
+  const filteredItems = navItems.filter((item) => {
+    if (!showDevMode && (item.id === "debug-features" || item.id === "model-diff")) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <>
       {/* Desktop Fixed Left Glass Sidebar */}
@@ -122,7 +148,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
           {/* Navigation Links */}
           <nav className="flex flex-col gap-1.5">
-            {navItems.map((item) => {
+            {filteredItems.map((item) => {
               const isActive = activeTab === item.id;
               const isDisabled = item.isComingSoon;
 
@@ -166,12 +192,24 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </div>
 
         {/* Sidebar Footer Badge */}
-        <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 flex items-center gap-2.5">
-          <div className="w-2 h-2 rounded-full bg-[#1DB954] animate-ping" />
-          <div className="min-w-0">
-            <p className="font-bold text-white leading-tight">SpotiGlory Engine</p>
-            <p className="text-[11px] text-gray-400">OAuth 2.0 Synced</p>
+        <div className="flex flex-col gap-2">
+          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-2 h-2 rounded-full bg-[#1DB954] animate-ping" />
+              <div className="min-w-0">
+                <p className="font-bold text-white text-xs leading-tight">SpotiGlory Engine</p>
+                <p className="text-[10px] font-mono text-gray-400">v1.2.0 ML Pipeline</p>
+              </div>
+            </div>
           </div>
+
+          <button
+            onClick={toggleDevMode}
+            className="w-full py-1.5 px-3 rounded-xl bg-white/[0.04] border border-white/10 hover:bg-white/[0.08] transition-all flex items-center justify-between text-[10px] font-mono text-gray-400 hover:text-purple-300"
+          >
+            <span>{showDevMode ? "🔧 Dev Tools Active" : "🔒 Dev Tools Hidden"}</span>
+            <span className="text-purple-400 font-bold">{showDevMode ? "HIDE" : "SHOW"}</span>
+          </button>
         </div>
       </aside>
 

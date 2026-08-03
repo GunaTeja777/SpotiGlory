@@ -62,21 +62,21 @@ export const ModelAccuracyChart: React.FC = () => {
   const latestVersion = history.length > 0 ? history[history.length - 1].version : "v1.0.0";
 
   return (
-    <GlassCard variant="elevated" radius="3xl" className="p-6 border-white/18 shadow-[0_20px_50px_rgba(168,85,247,0.12)]">
+    <GlassCard variant="elevated" radius="3xl" className="p-6 border-purple-500/40 shadow-[0_0_35px_rgba(168,85,247,0.25)] relative overflow-hidden">
       <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-purple-400" />
+          <div className="w-10 h-10 rounded-2xl bg-purple-500/30 border border-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-purple-300" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">Model Accuracy Over Time</h3>
+            <h3 className="text-lg font-bold text-white tracking-tight">Model Accuracy Over Time</h3>
             <p className="text-xs text-gray-400">Pearson r correlation trending across semver model versions</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-xs font-mono text-purple-300">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{latestVersion} Model</span>
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/30 border border-purple-400/50 text-xs font-mono text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+          <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-pulse" />
+          <span>{latestVersion} Model (Pearson r)</span>
         </div>
       </div>
 
