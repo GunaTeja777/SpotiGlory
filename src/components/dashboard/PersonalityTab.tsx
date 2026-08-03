@@ -37,6 +37,13 @@ export const PersonalityTab: React.FC = () => {
     ocean: OceanScoresResult;
     disclaimer: string;
     isAiGenerated?: boolean;
+    telemetry?: {
+      latencyMs: number;
+      tokenCount: number;
+      estimatedCostUsd: number;
+      promptVersion: string;
+      modelUsed: string;
+    };
     user?: { name: string };
   } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -187,6 +194,17 @@ export const PersonalityTab: React.FC = () => {
             <p className="text-sm text-gray-300 leading-relaxed max-w-3xl">
               {narrative.summary}
             </p>
+
+            {/* GenAI Telemetry Observability Bar */}
+            {data.telemetry && (
+              <div className="flex items-center gap-3 mt-4 pt-3 border-t border-white/10 text-[10px] font-mono text-purple-300/80">
+                <span>Prompt {data.telemetry.promptVersion}</span>
+                <span>•</span>
+                <span>{data.telemetry.latencyMs}ms latency</span>
+                <span>•</span>
+                <span>~{data.telemetry.tokenCount} tokens (${data.telemetry.estimatedCostUsd})</span>
+              </div>
+            )}
           </div>
 
           {/* Share Profile Button */}

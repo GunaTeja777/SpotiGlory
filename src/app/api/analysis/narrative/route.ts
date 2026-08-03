@@ -10,13 +10,23 @@ import {
 import { computeBehavioralFeatures } from "@/lib/features";
 import { computeClusterDistribution } from "@/lib/genreClusters";
 import { computeOceanScores } from "@/lib/oceanScoring";
+import { computeNarrativeGrounding } from "@/lib/narrativeBands";
 import { 
-  buildNarrativePrompt, 
-  generateFallbackNarrative, 
-  NarrativeProfile 
-} from "@/lib/narrativePrompt";
+  PROMPT_VERSION, 
+  RECOMMENDED_TEMPERATURE, 
+  SYSTEM_PROMPT_V1, 
+  buildUserPromptV1 
+} from "@/prompts/persona_v1.0.0";
+import { validateNarrativeJson, build1ShotCorrectionPrompt } from "@/lib/narrativeSchema";
+import { generateFallbackNarrative, NarrativeProfile } from "@/lib/narrativePrompt";
 
 export async function GET() {
+  const startTime = Date.now();
+  let retryAttempts = 0;
+  let modelUsed = "template-fallback";
+  let tokenCount = 0;
+  let estimatedCostUsd = 0;
+
   try {
     const session = await getServerSession(authOptions);
 
@@ -45,7 +55,7 @@ export async function GET() {
     const shortTermArtists = shortTermArtistsRes.items || [];
     const longTermArtists = longTermArtistsRes.items || [];
 
-    // 1. Compute behavioral feature signals & OCEAN scores
+    // 1. Compute behavioral feature signals, OCEAN scores & Grounding context
     const features = computeBehavioralFeatures(
       topTracks,
       topArtists,
@@ -56,23 +66,20 @@ export async function GET() {
 
     const clusters = computeClusterDistribution(features.topGenreDistribution);
     const ocean = computeOceanScores(features, clusters);
+    const groundedContext = computeNarrativeGrounding(ocean, features);
 
-    // 2. Generate Narrative (OpenRouter API, Anthropic API, or Fallback)
+    // 2. Generate Narrative via Production OpenRouter Pipeline
     const openRouterKey = process.env.OPENROUTER_API_KEY;
     const anthropicKey = process.env.ANTHROPIC_API_KEY;
     let narrative: NarrativeProfile;
     let isAiGenerated = false;
 
     if (openRouterKey && openRouterKey !== "your_openrouter_api_key_here") {
-      try {
-        const { systemPrompt, userPrompt } = buildNarrativePrompt(
-          ocean,
-          features,
-          features.topGenreDistribution,
-          topArtists
-        );
+      modelUsed = "anthropic/claude-3.5-sonnet (via OpenRouter)";
+      const userPrompt = buildUserPromptV1(groundedContext, features, features.topGenreDistribution, topArtists);
 
-        const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      try {
+        let apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -82,9 +89,10 @@ export async function GET() {
           },
           body: JSON.stringify({
             model: "anthropic/claude-3.5-sonnet",
+            temperature: RECOMMENDED_TEMPERATURE,
             max_tokens: 1000,
             messages: [
-              { role: "system", content: systemPrompt },
+              { role: "system", content: SYSTEM_PROMPT_V1 },
               { role: "user", content: userPrompt },
             ],
           }),
@@ -92,77 +100,79 @@ export async function GET() {
 
         if (apiResponse.ok) {
           const apiJson = await apiResponse.json();
+          tokenCount = apiJson.usage?.total_tokens || 850;
+          estimatedCostUsd = Number(((tokenCount / 1000) * 0.004).toFixed(5));
+
           const responseText = apiJson.choices?.[0]?.message?.content || "";
-          
-          // Clean potential markdown blocks
           const cleanedText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
-          const parsedNarrative = JSON.parse(cleanedText);
 
-          if (parsedNarrative && parsedNarrative.headline && parsedNarrative.summary) {
-            narrative = parsedNarrative;
+          let parsedObj: any;
+          try {
+            parsedObj = JSON.parse(cleanedText);
+          } catch (e) {
+            parsedObj = null;
+          }
+
+          const validation = validateNarrativeJson(parsedObj);
+
+          if (validation.success && validation.data) {
+            narrative = validation.data;
             isAiGenerated = true;
           } else {
-            throw new Error("Parsed OpenRouter JSON missing required fields");
+            // 1-Shot Retry Logic with error feedback prompt
+            retryAttempts += 1;
+            console.warn(`OpenRouter JSON validation failed: ${validation.error}. Retrying 1-shot...`);
+            const retryPrompt = build1ShotCorrectionPrompt(responseText, validation.error || "Invalid JSON structure");
+
+            const retryResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${openRouterKey}`,
+                "HTTP-Referer": "https://spotiglory.vercel.app",
+                "X-Title": "SpotiGlory",
+              },
+              body: JSON.stringify({
+                model: "anthropic/claude-3.5-sonnet",
+                temperature: 0.1,
+                max_tokens: 1000,
+                messages: [
+                  { role: "system", content: SYSTEM_PROMPT_V1 },
+                  { role: "user", content: userPrompt },
+                  { role: "assistant", content: responseText },
+                  { role: "user", content: retryPrompt },
+                ],
+              }),
+            });
+
+            if (retryResponse.ok) {
+              const retryJson = await retryResponse.json();
+              const retryText = retryJson.choices?.[0]?.message?.content || "";
+              const cleanedRetry = retryText.replace(/```json/g, "").replace(/```/g, "").trim();
+              const retryVal = validateNarrativeJson(JSON.parse(cleanedRetry));
+
+              if (retryVal.success && retryVal.data) {
+                narrative = retryVal.data;
+                isAiGenerated = true;
+              } else {
+                throw new Error("1-Shot Retry failed validation");
+              }
+            } else {
+              throw new Error("1-Shot Retry HTTP request failed");
+            }
           }
         } else {
-          const errText = await apiResponse.text();
-          console.warn(`OpenRouter API request failed with status ${apiResponse.status}: ${errText}`);
           narrative = generateFallbackNarrative(ocean, features, features.topGenreDistribution, topArtists);
         }
       } catch (err) {
-        console.error("Failed to generate AI narrative from OpenRouter API:", err);
-        narrative = generateFallbackNarrative(ocean, features, features.topGenreDistribution, topArtists);
-      }
-    } else if (anthropicKey && anthropicKey !== "your_anthropic_api_key_here") {
-      try {
-        const { systemPrompt, userPrompt } = buildNarrativePrompt(
-          ocean,
-          features,
-          features.topGenreDistribution,
-          topArtists
-        );
-
-        const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": anthropicKey,
-            "anthropic-version": "2023-06-01",
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-6",
-            max_tokens: 1000,
-            system: systemPrompt,
-            messages: [
-              { role: "user", content: userPrompt },
-            ],
-          }),
-        });
-
-        if (apiResponse.ok) {
-          const apiJson = await apiResponse.json();
-          const responseText = apiJson.content?.[0]?.text || "";
-          
-          const cleanedText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
-          const parsedNarrative = JSON.parse(cleanedText);
-
-          if (parsedNarrative && parsedNarrative.headline && parsedNarrative.summary) {
-            narrative = parsedNarrative;
-            isAiGenerated = true;
-          } else {
-            throw new Error("Parsed Anthropic JSON missing required fields");
-          }
-        } else {
-          narrative = generateFallbackNarrative(ocean, features, features.topGenreDistribution, topArtists);
-        }
-      } catch (err) {
-        console.error("Failed to generate AI narrative from Anthropic API:", err);
+        console.error("OpenRouter GenAI Pipeline fallback triggered:", err);
         narrative = generateFallbackNarrative(ocean, features, features.topGenreDistribution, topArtists);
       }
     } else {
-      // Template fallback generator
       narrative = generateFallbackNarrative(ocean, features, features.topGenreDistribution, topArtists);
     }
+
+    const latencyMs = Date.now() - startTime;
 
     return NextResponse.json({
       status: "success",
@@ -171,6 +181,14 @@ export async function GET() {
       user: {
         name: session.user?.name || "Music Listener",
         image: session.user?.image || null,
+      },
+      telemetry: {
+        modelUsed,
+        latencyMs,
+        tokenCount,
+        estimatedCostUsd,
+        promptVersion: PROMPT_VERSION,
+        retryAttempts,
       },
       narrative,
       clusters,
