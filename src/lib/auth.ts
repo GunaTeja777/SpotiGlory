@@ -9,16 +9,16 @@ const SPOTIFY_SCOPES = [
   "user-read-private",
 ].join(" ");
 
-const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || "13aa24a4ecea4a5e8564a56e564513b9";
-const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || "b65a8bf05ae442458a88d56599659c33";
+const CLIENT_ID = (process.env.SPOTIFY_CLIENT_ID || "13aa24a4ecea4a5e8564a56e564513b9").trim();
+const CLIENT_SECRET = (process.env.SPOTIFY_CLIENT_SECRET || "b65a8bf05ae442458a88d56599659c33").trim();
 
 /**
  * Helper to refresh Spotify access token using the refresh token
  */
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
-    const clientId = process.env.SPOTIFY_CLIENT_ID || CLIENT_ID;
-    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET || CLIENT_SECRET;
+    const clientId = (process.env.SPOTIFY_CLIENT_ID || CLIENT_ID).trim();
+    const clientSecret = (process.env.SPOTIFY_CLIENT_SECRET || CLIENT_SECRET).trim();
 
     if (!clientId || !clientSecret) {
       throw new Error("Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET environment variables.");
