@@ -179,6 +179,46 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
 
   const isLoading = propIsLoading || dataLoading;
 
+  const localPeakHour = React.useMemo<number | null>(() => {
+    if (recentlyPlayed.length > 0) {
+      const counts = Array(24).fill(0);
+      let validCount = 0;
+      recentlyPlayed.forEach((item) => {
+        if (item.played_at) {
+          const h = new Date(item.played_at).getHours();
+          counts[h]++;
+          validCount++;
+        }
+      });
+      if (validCount > 0) {
+        let max = -1;
+        let peak = 0;
+        counts.forEach((c, h) => {
+          if (c > max) {
+            max = c;
+            peak = h;
+          }
+        });
+        return peak;
+      }
+    }
+
+    if (featuresData?.peakListeningHour !== undefined && featuresData.peakListeningHour !== null) {
+      const date = new Date();
+      date.setUTCHours(featuresData.peakListeningHour, 0, 0, 0);
+      return date.getHours();
+    }
+
+    return null;
+  }, [recentlyPlayed, featuresData?.peakListeningHour]);
+
+  const formatHour = (h: number | null) => {
+    if (h === null) return "N/A";
+    const period = h >= 12 ? "PM" : "AM";
+    const displayH = h % 12 === 0 ? 12 : h % 12;
+    return `${displayH}:00 ${period}`;
+  };
+
   const statCards = [
     {
       title: "Top Genre Focus",
@@ -198,8 +238,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
     },
     {
       title: "Peak Listening Window",
-      value: `${featuresData?.peakListeningHour ?? 22}:00 UTC`,
-      subtitle: `${featuresData?.nightListenerRatio ?? 0}% late-night streams`,
+      value: formatHour(localPeakHour),
+      subtitle: `${featuresData?.nightListenerRatio ?? 0}% late-night streams (Local)`,
       badge: "Circadian Pulse",
       icon: <Clock className="w-5 h-5 text-cyan-400" />,
       badgeColor: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
@@ -217,13 +257,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
   const top5Genres = (featuresData?.topGenreDistribution || []).slice(0, 5);
   const topGenrePercentage = top5Genres[0]?.percentage || 0;
   const topGenreName = top5Genres[0]?.genre || "Eclectic";
-  const peakHour = featuresData?.peakListeningHour ?? 22;
-  const isNightOwl = peakHour >= 22 || peakHour <= 4;
-  const formatHour = (h: number) => {
-    const period = h >= 12 ? "PM" : "AM";
-    const displayH = h % 12 === 0 ? 12 : h % 12;
-    return `${displayH}:00 ${period}`;
-  };
+  const isNightOwl = localPeakHour !== null ? (localPeakHour >= 22 || localPeakHour <= 4) : false;
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const donutColors = ["#1DB954", "#8B5CF6", "#06B6D4", "#F59E0B", "#EC4899"];
 
@@ -690,7 +724,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
 
             <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
               <span>Timestamp Parsing</span>
-              <span className="text-indigo-400 font-mono">Peak: {formatHour(peakHour)}</span>
+              <span className="text-indigo-400 font-mono">Peak: {formatHour(localPeakHour)}</span>
             </div>
           </GlassCard>
         </div>
