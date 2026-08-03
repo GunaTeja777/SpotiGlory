@@ -77,6 +77,16 @@ export const authOptions: NextAuthOptions = {
     error: "/login",
   },
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "spotify") {
+        if (!account.access_token) {
+          console.error("Spotify signin failed: No access_token returned by Spotify token endpoint.");
+          return false;
+        }
+      }
+      return true;
+    },
+
     async jwt({ token, account, user }) {
       // Initial sign-in
       if (account && user) {
