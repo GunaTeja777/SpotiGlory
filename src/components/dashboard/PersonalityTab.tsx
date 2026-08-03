@@ -201,7 +201,7 @@ export const PersonalityTab: React.FC = () => {
         radius="3xl"
         enableRefraction={true}
         refractionIntensity="intense"
-        className="p-8 border-purple-500/30 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_50px_rgba(168,85,247,0.25)] relative overflow-hidden"
+        className="p-5 sm:p-8 border-purple-500/30 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),0_0_50px_rgba(168,85,247,0.25)] relative overflow-hidden"
       >
         {/* Glow Element */}
         <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -218,18 +218,18 @@ export const PersonalityTab: React.FC = () => {
             </div>
 
             {/* Headline */}
-            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-3">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-3">
               "{narrative.headline}"
             </h2>
 
             {/* Summary */}
-            <p className="text-sm text-gray-300 leading-relaxed max-w-3xl">
+            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-3xl">
               {narrative.summary}
             </p>
 
             {/* GenAI Telemetry Observability Bar */}
             {data.telemetry && (
-              <div className="flex items-center gap-3 mt-4 pt-3 border-t border-white/10 text-[10px] font-mono text-purple-300/80">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 pt-3 border-t border-white/10 text-[10px] font-mono text-purple-300/80">
                 <span>Prompt {data.telemetry.promptVersion}</span>
                 <span>•</span>
                 <span>{data.telemetry.latencyMs}ms latency</span>
@@ -249,7 +249,7 @@ export const PersonalityTab: React.FC = () => {
             size="lg"
             onClick={handleShareProfile}
             leftIcon={copied ? <Check className="w-4 h-4 text-black" /> : <Share2 className="w-4 h-4 text-black" />}
-            className="shrink-0 font-bold text-xs shadow-[0_0_20px_rgba(29,185,84,0.6)]"
+            className="w-full sm:w-auto shrink-0 font-bold text-xs shadow-[0_0_20px_rgba(29,185,84,0.6)]"
           >
             {copied ? "Profile Copied!" : "Share Your Profile"}
           </GlassButton>

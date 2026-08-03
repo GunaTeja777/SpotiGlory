@@ -80,9 +80,9 @@ export const ModelAccuracyChart: React.FC = () => {
         </div>
       </div>
 
-      <div className="w-full h-72 my-2 relative">
+      <div className="w-full h-60 sm:h-72 my-2 relative">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.08)" />
             <XAxis dataKey="version" stroke="#94A3B8" tick={{ fill: "#94A3B8", fontSize: 11 }} />
             <YAxis domain={[0, 1]} stroke="#94A3B8" tick={{ fill: "#94A3B8", fontSize: 11 }} />

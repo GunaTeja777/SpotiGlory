@@ -214,8 +214,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       </aside>
 
       {/* Mobile Responsive Bottom Navigation Bar */}
-      <div className="md:hidden fixed bottom-3 inset-x-3 z-50 bg-[#0F0F14]/90 backdrop-blur-3xl border border-white/20 rounded-full px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.9)] flex items-center justify-around">
-        {navItems
+      <div className="md:hidden fixed bottom-3 inset-x-3 z-50 bg-[#0F0F14]/95 backdrop-blur-3xl border border-white/20 rounded-full px-3 py-2 shadow-[0_10px_35px_rgba(0,0,0,0.95)] flex items-center justify-between gap-1 overflow-x-auto no-scrollbar">
+        {filteredItems
           .filter((item) => !item.isComingSoon)
           .map((item) => {
             const isActive = activeTab === item.id;
@@ -223,9 +223,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`p-2.5 rounded-full flex flex-col items-center gap-1 transition-all ${
+                className={`p-2.5 rounded-full shrink-0 flex flex-col items-center gap-1 transition-all ${
                   isActive
-                    ? "bg-[#1DB954] text-black shadow-[0_0_15px_rgba(29,185,84,0.6)]"
+                    ? "bg-[#1DB954] text-black shadow-[0_0_15px_rgba(29,185,84,0.6)] font-bold scale-105"
                     : "text-gray-400 hover:text-white"
                 }`}
                 title={item.label}
