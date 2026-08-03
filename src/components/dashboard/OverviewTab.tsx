@@ -219,6 +219,18 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
     return `${displayH}:00 ${period}`;
   };
 
+  const entropyVal = featuresData?.genreDiversity?.normalizedEntropy ?? 0;
+  const entropyPct = Math.round(entropyVal * 100);
+
+  let diversityLabel = "Moderate";
+  if (entropyPct >= 80) diversityLabel = "Very High";
+  else if (entropyPct >= 60) diversityLabel = "High";
+  else if (entropyPct >= 40) diversityLabel = "Balanced";
+  else if (entropyPct >= 20) diversityLabel = "Focused";
+  else if (entropyPct > 0) diversityLabel = "Hyper-Focused";
+
+  const genreCount = featuresData?.genreDiversity?.uniqueGenreCount ?? 0;
+
   const statCards = [
     {
       title: "Top Genre Focus",
@@ -246,9 +258,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ isLoading: propIsLoadi
     },
     {
       title: "Taste Diversity Index",
-      value: `${featuresData?.genreDiversity?.normalizedEntropy ?? 0.8}`,
-      subtitle: `${featuresData?.genreDiversity?.uniqueGenreCount ?? 0} unique genre clusters`,
-      badge: "Entropy Score",
+      value: featuresData?.genreDiversity ? `${entropyPct}% (${diversityLabel})` : "N/A",
+      subtitle: `${entropyPct}% variety score across ${genreCount} music style${genreCount === 1 ? "" : "s"}`,
+      badge: "Variety Rating",
       icon: <Zap className="w-5 h-5 text-[#1DB954]" />,
       badgeColor: "bg-[#1DB954]/15 text-[#1DB954] border-[#1DB954]/30",
     },
