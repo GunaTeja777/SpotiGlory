@@ -94,9 +94,15 @@ export function generateFallbackNarrative(
 ): NarrativeProfile {
   const topGenre = topGenres[0]?.genre || "eclectic sounds";
   const topArtistName = topArtists[0]?.name || "your favorite artists";
-  const peakH = features.peakListeningHour || 22;
-  const period = peakH >= 12 ? "PM" : "AM";
-  const formattedPeak = `${peakH % 12 === 0 ? 12 : peakH % 12}:00 ${period} UTC`;
+  const peakH = features.peakListeningHour ?? 22;
+  let timeOfDayDesc = "evening streaming window";
+  if (peakH >= 22 || peakH <= 4) {
+    timeOfDayDesc = "late-night streaming window";
+  } else if (peakH >= 5 && peakH <= 11) {
+    timeOfDayDesc = "morning listening window";
+  } else if (peakH >= 12 && peakH <= 17) {
+    timeOfDayDesc = "afternoon streaming window";
+  }
 
   // Determine Persona
   let listeningPersona = "The Sonic Explorer";
@@ -112,7 +118,7 @@ export function generateFallbackNarrative(
 
   const headline = `Driven by ${topGenre.toUpperCase()} and deep ${ocean.openness.label.toLowerCase()} musical curiosity`;
 
-  const summary = `Your listening habits showcase a strong affinity for ${topGenre} alongside artist staples like ${topArtistName}. With a peak streaming window around ${formattedPeak} and a ${ocean.openness.label.toLowerCase()} openness score (${ocean.openness.score}/100), your library balances familiar favorites with sonic exploration.`;
+  const summary = `Your listening habits showcase a strong affinity for ${topGenre} alongside artist staples like ${topArtistName}. With a peak ${timeOfDayDesc} and a ${ocean.openness.label.toLowerCase()} openness score (${ocean.openness.score}/100), your library balances familiar favorites with sonic exploration.`;
 
   const traits: TraitInsight[] = [
     {
@@ -138,7 +144,7 @@ export function generateFallbackNarrative(
   ];
 
   const funFacts = [
-    `Peak Activity: Your heaviest streaming slot occurs around ${formattedPeak}, accounting for your primary daily listening pulse.`,
+    `Peak Activity: Your heaviest streaming pulse occurs during the ${timeOfDayDesc}, anchoring your daily rhythm.`,
     `Genre Anchor: ${topGenre.toUpperCase()} represents your most frequent genre token, anchoring ${topGenres[0]?.percentage || 30}% of your primary genre distribution.`,
     `Taste Dynamics: Your short-term vs long-term genre stability score of ${features.genreSpreadAcrossTimeRanges.stabilityScore} shows steady loyalty to core musical pillars.`,
   ];

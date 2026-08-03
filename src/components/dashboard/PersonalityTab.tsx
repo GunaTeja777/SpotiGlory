@@ -233,8 +233,12 @@ export const PersonalityTab: React.FC = () => {
                 <span>Prompt {data.telemetry.promptVersion}</span>
                 <span>•</span>
                 <span>{data.telemetry.latencyMs}ms latency</span>
-                <span>•</span>
-                <span>~{data.telemetry.tokenCount} tokens (${data.telemetry.estimatedCostUsd})</span>
+                {data.telemetry.tokenCount > 0 && (
+                  <>
+                    <span>•</span>
+                    <span>~{data.telemetry.tokenCount} tokens (${data.telemetry.estimatedCostUsd})</span>
+                  </>
+                )}
               </div>
             )}
           </div>
