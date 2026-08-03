@@ -39,37 +39,116 @@ const MOOD_OPTIONS: MoodType[] = ["Reflective", "Energized", "Fiery", "Upbeat", 
 
 export const JamPartnersTab: React.FC = () => {
   const [activeMood, setActiveMood] = useState<MoodType>("Reflective");
+  const [userOcean, setUserOcean] = useState<OceanVector>({
+    openness: 85,
+    conscientiousness: 60,
+    extraversion: 48,
+    agreeableness: 72,
+    neuroticism: 54,
+  });
+  const [userClusters, setUserClusters] = useState<MusicClusterVector>({
+    reflectiveComplex: 50,
+    intenseRebellious: 15,
+    upbeatConventional: 15,
+    energeticRhythmic: 20,
+  });
+  const [isRecentSongsLoaded, setIsRecentSongsLoaded] = useState<boolean>(false);
+  const [recentSongCount, setRecentSongCount] = useState<number>(0);
   const [matches, setMatches] = useState<JamMatchResult[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  // Active user default profile (falls back to empirical demo profile)
-  const activeUser = {
-    id: "active_user_current",
-    ocean: { openness: 85, conscientiousness: 60, extraversion: 48, agreeableness: 72, neuroticism: 54 } as OceanVector,
-    musicClusters: { reflectiveComplex: 50, intenseRebellious: 15, upbeatConventional: 15, energeticRhythmic: 20 } as MusicClusterVector,
-    currentMood: activeMood,
+  const parseMood = (raw?: string): MoodType => {
+    if (!raw) return "Reflective";
+    const lower = raw.toLowerCase();
+    if (lower.includes("energized")) return "Energized";
+    if (lower.includes("fiery")) return "Fiery";
+    if (lower.includes("upbeat")) return "Upbeat";
+    if (lower.includes("calm")) return "Calm";
+    return "Reflective";
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchUserData = async () => {
+      try {
+        const [featRes, oceanRes] = await Promise.all([
+          fetch("/api/analysis/features").catch(() => null),
+          fetch("/api/analysis/ocean").catch(() => null),
+        ]);
+
+        if (featRes && featRes.ok && oceanRes && oceanRes.ok) {
+          const featData = await featRes.json();
+          const oceanData = await oceanRes.json();
+
+          if (isMounted && featData?.features) {
+            const count = featData.sampleCounts?.recentlyPlayedCount || 10;
+            setRecentSongCount(count);
+
+            if (featData.features.inferredMood?.label) {
+              const inferred = parseMood(featData.features.inferredMood.label);
+              setActiveMood(inferred);
+            }
+
+            if (oceanData?.scores) {
+              setUserOcean({
+                openness: oceanData.scores.openness?.score ?? 85,
+                conscientiousness: oceanData.scores.conscientiousness?.score ?? 60,
+                extraversion: oceanData.scores.extraversion?.score ?? 48,
+                agreeableness: oceanData.scores.agreeableness?.score ?? 72,
+                neuroticism: oceanData.scores.neuroticism?.score ?? 54,
+              });
+            }
+
+            const dom = oceanData?.dominantCluster || "";
+            if (dom.includes("Reflective")) {
+              setUserClusters({ reflectiveComplex: 55, intenseRebellious: 15, upbeatConventional: 15, energeticRhythmic: 15 });
+            } else if (dom.includes("Intense")) {
+              setUserClusters({ reflectiveComplex: 15, intenseRebellious: 55, upbeatConventional: 15, energeticRhythmic: 15 });
+            } else if (dom.includes("Upbeat")) {
+              setUserClusters({ reflectiveComplex: 15, intenseRebellious: 15, upbeatConventional: 55, energeticRhythmic: 15 });
+            } else if (dom.includes("Energetic")) {
+              setUserClusters({ reflectiveComplex: 15, intenseRebellious: 15, upbeatConventional: 15, energeticRhythmic: 55 });
+            }
+
+            setIsRecentSongsLoaded(true);
+          }
+        }
+      } catch (e) {
+        // Fallback gracefully
+      }
+    };
+
+    fetchUserData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const loadMatches = () => {
     setIsRefreshing(true);
     setTimeout(() => {
       const candidates = getSyntheticUsers();
       const top5 = findJamMatches(
-        { ...activeUser, currentMood: activeMood },
+        {
+          id: "active_user_current",
+          ocean: userOcean,
+          musicClusters: userClusters,
+          currentMood: activeMood,
+        },
         candidates,
         5
       );
       setMatches(top5);
       setIsLoading(false);
       setIsRefreshing(false);
-    }, 400);
+    }, 300);
   };
 
   useEffect(() => {
     loadMatches();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeMood]);
+  }, [activeMood, isRecentSongsLoaded]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,10 +164,16 @@ export const JamPartnersTab: React.FC = () => {
 
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
-            {/* Category Tag */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold tracking-wider uppercase mb-3 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-              <Users className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Acoustic Compatibility Engine</span>
+            {/* Category Tag & Recent Songs Stream Indicator */}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold tracking-wider uppercase shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                <Users className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Acoustic Compatibility Engine</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1DB954]/15 border border-[#1DB954]/30 text-[#1DB954] text-xs font-mono font-bold shadow-[0_0_15px_rgba(29,185,84,0.2)]">
+                <span className="w-2 h-2 rounded-full bg-[#1DB954] animate-pulse" />
+                <span>Seeded from Recent Songs ({recentSongCount || 10} tracks)</span>
+              </div>
             </div>
 
             {/* Plain-Language Header Title */}
