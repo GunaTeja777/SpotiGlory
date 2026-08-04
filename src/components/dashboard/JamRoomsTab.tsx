@@ -140,14 +140,52 @@ export const JamRoomsTab: React.FC = () => {
     };
   }, []);
 
-  const loadAllData = () => {
+  const loadAllData = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      // 1. Get room recommendations from moodRoomEngine
-      const recs = getRecommendedRooms(activeMood, userClusters, userOcean);
-      setRoomRecs(recs);
+    try {
+      const savedLang = typeof window !== "undefined" ? localStorage.getItem("spotiglory_user_language") || "" : "";
+      const langParam = savedLang ? `&language=${encodeURIComponent(savedLang)}` : "";
 
-      // 2. Get suggested people matches from jamMatching engine
+      // 1. Recompute room recommendations from moodRoomEngine
+      const recs = getRecommendedRooms(activeMood, userClusters, userOcean);
+
+      // 2. Fetch fresh dynamic playlists for top 3 rooms
+      const updatedTopRooms = await Promise.all(
+        recs.topRooms.map(async (evalRoom) => {
+          try {
+            const res = await fetch(`/api/jam-rooms/${evalRoom.room.slug}/playlist?forceRefresh=true${langParam}`).catch(() => null);
+            if (res && res.ok) {
+              const data = await res.json();
+              if (data.playlist?.tracks?.length > 0) {
+                return {
+                  ...evalRoom,
+                  room: {
+                    ...evalRoom.room,
+                    playlistPreview: {
+                      title: data.playlist.title,
+                      tracksCount: data.playlist.tracks.length,
+                      sampleTracks: data.playlist.tracks.slice(0, 3).map((t: any) => ({
+                        title: t.name,
+                        artist: t.artist,
+                      })),
+                    },
+                  },
+                };
+              }
+            }
+          } catch (e) {
+            // Keep default preview if fetch fails
+          }
+          return evalRoom;
+        })
+      );
+
+      setRoomRecs({
+        ...recs,
+        topRooms: updatedTopRooms,
+      });
+
+      // 3. Get suggested people matches from jamMatching engine
       const candidates = getSyntheticUsers();
       const top5People = findJamMatches(
         {
@@ -160,9 +198,10 @@ export const JamRoomsTab: React.FC = () => {
         5
       );
       setPeopleMatches(top5People);
+    } finally {
       setIsLoading(false);
       setIsRefreshing(false);
-    }, 300);
+    }
   };
 
   useEffect(() => {

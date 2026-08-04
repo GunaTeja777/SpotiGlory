@@ -1,3 +1,6 @@
+import { buildPlaylistSearchQuery, buildFallbackPlaylistQuery } from "./playlistQueryBuilder";
+import { UserTasteProfile } from "./userTasteProfile";
+
 export interface RoomTrack {
   id: string;
   name: string;
@@ -16,6 +19,26 @@ export interface RoomPlaylist {
   description: string;
   updatedAt: string;
   tracks: RoomTrack[];
+  queryUsed?: string;
+  sourceType?: "spotify_api" | "broader_fallback" | "curated_fallback";
+}
+
+const MIN_QUALITY_TRACK_COUNT = 5;
+
+// In-memory cache for room playlists with 15-minute TTL
+const ACTIVE_ROOM_PLAYLIST_CACHE: Map<string, { playlist: RoomPlaylist; cachedAt: number }> = new Map();
+
+/**
+ * Filters out low quality / empty playlists (likely spam or empty drafts).
+ */
+export function filterQualityPlaylists(playlists: any[], minTracks: number = MIN_QUALITY_TRACK_COUNT): any[] {
+  if (!Array.isArray(playlists)) return [];
+
+  return playlists.filter((pl) => {
+    if (!pl || !pl.id || !pl.name) return false;
+    const trackCount = pl.tracks?.total ?? pl.tracks?.items?.length ?? 0;
+    return trackCount >= minTracks;
+  });
 }
 
 const ROOM_PLAYLIST_DATABASE: Record<string, RoomPlaylist> = {
@@ -24,6 +47,7 @@ const ROOM_PLAYLIST_DATABASE: Record<string, RoomPlaylist> = {
     title: "Late Night Neon Sanctuary",
     description: "Atmospheric synthwave, ambient lo-fi, and midnight reverb for nocturnal reflection.",
     updatedAt: new Date().toISOString(),
+    sourceType: "curated_fallback",
     tracks: [
       {
         id: "m83_midnight_city",
@@ -80,12 +104,12 @@ const ROOM_PLAYLIST_DATABASE: Record<string, RoomPlaylist> = {
       },
     ],
   },
-
   "deep-focus-acoustic": {
     roomId: "deep-focus-acoustic",
     title: "Serene Acoustic Resonance",
     description: "Minimalist piano, fingerpicked acoustic guitars, and calm ambient strings.",
     updatedAt: new Date().toISOString(),
+    sourceType: "curated_fallback",
     tracks: [
       {
         id: "ludovico_nuvole",
@@ -129,12 +153,12 @@ const ROOM_PLAYLIST_DATABASE: Record<string, RoomPlaylist> = {
       },
     ],
   },
-
   "electric-pulse": {
     roomId: "electric-pulse",
     title: "Adrenaline Overdrive",
     description: "Driving EDM, hyperpop synths, and high-octane 128 BPM dance anthems.",
     updatedAt: new Date().toISOString(),
+    sourceType: "curated_fallback",
     tracks: [
       {
         id: "zedd_clarity",
@@ -168,12 +192,12 @@ const ROOM_PLAYLIST_DATABASE: Record<string, RoomPlaylist> = {
       },
     ],
   },
-
   "sun-drenched-indie": {
     roomId: "sun-drenched-indie",
     title: "Golden Hour Melodies",
     description: "Uplifting indie pop hooks, sun-drenched basslines, and bright summer acoustics.",
     updatedAt: new Date().toISOString(),
+    sourceType: "curated_fallback",
     tracks: [
       {
         id: "grouplove_tongue_tied",
@@ -207,12 +231,12 @@ const ROOM_PLAYLIST_DATABASE: Record<string, RoomPlaylist> = {
       },
     ],
   },
-
   "fiery-underground": {
     roomId: "fiery-underground",
     title: "Rebellious Distortion",
     description: "Raw alternative rock riffs, heavy bass trap, and intense rebellious anthems.",
     updatedAt: new Date().toISOString(),
+    sourceType: "curated_fallback",
     tracks: [
       {
         id: "nirvana_teen_spirit",
@@ -246,12 +270,12 @@ const ROOM_PLAYLIST_DATABASE: Record<string, RoomPlaylist> = {
       },
     ],
   },
-
   "subtle-melodic-chill": {
     roomId: "subtle-melodic-chill",
     title: "Tranquil Evening Chill",
     description: "Warm 7th chords, neo-soul grooves, and lofi chill beats.",
     updatedAt: new Date().toISOString(),
+    sourceType: "curated_fallback",
     tracks: [
       {
         id: "petit_biscuit_sunset",
@@ -288,7 +312,159 @@ const ROOM_PLAYLIST_DATABASE: Record<string, RoomPlaylist> = {
 };
 
 /**
- * Retrieves the playlist for a specific room with option to force-refresh / shuffle.
+ * Searches Spotify Search API for playlists matching a query string.
+ */
+export async function searchSpotifyPlaylists(
+  accessToken: string,
+  query: string,
+  limit: number = 10
+): Promise<any[]> {
+  try {
+    const url = `https://api.spotify.com/v1/search?type=playlist&limit=${limit}&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.playlists?.items || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
+ * Fetches tracks for a Spotify playlist ID and formats into RoomTrack array.
+ */
+export async function fetchSpotifyPlaylistTracks(
+  accessToken: string,
+  playlistId: string,
+  botName = "Room Curator"
+): Promise<RoomTrack[]> {
+  try {
+    const url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=25`;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!res.ok) return [];
+    const data = await res.json();
+    const items = data.items || [];
+
+    return items
+      .map((item: any) => {
+        const track = item.track;
+        if (!track || !track.id || !track.name) return null;
+        return {
+          id: track.id,
+          name: track.name,
+          artist: track.artists?.map((a: any) => a.name).join(", ") || "Unknown Artist",
+          album: track.album?.name || "Single",
+          coverUrl: track.album?.images?.[0]?.url,
+          previewUrl: track.preview_url || undefined,
+          spotifyUrl: track.external_urls?.spotify,
+          durationMs: track.duration_ms,
+          addedBy: `${botName} (AI Companion)`,
+        };
+      })
+      .filter((t: any): t is RoomTrack => t !== null);
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
+ * Sources playlist dynamically using search query builder + quality threshold + broader fallback.
+ */
+export async function getRoomPlaylistWithQuery(
+  roomIdOrSlug: string,
+  tasteProfile: UserTasteProfile,
+  accessToken?: string,
+  forceRefresh: boolean = false
+): Promise<RoomPlaylist> {
+  const roomSlug = roomIdOrSlug;
+  const cacheKey = `${roomSlug}:${tasteProfile.preferredLanguage}:${tasteProfile.dominantMusicCluster}`;
+
+  // Check 15-min cache unless forceRefresh
+  if (!forceRefresh && ACTIVE_ROOM_PLAYLIST_CACHE.has(cacheKey)) {
+    const cached = ACTIVE_ROOM_PLAYLIST_CACHE.get(cacheKey)!;
+    if (Date.now() - cached.cachedAt < 15 * 60 * 1000) {
+      return cached.playlist;
+    }
+  }
+
+  const defaultFallback = ROOM_PLAYLIST_DATABASE[roomSlug] || ROOM_PLAYLIST_DATABASE["midnight-neon-sanctuary"];
+
+  if (!accessToken) {
+    return defaultFallback;
+  }
+
+  // 1. Generate query using playlistQueryBuilder
+  const queryResult = await buildPlaylistSearchQuery({
+    archetype: roomSlug,
+    tasteProfile,
+  });
+
+  // 2. Primary Search against Spotify Search API
+  const rawResults = await searchSpotifyPlaylists(accessToken, queryResult.query, 10);
+  let qualityResults = filterQualityPlaylists(rawResults, MIN_QUALITY_TRACK_COUNT);
+  let sourceType: "spotify_api" | "broader_fallback" | "curated_fallback" = "spotify_api";
+  let activeQuery = queryResult.query;
+
+  // 3. Broader Fallback Path if primary search yields 0 quality playlists
+  if (qualityResults.length === 0) {
+    const broaderQuery = buildFallbackPlaylistQuery({
+      archetype: roomSlug,
+      tasteProfile: {
+        ...tasteProfile,
+        preferredLanguage: "English", // Drop language constraint
+        topGenres: [],
+      },
+    });
+
+    activeQuery = broaderQuery;
+    const broaderResults = await searchSpotifyPlaylists(accessToken, broaderQuery, 10);
+    qualityResults = filterQualityPlaylists(broaderResults, MIN_QUALITY_TRACK_COUNT);
+    sourceType = "broader_fallback";
+  }
+
+  // 4. If still no quality results, return curated seeded fallback
+  if (qualityResults.length === 0) {
+    return defaultFallback;
+  }
+
+  // Sort by followers or select top result
+  const bestPlaylist = qualityResults.sort((a, b) => (b.followers?.total || 0) - (a.followers?.total || 0))[0];
+  const tracks = await fetchSpotifyPlaylistTracks(accessToken, bestPlaylist.id);
+
+  if (tracks.length === 0) {
+    return defaultFallback;
+  }
+
+  const roomPlaylist: RoomPlaylist = {
+    roomId: roomSlug,
+    title: bestPlaylist.name || defaultFallback.title,
+    description: bestPlaylist.description || defaultFallback.description,
+    updatedAt: new Date().toISOString(),
+    queryUsed: activeQuery,
+    sourceType,
+    tracks,
+  };
+
+  ACTIVE_ROOM_PLAYLIST_CACHE.set(cacheKey, {
+    playlist: roomPlaylist,
+    cachedAt: Date.now(),
+  });
+
+  return roomPlaylist;
+}
+
+/**
+ * Legacy/Default getRoomPlaylist wrapper.
  */
 export async function getRoomPlaylist(
   roomIdOrSlug: string,
@@ -300,7 +476,6 @@ export async function getRoomPlaylist(
     return existing;
   }
 
-  // Simulate dynamic playlist re-sourcing / track rotation
   const shuffledTracks = [...existing.tracks].sort(() => Math.random() - 0.5);
   return {
     ...existing,

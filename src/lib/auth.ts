@@ -7,6 +7,8 @@ const SPOTIFY_SCOPES = [
   "user-read-recently-played",
   "user-read-email",
   "user-read-private",
+  "playlist-read-private",
+  "playlist-read-collaborative",
 ].join(" ");
 
 const CLIENT_ID = (process.env.SPOTIFY_CLIENT_ID || "").trim();

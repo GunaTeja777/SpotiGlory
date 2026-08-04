@@ -75,6 +75,26 @@ export default function IndividualJamRoomPage() {
     }
   };
 
+  const fetchDynamicPlaylist = async (forceRefresh = false) => {
+    try {
+      const savedLang = typeof window !== "undefined" ? localStorage.getItem("spotiglory_user_language") || "" : "";
+      const langParam = savedLang ? `&language=${encodeURIComponent(savedLang)}` : "";
+      const res = await fetch(`/api/jam-rooms/${roomIdSlug}/playlist?forceRefresh=${forceRefresh}${langParam}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.playlist) {
+          setPlaylist(data.playlist);
+          return;
+        }
+      }
+    } catch (e) {
+      // Fallback
+    }
+
+    const fallbackPl = await getRoomPlaylist(roomIdSlug, forceRefresh);
+    setPlaylist(fallbackPl);
+  };
+
   useEffect(() => {
     // 1. Fetch room details
     const foundRoom = getRoomBySlug(roomIdSlug) || getRoomById(roomIdSlug) || getRoomBySlug("midnight-neon-sanctuary");
@@ -84,10 +104,8 @@ export default function IndividualJamRoomPage() {
       setBotConfig(bot);
     }
 
-    // 2. Fetch room playlist from roomPlaylistSource
-    getRoomPlaylist(roomIdSlug).then((pl) => {
-      setPlaylist(pl);
-    });
+    // 2. Fetch room playlist via connected end-to-end pipeline
+    fetchDynamicPlaylist(false);
 
     // 3. Initial chat fetch & periodic poll
     fetchChatStream();
@@ -102,8 +120,7 @@ export default function IndividualJamRoomPage() {
   const handleRefreshPlaylist = async () => {
     setIsRefreshingPlaylist(true);
     try {
-      const refreshed = await getRoomPlaylist(roomIdSlug, true);
-      setPlaylist(refreshed);
+      await fetchDynamicPlaylist(true);
     } finally {
       setTimeout(() => setIsRefreshingPlaylist(false), 400);
     }
