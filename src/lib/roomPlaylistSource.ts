@@ -377,6 +377,292 @@ export async function fetchSpotifyPlaylistTracks(
   }
 }
 
+export function getLanguageFallbackTracks(slug: string, language?: string): RoomTrack[] {
+  const lower = `${slug} ${language || ""}`.toLowerCase();
+
+  if (lower.includes("tamil")) {
+    return [
+      {
+        id: "ta_hukum",
+        name: "Hukum (Thalaivar Alappara)",
+        artist: "Anirudh Ravichander",
+        album: "Jailer",
+        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
+        durationMs: 207000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "ta_katchi_sera",
+        name: "Katchi Sera",
+        artist: "Sai Abhyankkar",
+        album: "Katchi Sera",
+        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
+        durationMs: 185000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "ta_arabic_kuthu",
+        name: "Arabic Kuthu - Halamithi Habibo",
+        artist: "Anirudh Ravichander, Jonita Gandhi",
+        album: "Beast",
+        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
+        durationMs: 279000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "ta_vaathi_coming",
+        name: "Vaathi Coming",
+        artist: "Anirudh Ravichander, Gana Balachandar",
+        album: "Master",
+        coverUrl: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/4b9982463e264ab2",
+        durationMs: 230000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "ta_enjoy_enjaami",
+        name: "Enjoy Enjaami",
+        artist: "Dhee ft. Arivu & Santhosh Narayanan",
+        album: "Enjoy Enjaami",
+        coverUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
+        durationMs: 273000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+    ];
+  }
+
+  if (lower.includes("telugu")) {
+    return [
+      {
+        id: "te_ramuloo_ramulaa",
+        name: "Ramuloo Ramulaa",
+        artist: "Thaman S, Anurag Kulkarni",
+        album: "Ala Vaikunthapurramuloo",
+        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
+        durationMs: 274000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "te_oo_antava",
+        name: "Oo Antava Mawa...Oo Oo Antava",
+        artist: "Devi Sri Prasad, Indravathi Chauhan",
+        album: "Pushpa: The Rise",
+        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
+        durationMs: 223000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "te_inkem_inkem",
+        name: "Inkem Inkem Inkem Kaavale",
+        artist: "Sid Sriram, Gopi Sundar",
+        album: "Geetha Govindam",
+        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
+        durationMs: 267000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "te_samajavaragamana",
+        name: "Samajavaragamana",
+        artist: "Sid Sriram, Thaman S",
+        album: "Ala Vaikunthapurramuloo",
+        coverUrl: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/4b9982463e264ab2",
+        durationMs: 274000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "te_naatu_naatu",
+        name: "Naatu Naatu",
+        artist: "Rahul Sipligunj, Kaala Bhairava, M.M. Keeravaani",
+        album: "RRR",
+        coverUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
+        durationMs: 215000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+    ];
+  }
+
+  if (lower.includes("hindi") || lower.includes("bollywood") || lower.includes("filmi")) {
+    return [
+      {
+        id: "hi_kesariya",
+        name: "Kesariya",
+        artist: "Arijit Singh, Pritam, Amitabh Bhattacharya",
+        album: "Brahmastra",
+        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
+        durationMs: 268000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "hi_apna_bana_le",
+        name: "Apna Bana Le",
+        artist: "Arijit Singh, Sachin-Jigar",
+        album: "Bhediya",
+        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
+        durationMs: 261000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "hi_raataan_lambiyan",
+        name: "Raataan Lambiyan",
+        artist: "Jubin Nautiyal, Asees Kaur, Tanishk Bagchi",
+        album: "Shershaah",
+        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
+        durationMs: 230000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "hi_tum_hi_ho",
+        name: "Tum Hi Ho",
+        artist: "Arijit Singh, Mithoon",
+        album: "Aashiqui 2",
+        coverUrl: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/4b9982463e264ab2",
+        durationMs: 262000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "hi_chaleya",
+        name: "Chaleya",
+        artist: "Arijit Singh, Shilpa Rao, Anirudh Ravichander",
+        album: "Jawan",
+        coverUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
+        durationMs: 200000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+    ];
+  }
+
+  if (lower.includes("punjabi")) {
+    return [
+      {
+        id: "pa_lover",
+        name: "Lover",
+        artist: "Diljit Dosanjh",
+        album: "MoonChild Era",
+        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
+        durationMs: 191000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "pa_insane",
+        name: "Insane",
+        artist: "AP Dhillon, Gurinder Gill, Shinda Kahlon",
+        album: "Insane",
+        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
+        durationMs: 206000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "pa_softly",
+        name: "Softly",
+        artist: "Karan Aujla, Ikky",
+        album: "Making Memories",
+        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
+        durationMs: 156000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "pa_elevated",
+        name: "Elevated",
+        artist: "Shubh",
+        album: "Elevated",
+        coverUrl: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/4b9982463e264ab2",
+        durationMs: 201000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+    ];
+  }
+
+  if (lower.includes("spanish") || lower.includes("latin")) {
+    return [
+      {
+        id: "es_despacito",
+        name: "Despacito",
+        artist: "Luis Fonsi ft. Daddy Yankee",
+        album: "VIDA",
+        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
+        durationMs: 228000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "es_titi",
+        name: "Tití Me Preguntó",
+        artist: "Bad Bunny",
+        album: "Un Verano Sin Ti",
+        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
+        durationMs: 243000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "es_despecha",
+        name: "DESPECHÁ",
+        artist: "Rosalía",
+        album: "MOTOMAMI +",
+        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
+        durationMs: 157000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+    ];
+  }
+
+  if (lower.includes("french")) {
+    return [
+      {
+        id: "fr_derniere",
+        name: "Dernière Danse",
+        artist: "Indila",
+        album: "Mini World",
+        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
+        durationMs: 213000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "fr_papaoutai",
+        name: "Papaoutai",
+        artist: "Stromae",
+        album: "Racine Carrée",
+        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
+        durationMs: 232000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+      {
+        id: "fr_tourner",
+        name: "Tourner Dans Le Vide",
+        artist: "Indila",
+        album: "Mini World",
+        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
+        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
+        durationMs: 246000,
+        addedBy: "Room Curator (AI Companion)",
+      },
+    ];
+  }
+
+  return ROOM_PLAYLIST_DATABASE["midnight-neon-sanctuary"].tracks;
+}
+
 /**
  * Sources playlist dynamically using search query builder + quality threshold + broader fallback.
  */
@@ -409,7 +695,7 @@ export async function getRoomPlaylistWithQuery(
     description: `Live acoustic listening room dynamically matched to your stream.`,
     updatedAt: new Date().toISOString(),
     sourceType: "curated_fallback",
-    tracks: ROOM_PLAYLIST_DATABASE["midnight-neon-sanctuary"].tracks,
+    tracks: getLanguageFallbackTracks(roomSlug, tasteProfile.preferredLanguage),
   };
 
   if (!accessToken) {

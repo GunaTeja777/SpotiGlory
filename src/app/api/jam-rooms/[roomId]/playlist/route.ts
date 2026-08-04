@@ -7,6 +7,19 @@ import { buildUserTasteProfile } from "@/lib/userTasteProfile";
 import { getRoomPlaylistWithQuery, getRoomPlaylist } from "@/lib/roomPlaylistSource";
 import { getRoomBySlug, getRoomById } from "@/lib/moodRoomEngine";
 
+function extractLanguageFromSlug(slug: string, customLang?: string | null): string | undefined {
+  if (customLang && customLang.trim().length > 0) return customLang.trim();
+  const lower = slug.toLowerCase();
+  if (lower.includes("tamil")) return "Tamil";
+  if (lower.includes("telugu")) return "Telugu";
+  if (lower.includes("hindi") || lower.includes("bollywood")) return "Hindi";
+  if (lower.includes("punjabi")) return "Punjabi";
+  if (lower.includes("spanish") || lower.includes("latin")) return "Spanish";
+  if (lower.includes("french")) return "French";
+  if (lower.includes("korean") || lower.includes("kpop")) return "Korean";
+  return undefined;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ roomId: string }> }
@@ -16,6 +29,7 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const forceRefresh = searchParams.get("forceRefresh") === "true";
     const customLang = searchParams.get("language");
+    const effectiveLang = extractLanguageFromSlug(roomId, customLang);
 
     const session = await getServerSession(authOptions);
     const room = getRoomBySlug(roomId) || getRoomById(roomId);
@@ -66,8 +80,8 @@ export async function GET(
       mediumTermArtists
     );
 
-    // 3. Build user taste profile based on RECENT listening genres, artists, and language
-    const tasteProfile = buildUserTasteProfile(combinedArtists, features, customLang);
+    // 3. Build user taste profile based on RECENT listening genres, artists, and room language
+    const tasteProfile = buildUserTasteProfile(combinedArtists, features, effectiveLang);
 
     // 4. Execute full end-to-end chain: archetype -> tasteProfile -> queryBuilder -> roomPlaylistSource
     const playlist = await getRoomPlaylistWithQuery(
