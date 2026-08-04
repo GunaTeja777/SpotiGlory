@@ -13,6 +13,7 @@ import { ListeningPatternsTab } from "@/components/dashboard/ListeningPatternsTa
 import { PersonalityTab } from "@/components/dashboard/PersonalityTab";
 import { JamRoomsTab } from "@/components/dashboard/JamRoomsTab";
 import { UploadHistoryTab } from "@/components/dashboard/UploadHistoryTab";
+import { LanguageSettingsCard } from "@/components/dashboard/LanguageSettingsCard";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { SpotifyIcon } from "@/components/landing/LandingNav";
@@ -128,57 +129,61 @@ function DashboardContent() {
         {activeTab === "upload-history" && <UploadHistoryTab />}
 
         {activeTab === "settings" && (
-          <GlassCard variant="elevated" radius="3xl" className="p-8 border-white/18 text-left max-w-2xl">
-            <div className="flex items-center gap-3 pb-4 border-b border-white/10 mb-5">
-              <Settings className="w-6 h-6 text-[#1DB954]" />
-              <h3 className="text-lg font-bold text-white">App & Session Settings</h3>
-            </div>
-            <div className="flex flex-col gap-4 text-xs text-gray-300">
-              {/* Optional IPIP Validation Quiz Link */}
-              <Link
-                href="/dashboard/quiz"
-                className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 hover:border-purple-500/60 hover:bg-purple-500/20 transition-all flex justify-between items-center group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <Sparkles className="w-4 h-4 text-purple-300" />
+          <div className="flex flex-col gap-6 max-w-2xl">
+            <LanguageSettingsCard />
+
+            <GlassCard variant="elevated" radius="3xl" className="p-8 border-white/18 text-left">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/10 mb-5">
+                <Settings className="w-6 h-6 text-[#1DB954]" />
+                <h3 className="text-lg font-bold text-white">App & Session Settings</h3>
+              </div>
+              <div className="flex flex-col gap-4 text-xs text-gray-300">
+                {/* Optional IPIP Validation Quiz Link */}
+                <Link
+                  href="/dashboard/quiz"
+                  className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 hover:border-purple-500/60 hover:bg-purple-500/20 transition-all flex justify-between items-center group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <Sparkles className="w-4 h-4 text-purple-300" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-white group-hover:text-purple-200 transition-colors">
+                        Help improve accuracy (optional, 2 min)
+                      </p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">
+                        Take the 10-item Mini-IPIP quiz to validate Spotify scores and train Ridge Regression weights
+                      </p>
+                    </div>
                   </div>
+                  <div className="flex items-center gap-1.5 text-xs font-mono text-purple-300 font-bold group-hover:translate-x-1 transition-transform">
+                    <span>Take Quiz</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </Link>
+
+                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex justify-between items-center">
                   <div>
-                    <p className="font-bold text-white group-hover:text-purple-200 transition-colors">
-                      Help improve accuracy (optional, 2 min)
-                    </p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
-                      Take the 10-item Mini-IPIP quiz to validate Spotify scores and train Ridge Regression weights
-                    </p>
+                    <p className="font-bold text-white">Theme & Glass Specular Intensity</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">Analytics engine active</p>
                   </div>
+                  <span className="px-2.5 py-1 rounded-full bg-[#1DB954]/20 text-[#1DB954] font-mono text-[10px] border border-[#1DB954]/30">
+                    INTENSE GLASS
+                  </span>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs font-mono text-purple-300 font-bold group-hover:translate-x-1 transition-transform">
-                  <span>Take Quiz</span>
-                  <ArrowRight className="w-4 h-4" />
-                </div>
-              </Link>
 
-              <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex justify-between items-center">
-                <div>
-                  <p className="font-bold text-white">Theme & Glass Specular Intensity</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">Analytics engine active</p>
+                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex justify-between items-center">
+                  <div>
+                    <p className="font-bold text-white">Spotify API Session State</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">Scopes: top-read, recently-played, email, profile</p>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] border border-emerald-500/30">
+                    OAUTH ACTIVE
+                  </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-[#1DB954]/20 text-[#1DB954] font-mono text-[10px] border border-[#1DB954]/30">
-                  INTENSE GLASS
-                </span>
               </div>
-
-              <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex justify-between items-center">
-                <div>
-                  <p className="font-bold text-white">Spotify API Session State</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">Scopes: top-read, recently-played, email, profile</p>
-                </div>
-                <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] border border-emerald-500/30">
-                  OAUTH ACTIVE
-                </span>
-              </div>
-            </div>
-          </GlassCard>
+            </GlassCard>
+          </div>
         )}
       </main>
     </div>

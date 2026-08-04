@@ -301,3 +301,7 @@ export function computeBehavioralFeatures(
     },
   };
 }
+
+export { buildUserTasteProfile, extractTopGenres, inferLanguageFromArtists } from "./userTasteProfile";
+export type { UserTasteProfile, SupportedLanguage } from "./userTasteProfile";
+
