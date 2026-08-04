@@ -60,7 +60,7 @@ function getRoomSuffix(genre: string, index: number): string {
 }
 
 /**
- * Generates distinct, artist-tailored room descriptions.
+ * Generates 100% generic, artist-tailored room descriptions without hardcoded strings.
  */
 function buildRoomDescription(genre: string, artistName?: string): string {
   const formatted = capitalizeWords(genre);
@@ -98,38 +98,14 @@ function buildMatchReason(genre: string, lang: string, index: number): string {
 }
 
 /**
- * Returns distinct default sample tracks per genre & artist context.
+ * Generates generic sample track placeholders derived dynamically from genre and language.
  */
-function getDefaultSampleTracks(genre: string, artistName?: string, lang: string = "English"): { title: string; artist: string }[] {
-  const lower = genre.toLowerCase();
-  const primaryArtist = artistName || "Featured Artist";
-
-  if (lower.includes("electronic") || lower.includes("edm")) {
-    return [
-      { title: "Master (Theme)", artist: primaryArtist },
-      { title: "Midnight City", artist: "M83" },
-      { title: "Resonance", artist: "HOME" },
-    ];
-  }
-  if (lower.includes("rock") || lower.includes("alternative")) {
-    return [
-      { title: "Katchi Sera", artist: primaryArtist },
-      { title: "Smells Like Teen Spirit", artist: "Nirvana" },
-      { title: "Chop Suey!", artist: "System Of A Down" },
-    ];
-  }
-  if (lower.includes("jazz") || lower.includes("acoustic") || lower.includes("piano")) {
-    return [
-      { title: "Dernière Danse", artist: primaryArtist },
-      { title: "Nuvole Bianche", artist: "Ludovico Einaudi" },
-      { title: "Breezin'", artist: "George Benson" },
-    ];
-  }
-
+function getGenericSampleTracks(genre: string, lang: string): { title: string; artist: string }[] {
+  const formatted = capitalizeWords(genre);
   return [
-    { title: "Top Track", artist: primaryArtist },
-    { title: "Acoustic Melody", artist: `${lang} Curator` },
-    { title: "Golden Hour Wave", artist: "Ambient Artist" },
+    { title: `${formatted} Stream #1`, artist: `${lang} Live Session` },
+    { title: `${formatted} Stream #2`, artist: `${lang} Curator` },
+    { title: `${formatted} Stream #3`, artist: `${lang} Acoustic Wave` },
   ];
 }
 
@@ -196,7 +172,7 @@ export function generateDynamicRoomsFromListeningData(
     "Radio",
   ];
 
-  // 3. Construct 100% dynamic rooms with distinct names, bios, match reasons, and track previews
+  // 3. Construct 100% dynamic rooms with distinct names, bios, match reasons, and generic track previews
   const dynamicRooms: DynamicJamRoom[] = activeGenres.map((genre, idx) => {
     const formattedGenre = capitalizeWords(genre);
     const suffix = getRoomSuffix(genre, idx);
@@ -224,7 +200,7 @@ export function generateDynamicRoomsFromListeningData(
       playlistPreview: {
         title: `${roomTitle} Playlist`,
         tracksCount: 15,
-        sampleTracks: getDefaultSampleTracks(genre, assignedArtist, lang),
+        sampleTracks: getGenericSampleTracks(genre, lang),
       },
     };
   });

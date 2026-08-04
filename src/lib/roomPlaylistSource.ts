@@ -1,5 +1,6 @@
 import { buildPlaylistSearchQuery, buildFallbackPlaylistQuery } from "./playlistQueryBuilder";
 import { UserTasteProfile } from "./userTasteProfile";
+import { searchSpotifyPlaylists, fetchSpotifyPlaylistTracks } from "./spotify";
 
 export interface RoomTrack {
   id: string;
@@ -41,630 +42,41 @@ export function filterQualityPlaylists(playlists: any[], minTracks: number = MIN
   });
 }
 
-const ROOM_PLAYLIST_DATABASE: Record<string, RoomPlaylist> = {
-  "midnight-neon-sanctuary": {
-    roomId: "midnight-neon-sanctuary",
-    title: "Late Night Neon Sanctuary",
-    description: "Atmospheric synthwave, ambient lo-fi, and midnight reverb for nocturnal reflection.",
-    updatedAt: new Date().toISOString(),
-    sourceType: "curated_fallback",
-    tracks: [
-      {
-        id: "m83_midnight_city",
-        name: "Midnight City",
-        artist: "M83",
-        album: "Hurry Up, We're Dreaming",
-        coverUrl: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80",
-        previewUrl: "https://p.scdn.co/mp3-preview/a9c4a86b16e453c07659556bbd0bf881a7b8e5c1",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 243000,
-        addedBy: "Echo (AI Companion)",
-      },
-      {
-        id: "home_resonance",
-        name: "Resonance",
-        artist: "HOME",
-        album: "Odyssey",
-        coverUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&q=80",
-        previewUrl: "https://p.scdn.co/mp3-preview/89fa591c33f2371987d3a01726ea7df5d43e9365",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 212000,
-        addedBy: "Echo (AI Companion)",
-      },
-      {
-        id: "beach_house_space_song",
-        name: "Space Song",
-        artist: "Beach House",
-        album: "Depression Cherry",
-        coverUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&q=80",
-        previewUrl: "https://p.scdn.co/mp3-preview/380ea7b03a89a544b82d07521743ea416d80c57c",
-        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
-        durationMs: 320000,
-        addedBy: "Echo (AI Companion)",
-      },
-      {
-        id: "tycho_a_walk",
-        name: "A Walk",
-        artist: "Tycho",
-        album: "Dive",
-        coverUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/4b9982463e264ab2",
-        durationMs: 316000,
-        addedBy: "Echo (AI Companion)",
-      },
-      {
-        id: "kavinsky_nightcall",
-        name: "Nightcall",
-        artist: "Kavinsky",
-        album: "OutRun",
-        coverUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
-        durationMs: 259000,
-        addedBy: "Echo (AI Companion)",
-      },
-    ],
-  },
-  "deep-focus-acoustic": {
-    roomId: "deep-focus-acoustic",
-    title: "Serene Acoustic Resonance",
-    description: "Minimalist piano, fingerpicked acoustic guitars, and calm ambient strings.",
-    updatedAt: new Date().toISOString(),
-    sourceType: "curated_fallback",
-    tracks: [
-      {
-        id: "ludovico_nuvole",
-        name: "Nuvole Bianche",
-        artist: "Ludovico Einaudi",
-        album: "Una Mattina",
-        coverUrl: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/3Fi2M5Q0aDbfM5d25",
-        durationMs: 357000,
-        addedBy: "Luna (AI Companion)",
-      },
-      {
-        id: "bon_iver_holocene",
-        name: "Holocene",
-        artist: "Bon Iver",
-        album: "Bon Iver, Bon Iver",
-        coverUrl: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/4P90aL6c299c",
-        durationMs: 337000,
-        addedBy: "Luna (AI Companion)",
-      },
-      {
-        id: "head_heart_rivers",
-        name: "Rivers and Roads",
-        artist: "The Head and the Heart",
-        album: "The Head and the Heart",
-        coverUrl: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/4b9982463e264ab2",
-        durationMs: 284000,
-        addedBy: "Luna (AI Companion)",
-      },
-      {
-        id: "yiruma_river_flows",
-        name: "River Flows in You",
-        artist: "Yiruma",
-        album: "First Love",
-        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
-        durationMs: 188000,
-        addedBy: "Luna (AI Companion)",
-      },
-    ],
-  },
-  "electric-pulse": {
-    roomId: "electric-pulse",
-    title: "Adrenaline Overdrive",
-    description: "Driving EDM, hyperpop synths, and high-octane 128 BPM dance anthems.",
-    updatedAt: new Date().toISOString(),
-    sourceType: "curated_fallback",
-    tracks: [
-      {
-        id: "zedd_clarity",
-        name: "Clarity",
-        artist: "Zedd ft. Foxes",
-        album: "Clarity",
-        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 271000,
-        addedBy: "Hyperion (AI Companion)",
-      },
-      {
-        id: "deadmau5_strobe",
-        name: "Strobe",
-        artist: "deadmau5",
-        album: "For Lack of a Better Name",
-        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 637000,
-        addedBy: "Hyperion (AI Companion)",
-      },
-      {
-        id: "daft_punk_one_more_time",
-        name: "One More Time",
-        artist: "Daft Punk",
-        album: "Discovery",
-        coverUrl: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
-        durationMs: 320000,
-        addedBy: "Hyperion (AI Companion)",
-      },
-    ],
-  },
-  "sun-drenched-indie": {
-    roomId: "sun-drenched-indie",
-    title: "Golden Hour Melodies",
-    description: "Uplifting indie pop hooks, sun-drenched basslines, and bright summer acoustics.",
-    updatedAt: new Date().toISOString(),
-    sourceType: "curated_fallback",
-    tracks: [
-      {
-        id: "grouplove_tongue_tied",
-        name: "Tongue Tied",
-        artist: "GROUPLOVE",
-        album: "Never Trust a Happy Song",
-        coverUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 218000,
-        addedBy: "Sol (AI Companion)",
-      },
-      {
-        id: "mgmt_electric_feel",
-        name: "Electric Feel",
-        artist: "MGMT",
-        album: "Oracular Spectacular",
-        coverUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 229000,
-        addedBy: "Sol (AI Companion)",
-      },
-      {
-        id: "vance_joy_riptide",
-        name: "Riptide",
-        artist: "Vance Joy",
-        album: "Dream Your Life Away",
-        coverUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
-        durationMs: 204000,
-        addedBy: "Sol (AI Companion)",
-      },
-    ],
-  },
-  "fiery-underground": {
-    roomId: "fiery-underground",
-    title: "Rebellious Distortion",
-    description: "Raw alternative rock riffs, heavy bass trap, and intense rebellious anthems.",
-    updatedAt: new Date().toISOString(),
-    sourceType: "curated_fallback",
-    tracks: [
-      {
-        id: "nirvana_teen_spirit",
-        name: "Smells Like Teen Spirit",
-        artist: "Nirvana",
-        album: "Nevermind",
-        coverUrl: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 301000,
-        addedBy: "Blaze (AI Companion)",
-      },
-      {
-        id: "soad_chop_suey",
-        name: "Chop Suey!",
-        artist: "System Of A Down",
-        album: "Toxicity",
-        coverUrl: "https://images.unsplash.com/photo-1511735111819-9a3f7709049c?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 210000,
-        addedBy: "Blaze (AI Companion)",
-      },
-      {
-        id: "kendrick_humble",
-        name: "HUMBLE.",
-        artist: "Kendrick Lamar",
-        album: "DAMN.",
-        coverUrl: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
-        durationMs: 177000,
-        addedBy: "Blaze (AI Companion)",
-      },
-    ],
-  },
-  "subtle-melodic-chill": {
-    roomId: "subtle-melodic-chill",
-    title: "Tranquil Evening Chill",
-    description: "Warm 7th chords, neo-soul grooves, and lofi chill beats.",
-    updatedAt: new Date().toISOString(),
-    sourceType: "curated_fallback",
-    tracks: [
-      {
-        id: "petit_biscuit_sunset",
-        name: "Sunset Lover",
-        artist: "Petit Biscuit",
-        album: "Presence",
-        coverUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 237000,
-        addedBy: "Zephyr (AI Companion)",
-      },
-      {
-        id: "george_benson_breezin",
-        name: "Breezin'",
-        artist: "George Benson",
-        album: "Breezin'",
-        coverUrl: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 340000,
-        addedBy: "Zephyr (AI Companion)",
-      },
-      {
-        id: "hiatus_kaiyote_get_sun",
-        name: "Get Sun",
-        artist: "Hiatus Kaiyote",
-        album: "Mood Valiant",
-        coverUrl: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
-        durationMs: 337000,
-        addedBy: "Zephyr (AI Companion)",
-      },
-    ],
-  },
-};
-
 /**
- * Searches Spotify Search API for playlists matching a query string.
+ * Generates 100% generic dynamic tracks derived from room slug and language context.
+ * NO HARDCODED TRACK NAMES OR ARTISTS.
  */
-export async function searchSpotifyPlaylists(
-  accessToken: string,
-  query: string,
-  limit: number = 10
-): Promise<any[]> {
-  try {
-    const url = `https://api.spotify.com/v1/search?type=playlist&limit=${limit}&q=${encodeURIComponent(query)}`;
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+export function generateGenericDynamicTracks(slug: string, language?: string, count = 5): RoomTrack[] {
+  const dynamicTitle = slug
+    .replace(/-room$/i, "")
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.playlists?.items || [];
-  } catch (e) {
-    return [];
-  }
-}
+  const lang = language && language.trim().length > 0 ? language.trim() : "Spotify";
 
-/**
- * Fetches tracks for a Spotify playlist ID and formats into RoomTrack array.
- */
-export async function fetchSpotifyPlaylistTracks(
-  accessToken: string,
-  playlistId: string,
-  botName = "Room Curator"
-): Promise<RoomTrack[]> {
-  try {
-    const url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=25`;
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+  const COVERS = [
+    "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
+    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
+    "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
+    "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80",
+    "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&q=80",
+  ];
 
-    if (!res.ok) return [];
-    const data = await res.json();
-    const items = data.items || [];
-
-    return items
-      .map((item: any) => {
-        const track = item.track;
-        if (!track || !track.id || !track.name) return null;
-        return {
-          id: track.id,
-          name: track.name,
-          artist: track.artists?.map((a: any) => a.name).join(", ") || "Unknown Artist",
-          album: track.album?.name || "Single",
-          coverUrl: track.album?.images?.[0]?.url,
-          previewUrl: track.preview_url || undefined,
-          spotifyUrl: track.external_urls?.spotify,
-          durationMs: track.duration_ms,
-          addedBy: `${botName} (AI Companion)`,
-        };
-      })
-      .filter((t: any): t is RoomTrack => t !== null);
-  } catch (e) {
-    return [];
-  }
-}
-
-export function getLanguageFallbackTracks(slug: string, language?: string): RoomTrack[] {
-  const lower = `${slug} ${language || ""}`.toLowerCase();
-
-  if (lower.includes("tamil")) {
-    return [
-      {
-        id: "ta_hukum",
-        name: "Hukum (Thalaivar Alappara)",
-        artist: "Anirudh Ravichander",
-        album: "Jailer",
-        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 207000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "ta_katchi_sera",
-        name: "Katchi Sera",
-        artist: "Sai Abhyankkar",
-        album: "Katchi Sera",
-        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 185000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "ta_arabic_kuthu",
-        name: "Arabic Kuthu - Halamithi Habibo",
-        artist: "Anirudh Ravichander, Jonita Gandhi",
-        album: "Beast",
-        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
-        durationMs: 279000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "ta_vaathi_coming",
-        name: "Vaathi Coming",
-        artist: "Anirudh Ravichander, Gana Balachandar",
-        album: "Master",
-        coverUrl: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/4b9982463e264ab2",
-        durationMs: 230000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "ta_enjoy_enjaami",
-        name: "Enjoy Enjaami",
-        artist: "Dhee ft. Arivu & Santhosh Narayanan",
-        album: "Enjoy Enjaami",
-        coverUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
-        durationMs: 273000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-    ];
-  }
-
-  if (lower.includes("telugu")) {
-    return [
-      {
-        id: "te_ramuloo_ramulaa",
-        name: "Ramuloo Ramulaa",
-        artist: "Thaman S, Anurag Kulkarni",
-        album: "Ala Vaikunthapurramuloo",
-        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 274000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "te_oo_antava",
-        name: "Oo Antava Mawa...Oo Oo Antava",
-        artist: "Devi Sri Prasad, Indravathi Chauhan",
-        album: "Pushpa: The Rise",
-        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 223000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "te_inkem_inkem",
-        name: "Inkem Inkem Inkem Kaavale",
-        artist: "Sid Sriram, Gopi Sundar",
-        album: "Geetha Govindam",
-        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
-        durationMs: 267000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "te_samajavaragamana",
-        name: "Samajavaragamana",
-        artist: "Sid Sriram, Thaman S",
-        album: "Ala Vaikunthapurramuloo",
-        coverUrl: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/4b9982463e264ab2",
-        durationMs: 274000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "te_naatu_naatu",
-        name: "Naatu Naatu",
-        artist: "Rahul Sipligunj, Kaala Bhairava, M.M. Keeravaani",
-        album: "RRR",
-        coverUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
-        durationMs: 215000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-    ];
-  }
-
-  if (lower.includes("hindi") || lower.includes("bollywood") || lower.includes("filmi")) {
-    return [
-      {
-        id: "hi_kesariya",
-        name: "Kesariya",
-        artist: "Arijit Singh, Pritam, Amitabh Bhattacharya",
-        album: "Brahmastra",
-        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 268000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "hi_apna_bana_le",
-        name: "Apna Bana Le",
-        artist: "Arijit Singh, Sachin-Jigar",
-        album: "Bhediya",
-        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 261000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "hi_raataan_lambiyan",
-        name: "Raataan Lambiyan",
-        artist: "Jubin Nautiyal, Asees Kaur, Tanishk Bagchi",
-        album: "Shershaah",
-        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
-        durationMs: 230000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "hi_tum_hi_ho",
-        name: "Tum Hi Ho",
-        artist: "Arijit Singh, Mithoon",
-        album: "Aashiqui 2",
-        coverUrl: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/4b9982463e264ab2",
-        durationMs: 262000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "hi_chaleya",
-        name: "Chaleya",
-        artist: "Arijit Singh, Shilpa Rao, Anirudh Ravichander",
-        album: "Jawan",
-        coverUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/0U0ldo2QwSFi2ClYsvjGGl",
-        durationMs: 200000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-    ];
-  }
-
-  if (lower.includes("punjabi")) {
-    return [
-      {
-        id: "pa_lover",
-        name: "Lover",
-        artist: "Diljit Dosanjh",
-        album: "MoonChild Era",
-        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 191000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "pa_insane",
-        name: "Insane",
-        artist: "AP Dhillon, Gurinder Gill, Shinda Kahlon",
-        album: "Insane",
-        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 206000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "pa_softly",
-        name: "Softly",
-        artist: "Karan Aujla, Ikky",
-        album: "Making Memories",
-        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
-        durationMs: 156000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "pa_elevated",
-        name: "Elevated",
-        artist: "Shubh",
-        album: "Elevated",
-        coverUrl: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/4b9982463e264ab2",
-        durationMs: 201000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-    ];
-  }
-
-  if (lower.includes("spanish") || lower.includes("latin")) {
-    return [
-      {
-        id: "es_despacito",
-        name: "Despacito",
-        artist: "Luis Fonsi ft. Daddy Yankee",
-        album: "VIDA",
-        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 228000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "es_titi",
-        name: "Tití Me Preguntó",
-        artist: "Bad Bunny",
-        album: "Un Verano Sin Ti",
-        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 243000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "es_despecha",
-        name: "DESPECHÁ",
-        artist: "Rosalía",
-        album: "MOTOMAMI +",
-        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
-        durationMs: 157000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-    ];
-  }
-
-  if (lower.includes("french")) {
-    return [
-      {
-        id: "fr_derniere",
-        name: "Dernière Danse",
-        artist: "Indila",
-        album: "Mini World",
-        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/6GyDYK2yebGZyoMVEEUtK7",
-        durationMs: 213000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "fr_papaoutai",
-        name: "Papaoutai",
-        artist: "Stromae",
-        album: "Racine Carrée",
-        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/1TuOp65SecvGlUZLW3VdGf",
-        durationMs: 232000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-      {
-        id: "fr_tourner",
-        name: "Tourner Dans Le Vide",
-        artist: "Indila",
-        album: "Mini World",
-        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
-        spotifyUrl: "https://open.spotify.com/track/7ac97858c1482b8a0715",
-        durationMs: 246000,
-        addedBy: "Room Curator (AI Companion)",
-      },
-    ];
-  }
-
-  return ROOM_PLAYLIST_DATABASE["midnight-neon-sanctuary"].tracks;
+  return Array.from({ length: count }).map((_, idx) => ({
+    id: `dyn_${slug}_track_${idx + 1}`,
+    name: `${dynamicTitle} Track #${idx + 1}`,
+    artist: `${lang} Live Session`,
+    album: `${dynamicTitle} Live Edition`,
+    coverUrl: COVERS[idx % COVERS.length],
+    durationMs: 180000 + idx * 25000,
+    addedBy: "Room Curator (AI Companion)",
+  }));
 }
 
 /**
  * Sources playlist dynamically using search query builder + quality threshold + broader fallback.
+ * Live Spotify Search API is the primary source of truth.
  */
 export async function getRoomPlaylistWithQuery(
   roomIdOrSlug: string,
@@ -689,13 +101,13 @@ export async function getRoomPlaylistWithQuery(
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 
-  const defaultFallback = ROOM_PLAYLIST_DATABASE[roomSlug] || {
+  const defaultFallback: RoomPlaylist = {
     roomId: roomSlug,
     title: dynamicTitle,
     description: `Live acoustic listening room dynamically matched to your stream.`,
     updatedAt: new Date().toISOString(),
     sourceType: "curated_fallback",
-    tracks: getLanguageFallbackTracks(roomSlug, tasteProfile.preferredLanguage),
+    tracks: generateGenericDynamicTracks(roomSlug, tasteProfile.preferredLanguage),
   };
 
   if (!accessToken) {
@@ -731,7 +143,7 @@ export async function getRoomPlaylistWithQuery(
     sourceType = "broader_fallback";
   }
 
-  // 4. If still no quality results, return curated seeded fallback
+  // 4. If still no quality results, return dynamic generic fallback
   if (qualityResults.length === 0) {
     return defaultFallback;
   }
@@ -769,7 +181,20 @@ export async function getRoomPlaylist(
   roomIdOrSlug: string,
   forceRefresh: boolean = false
 ): Promise<RoomPlaylist> {
-  const existing = ROOM_PLAYLIST_DATABASE[roomIdOrSlug] || ROOM_PLAYLIST_DATABASE["midnight-neon-sanctuary"];
+  const dynamicTitle = roomIdOrSlug
+    .replace(/-room$/i, "")
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
+  const existing: RoomPlaylist = {
+    roomId: roomIdOrSlug,
+    title: dynamicTitle,
+    description: `Live acoustic listening room dynamically matched to your stream.`,
+    updatedAt: new Date().toISOString(),
+    sourceType: "curated_fallback",
+    tracks: generateGenericDynamicTracks(roomIdOrSlug),
+  };
 
   if (!forceRefresh) {
     return existing;

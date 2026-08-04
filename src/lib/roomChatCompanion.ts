@@ -92,22 +92,13 @@ export function generateCompanionReply(
   const msgLower = userMessage.toLowerCase();
 
   if (msgLower.includes("recommend") || msgLower.includes("song") || msgLower.includes("track")) {
-    if (bot.name === "Echo") {
-      return "If you're craving atmospheric depth, check out 'Resonance' by HOME — the vintage synth modulation at the 1:30 mark gives incredible nocturnal atmosphere.";
-    }
-    if (bot.name === "Luna") {
-      return "Give 'Nuvole Bianche' by Ludovico Einaudi a listen. The minimal piano phrasing builds such a peaceful, meditative headspace.";
-    }
-    if (bot.name === "Hyperion") {
-      return "You need 'Clarity' by Zedd or 'Strobe' by deadmau5! The 10-minute build-up on Strobe is a masterclass in electronic arrangement.";
-    }
-    if (bot.name === "Sol") {
-      return "Try 'Electric Feel' by MGMT or 'Tongue Tied' by GROUPLOVE — peak sun-drenched indie pop with infectious basslines.";
-    }
-    if (bot.name === "Blaze") {
-      return "Blast 'Chop Suey!' by System Of A Down or 'Smells Like Teen Spirit' — unmatched distortion and raw energy.";
-    }
-    return "Check out 'Sunset Lover' by Petit Biscuit for pure lofi chill and warm neo-soul chords.";
+    const dynamicRoomName = roomIdOrSlug
+      .replace(/-room$/i, "")
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+
+    return `If you're looking for top recommendations in this room, check out the live queue for ${dynamicRoomName} — the acoustic arrangement and rhythm section fit this room vibe perfectly.`;
   }
 
   if (msgLower.includes("hi") || msgLower.includes("hello") || msgLower.includes("hey")) {

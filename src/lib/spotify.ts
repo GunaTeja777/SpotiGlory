@@ -218,3 +218,60 @@ export async function getClientCredentialsToken(): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * Search Spotify for public playlists.
+ */
+export async function searchSpotifyPlaylists(
+  accessToken: string,
+  query: string,
+  limit = 10
+): Promise<any[]> {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      type: "playlist",
+      limit: limit.toString(),
+    });
+    const res = await fetchSpotifyApi<{ playlists?: { items?: any[] } }>(
+      `/search?${params.toString()}`,
+      accessToken
+    );
+    return res.playlists?.items || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
+ * Fetch tracks from a specific Spotify playlist.
+ */
+export async function fetchSpotifyPlaylistTracks(
+  accessToken: string,
+  playlistId: string,
+  limit = 10
+): Promise<any[]> {
+  try {
+    const res = await fetchSpotifyApi<{ items?: any[] }>(
+      `/playlists/${playlistId}/tracks?limit=${limit}`,
+      accessToken
+    );
+    const items = res.items || [];
+    return items
+      .map((item: any) => item.track)
+      .filter(Boolean)
+      .map((track: any) => ({
+        id: track.id || Math.random().toString(),
+        name: track.name || "Live Stream",
+        artist: track.artists?.map((a: any) => a.name).join(", ") || "Live Artist",
+        album: track.album?.name || "Spotify Playlist",
+        coverUrl: track.album?.images?.[0]?.url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
+        previewUrl: track.preview_url,
+        spotifyUrl: track.external_urls?.spotify,
+        durationMs: track.duration_ms || 180000,
+        addedBy: "Room Curator (AI Companion)",
+      }));
+  } catch (e) {
+    return [];
+  }
+}

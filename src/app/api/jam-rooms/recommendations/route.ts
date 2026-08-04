@@ -6,15 +6,15 @@ import {
   getRecentlyPlayed,
   getTopTracks,
   getClientCredentialsToken,
+  searchSpotifyPlaylists,
+  fetchSpotifyPlaylistTracks,
 } from "@/lib/spotify";
 import { computeBehavioralFeatures } from "@/lib/features";
 import { computeOceanScores } from "@/lib/oceanScoring";
 import { buildUserTasteProfile } from "@/lib/userTasteProfile";
 import { generateDynamicRoomsFromListeningData, DynamicJamRoom } from "@/lib/dynamicRoomEngine";
 import {
-  searchSpotifyPlaylists,
   filterQualityPlaylists,
-  fetchSpotifyPlaylistTracks,
 } from "@/lib/roomPlaylistSource";
 import { findJamMatches, MoodType, OceanVector, MusicClusterVector } from "@/lib/jamMatching";
 import { getSyntheticUsers } from "@/lib/syntheticUsers";
@@ -147,7 +147,7 @@ export async function GET(request: Request) {
                     playlistPreview: {
                       title: bestPl.name || dynRoom.playlistPreview.title,
                       tracksCount: tracks.length,
-                      sampleTracks: tracks.slice(0, 3).map((t) => ({
+                      sampleTracks: tracks.slice(0, 3).map((t: any) => ({
                         title: t.name,
                         artist: t.artist,
                       })),

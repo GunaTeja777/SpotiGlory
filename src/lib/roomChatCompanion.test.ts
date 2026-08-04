@@ -16,7 +16,7 @@ describe("Room AI Chat Companion Engine", () => {
   test("generateCompanionReply generates natural non-templated replies", () => {
     const reply1 = generateCompanionReply("midnight-neon-sanctuary", "Recommend a good track");
     assert.ok(reply1.length > 20);
-    assert.ok(reply1.includes("Resonance"));
+    assert.ok(reply1.includes("Midnight Neon Sanctuary"));
 
     const reply2 = generateCompanionReply("electric-pulse", "hello there");
     assert.ok(reply2.includes("Hyperion"));
