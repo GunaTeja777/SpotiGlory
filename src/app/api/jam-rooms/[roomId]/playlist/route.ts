@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { getTopArtists } from "@/lib/spotify";
+import { getTopArtists, getRecentlyPlayed, getTopTracks } from "@/lib/spotify";
 import { computeBehavioralFeatures } from "@/lib/features";
 import { buildUserTasteProfile } from "@/lib/userTasteProfile";
 import { getRoomPlaylistWithQuery, getRoomPlaylist } from "@/lib/roomPlaylistSource";
@@ -19,7 +19,6 @@ export async function GET(
 
     const session = await getServerSession(authOptions);
     const room = getRoomBySlug(roomId) || getRoomById(roomId);
-    const roomArchetype = room ? room.name : roomId;
 
     if (!session || !session.accessToken) {
       // Unauthenticated / Demo Fallback
@@ -34,15 +33,42 @@ export async function GET(
 
     const token = session.accessToken;
 
-    // Fetch top artists to derive real user taste profile
-    const topArtistsRes = await getTopArtists(token, "medium_term", 30).catch(() => ({ items: [] }));
-    const topArtists = topArtistsRes.items || [];
-    const features = computeBehavioralFeatures([], topArtists, [], [], []);
+    // 1. Fetch real-time recent song listening history & top datasets in parallel
+    const [recentlyPlayedRes, shortTermArtistsRes, mediumTermArtistsRes, shortTermTracksRes] =
+      await Promise.all([
+        getRecentlyPlayed(token, 50).catch(() => ({ items: [] })),
+        getTopArtists(token, "short_term", 30).catch(() => ({ items: [] })),
+        getTopArtists(token, "medium_term", 30).catch(() => ({ items: [] })),
+        getTopTracks(token, "short_term", 30).catch(() => ({ items: [] })),
+      ]);
 
-    // Build user taste profile (topGenres, preferredLanguage, dominantMusicCluster)
-    const tasteProfile = buildUserTasteProfile(topArtists, features, customLang);
+    const recentlyPlayed = recentlyPlayedRes.items || [];
+    const shortTermArtists = shortTermArtistsRes.items || [];
+    const mediumTermArtists = mediumTermArtistsRes.items || [];
+    const shortTermTracks = shortTermTracksRes.items || [];
 
-    // Execute full end-to-end chain: archetype -> tasteProfile -> queryBuilder -> roomPlaylistSource
+    // Combine short-term & medium-term artists to prioritize recent listening taste
+    const allArtistsMap = new Map();
+    [...shortTermArtists, ...mediumTermArtists].forEach((a) => {
+      if (a && (a.id || a.name) && !allArtistsMap.has(a.id || a.name)) {
+        allArtistsMap.set(a.id || a.name, a);
+      }
+    });
+    const combinedArtists = Array.from(allArtistsMap.values());
+
+    // 2. Compute behavioral features based on RECENT song listening streams
+    const features = computeBehavioralFeatures(
+      shortTermTracks,
+      combinedArtists,
+      recentlyPlayed,
+      shortTermArtists,
+      mediumTermArtists
+    );
+
+    // 3. Build user taste profile based on RECENT listening genres, artists, and language
+    const tasteProfile = buildUserTasteProfile(combinedArtists, features, customLang);
+
+    // 4. Execute full end-to-end chain: archetype -> tasteProfile -> queryBuilder -> roomPlaylistSource
     const playlist = await getRoomPlaylistWithQuery(
       roomId,
       tasteProfile,
@@ -52,6 +78,7 @@ export async function GET(
 
     return NextResponse.json({
       status: "success",
+      recentSongCount: recentlyPlayed.length,
       tasteProfile,
       playlist,
     });
