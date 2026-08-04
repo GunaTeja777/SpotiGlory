@@ -75,7 +75,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "spoti-glory-nextauth-fallback-secret-2026",
   useSecureCookies: process.env.NODE_ENV === "production",
   cookies: {
     sessionToken: {
