@@ -1,14 +1,23 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { getTopArtists, getRecentlyPlayed, getTopTracks, getClientCredentialsToken } from "@/lib/spotify";
+import {
+  getTopArtists,
+  getRecentlyPlayed,
+  getTopTracks,
+  getClientCredentialsToken,
+} from "@/lib/spotify";
 import { computeBehavioralFeatures } from "@/lib/features";
 import { computeOceanScores } from "@/lib/oceanScoring";
 import { buildUserTasteProfile } from "@/lib/userTasteProfile";
-import { getRecommendedRooms, EvaluatedMoodRoom } from "@/lib/moodRoomEngine";
+import { generateDynamicRoomsFromListeningData, DynamicJamRoom } from "@/lib/dynamicRoomEngine";
+import {
+  searchSpotifyPlaylists,
+  filterQualityPlaylists,
+  fetchSpotifyPlaylistTracks,
+} from "@/lib/roomPlaylistSource";
 import { findJamMatches, MoodType, OceanVector, MusicClusterVector } from "@/lib/jamMatching";
 import { getSyntheticUsers } from "@/lib/syntheticUsers";
-import { getRoomPlaylistWithQuery } from "@/lib/roomPlaylistSource";
 import { computeClusterDistribution } from "@/lib/genreClusters";
 
 const parseMood = (raw?: string): MoodType => {
@@ -72,9 +81,11 @@ export async function GET(request: Request) {
     );
 
     // 2. Derive real-time inferred mood
+    const customMoodParam = searchParams.get("mood");
     const inferredMood: MoodType = features.inferredMood?.label
       ? parseMood(features.inferredMood.label)
       : "Reflective";
+    const activeMood: MoodType = customMoodParam ? parseMood(customMoodParam) : inferredMood;
 
     // 3. Compute real music cluster distribution vector from user top genres
     const clusterDist = computeClusterDistribution(features.topGenreDistribution || []);
@@ -95,74 +106,66 @@ export async function GET(request: Request) {
       neuroticism: oceanScores.neuroticism?.score ?? 54,
     };
 
-    // 5. Build user taste profile for live Spotify playlist search
+    // 5. Build user taste profile based on real recent streams & language
     const tasteProfile = buildUserTasteProfile(combinedArtists, features, customLang);
 
-    // 6. Calculate room recommendations using real user mood & cluster vectors
-    const recs = getRecommendedRooms(inferredMood, userClusters, userOcean);
-
-    // 7. Source live Spotify public playlists for recommended rooms
-    const updatedTopRooms: EvaluatedMoodRoom[] = await Promise.all(
-      recs.topRooms.map(async (evalRoom) => {
-        try {
-          const livePlaylist = await getRoomPlaylistWithQuery(
-            evalRoom.room.slug,
-            tasteProfile,
-            token,
-            forceRefresh
-          );
-          if (livePlaylist && livePlaylist.tracks?.length > 0) {
-            return {
-              ...evalRoom,
-              room: {
-                ...evalRoom.room,
-                playlistPreview: {
-                  title: livePlaylist.title,
-                  tracksCount: livePlaylist.tracks.length,
-                  sampleTracks: livePlaylist.tracks.slice(0, 3).map((t) => ({
-                    title: t.name,
-                    artist: t.artist,
-                  })),
-                },
-              },
-            };
-          }
-        } catch (e) {
-          // Keep default if fetch fails
-        }
-        return evalRoom;
-      })
+    // 6. Generate 100% DYNAMIC Jam Rooms directly from user's actual Spotify listening history
+    const dynamicRoomList = generateDynamicRoomsFromListeningData(
+      recentlyPlayed,
+      combinedArtists,
+      shortTermTracks,
+      tasteProfile,
+      customLang
     );
 
-    const updatedAdjacentRooms: EvaluatedMoodRoom[] = await Promise.all(
-      recs.adjacentRooms.map(async (evalRoom) => {
-        try {
-          const livePlaylist = await getRoomPlaylistWithQuery(
-            evalRoom.room.slug,
-            tasteProfile,
-            token,
-            forceRefresh
-          );
-          if (livePlaylist && livePlaylist.tracks?.length > 0) {
-            return {
-              ...evalRoom,
-              room: {
-                ...evalRoom.room,
-                playlistPreview: {
-                  title: livePlaylist.title,
-                  tracksCount: livePlaylist.tracks.length,
-                  sampleTracks: livePlaylist.tracks.slice(0, 3).map((t) => ({
-                    title: t.name,
-                    artist: t.artist,
-                  })),
-                },
-              },
-            };
+    // 7. Source live Spotify public playlists for each dynamic room
+    const evaluatedTopRooms = await Promise.all(
+      dynamicRoomList.map(async (dynRoom) => {
+        if (token) {
+          try {
+            const rawPlaylists = await searchSpotifyPlaylists(token, dynRoom.searchQuery, 10);
+            const qualityPlaylists = filterQualityPlaylists(rawPlaylists, 5);
+
+            if (qualityPlaylists.length > 0) {
+              const bestPl = qualityPlaylists.sort(
+                (a, b) => (b.followers?.total || 0) - (a.followers?.total || 0)
+              )[0];
+              const tracks = await fetchSpotifyPlaylistTracks(token, bestPl.id);
+
+              if (tracks.length > 0) {
+                return {
+                  matchScore: dynRoom.matchScore,
+                  recommendationReason: dynRoom.recommendationReason,
+                  room: {
+                    id: dynRoom.id,
+                    slug: dynRoom.slug,
+                    name: dynRoom.name,
+                    vibeTag: dynRoom.vibeTag,
+                    description: dynRoom.description,
+                    iconName: dynRoom.iconName,
+                    activeListenersCount: dynRoom.activeListenersCount,
+                    playlistPreview: {
+                      title: bestPl.name || dynRoom.playlistPreview.title,
+                      tracksCount: tracks.length,
+                      sampleTracks: tracks.slice(0, 3).map((t) => ({
+                        title: t.name,
+                        artist: t.artist,
+                      })),
+                    },
+                  },
+                };
+              }
+            }
+          } catch (e) {
+            // Keep default
           }
-        } catch (e) {
-          // Keep default
         }
-        return evalRoom;
+
+        return {
+          matchScore: dynRoom.matchScore,
+          recommendationReason: dynRoom.recommendationReason,
+          room: dynRoom,
+        };
       })
     );
 
@@ -173,7 +176,7 @@ export async function GET(request: Request) {
         id: session?.user?.email || "active_user",
         ocean: userOcean,
         musicClusters: userClusters,
-        currentMood: inferredMood,
+        currentMood: activeMood,
       },
       candidates,
       5
@@ -182,13 +185,13 @@ export async function GET(request: Request) {
     return NextResponse.json({
       status: "success",
       recentSongCount: recentlyPlayed.length,
-      activeMood: inferredMood,
+      activeMood,
       userOcean,
       userClusters,
       tasteProfile,
       roomRecs: {
-        topRooms: updatedTopRooms,
-        adjacentRooms: updatedAdjacentRooms,
+        topRooms: evaluatedTopRooms,
+        adjacentRooms: [],
       },
       peopleMatches,
     });

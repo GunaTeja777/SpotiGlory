@@ -140,13 +140,15 @@ export const JamRoomsTab: React.FC = () => {
     };
   }, []);
 
-  const loadAllData = async (forceRefresh = false) => {
+  const loadAllData = async (forceRefresh = false, moodOverride?: MoodType) => {
     setIsRefreshing(true);
     try {
       const savedLang = typeof window !== "undefined" ? localStorage.getItem("spotiglory_user_language") || "" : "";
       const langParam = savedLang ? `&language=${encodeURIComponent(savedLang)}` : "";
+      const targetMood = moodOverride || activeMood;
+      const moodParam = `&mood=${encodeURIComponent(targetMood)}`;
 
-      const res = await fetch(`/api/jam-rooms/recommendations?forceRefresh=${forceRefresh}${langParam}`).catch(() => null);
+      const res = await fetch(`/api/jam-rooms/recommendations?forceRefresh=${forceRefresh}${langParam}${moodParam}`).catch(() => null);
 
       if (res && res.ok) {
         const data = await res.json();
@@ -162,7 +164,7 @@ export const JamRoomsTab: React.FC = () => {
       }
 
       // Local fallback calculation if endpoint is unavailable
-      const recs = getRecommendedRooms(activeMood, userClusters, userOcean);
+      const recs = getRecommendedRooms(targetMood, userClusters, userOcean);
       setRoomRecs(recs);
       const candidates = getSyntheticUsers();
       const top5People = findJamMatches(
@@ -170,7 +172,7 @@ export const JamRoomsTab: React.FC = () => {
           id: "active_user_current",
           ocean: userOcean,
           musicClusters: userClusters,
-          currentMood: activeMood,
+          currentMood: targetMood,
         },
         candidates,
         5
@@ -221,13 +223,30 @@ export const JamRoomsTab: React.FC = () => {
               Discover acoustic listening rooms matching your vibe & connect with compatible listeners in real time.
             </p>
 
-            {/* Active Vibe Indicator */}
+            {/* Active Vibe Selector Bar */}
             <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-white/10 text-xs font-mono">
-              <span className="text-gray-400 font-medium uppercase">CURRENT VIBE:</span>
-              <div className="px-3 py-1.5 rounded-full bg-[#1DB954]/20 border border-[#1DB954]/40 text-[#1DB954] font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(29,185,84,0.3)]">
-                {MOOD_ICONS[activeMood]}
-                <span>Feeling: {activeMood}</span>
-                <span className="text-[10px] text-gray-400 font-normal lowercase">(Auto-Inferred from Recent Songs)</span>
+              <span className="text-gray-400 font-medium uppercase shrink-0">SELECT VIBE:</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {(["Reflective", "Energized", "Fiery", "Upbeat", "Calm"] as MoodType[]).map((m) => {
+                  const isActive = activeMood === m;
+                  return (
+                    <button
+                      key={m}
+                      onClick={() => {
+                        setActiveMood(m);
+                        loadAllData(true, m);
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs font-bold font-mono transition-all flex items-center gap-1.5 border ${
+                        isActive
+                          ? "bg-[#1DB954]/25 border-[#1DB954] text-[#1DB954] shadow-[0_0_15px_rgba(29,185,84,0.4)] scale-105"
+                          : "bg-white/[0.05] border-white/10 text-gray-300 hover:border-white/30 hover:bg-white/10"
+                      }`}
+                    >
+                      {MOOD_ICONS[m]}
+                      <span>{m}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
