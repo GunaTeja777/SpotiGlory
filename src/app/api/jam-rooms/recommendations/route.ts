@@ -11,8 +11,8 @@ import {
 } from "@/lib/spotify";
 import { computeBehavioralFeatures } from "@/lib/features";
 import { computeOceanScores } from "@/lib/oceanScoring";
-import { buildUserTasteProfile } from "@/lib/userTasteProfile";
-import { generateDynamicRoomsFromListeningData, DynamicJamRoom } from "@/lib/dynamicRoomEngine";
+import { buildUserTasteProfile, getCachedTasteProfile, UserTasteProfile } from "@/lib/userTasteProfile";
+import { generateDynamicRoomsFromListeningData, getOrGenerateDynamicRoomsWithCache, DynamicJamRoom } from "@/lib/dynamicRoomEngine";
 import {
   filterQualityPlaylists,
 } from "@/lib/roomPlaylistSource";
@@ -71,7 +71,13 @@ export async function GET(request: Request) {
     });
     const combinedArtists = Array.from(allArtistsMap.values());
 
-    // 1. Compute real behavioral features from recent listening stream
+    // 1. Check getCachedTasteProfile() for 12h fresh profile
+    const userId = session?.user?.email || session?.user?.name;
+    const cachedRecord = userId ? await getCachedTasteProfile(userId) : null;
+
+    let tasteProfile: UserTasteProfile;
+
+    // 2. Compute behavioral features if needed for mood and personality vectors
     const features = computeBehavioralFeatures(
       shortTermTracks,
       combinedArtists,
@@ -80,14 +86,23 @@ export async function GET(request: Request) {
       mediumTermArtists
     );
 
-    // 2. Derive real-time inferred mood
+    if (cachedRecord) {
+      tasteProfile = {
+        topGenres: cachedRecord.top_genres,
+        preferredLanguage: customLang || cachedRecord.preferred_language,
+        dominantMusicCluster: cachedRecord.dominant_cluster,
+      };
+    } else {
+      tasteProfile = buildUserTasteProfile(combinedArtists, features, customLang, userId);
+    }
+    // 3. Derive real-time inferred mood
     const customMoodParam = searchParams.get("mood");
     const inferredMood: MoodType = features.inferredMood?.label
       ? parseMood(features.inferredMood.label)
       : "Reflective";
     const activeMood: MoodType = customMoodParam ? parseMood(customMoodParam) : inferredMood;
 
-    // 3. Compute real music cluster distribution vector from user top genres
+    // 4. Compute real music cluster distribution vector from user top genres
     const clusterDist = computeClusterDistribution(features.topGenreDistribution || []);
     const userClusters: MusicClusterVector = {
       reflectiveComplex: Math.round(clusterDist.reflectiveComplex || 25),
@@ -96,7 +111,7 @@ export async function GET(request: Request) {
       energeticRhythmic: Math.round(clusterDist.energeticRhythmic || 25),
     };
 
-    // 4. Compute real OCEAN personality vector
+    // 5. Compute real OCEAN personality vector
     const oceanScores = computeOceanScores(features, clusterDist);
     const userOcean: OceanVector = {
       openness: oceanScores.openness?.score ?? 85,
@@ -106,16 +121,17 @@ export async function GET(request: Request) {
       neuroticism: oceanScores.neuroticism?.score ?? 54,
     };
 
-    // 5. Build user taste profile based on real recent streams & language
-    const tasteProfile = buildUserTasteProfile(combinedArtists, features, customLang);
+    const profileVersion = cachedRecord?.version ?? 1;
 
-    // 6. Generate 100% DYNAMIC Jam Rooms directly from user's actual Spotify listening history
-    const dynamicRoomList = generateDynamicRoomsFromListeningData(
+    // 6. Generate dynamic Jam Rooms with Redis room-catalog cache key (1h EX)
+    const dynamicRoomList = await getOrGenerateDynamicRoomsWithCache(
       recentlyPlayed,
       combinedArtists,
       shortTermTracks,
       tasteProfile,
-      customLang
+      customLang,
+      userId,
+      profileVersion
     );
 
     // 7. Source live Spotify public playlists for each dynamic room

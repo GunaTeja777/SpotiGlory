@@ -1,5 +1,6 @@
 import { SpotifyArtist, SpotifyPlayHistory, SpotifyTrack } from "./spotify";
 import { UserTasteProfile, inferLanguageFromArtists } from "./userTasteProfile";
+import { getCachedRoomCatalog, setCachedRoomCatalog } from "./redis";
 
 export interface DynamicJamRoom {
   id: string;
@@ -158,8 +159,8 @@ export function generateDynamicRoomsFromListeningData(
     sortedGenres.length >= 3
       ? sortedGenres.slice(0, 3)
       : userTasteProfile?.topGenres && userTasteProfile.topGenres.length >= 3
-      ? userTasteProfile.topGenres.slice(0, 3)
-      : ["electronic", "alternative rock", "jazz acoustic"];
+        ? userTasteProfile.topGenres.slice(0, 3)
+        : ["electronic", "alternative rock", "jazz acoustic"];
 
   const topArtistList = Array.from(artistNamesSet);
 
@@ -206,4 +207,41 @@ export function generateDynamicRoomsFromListeningData(
   });
 
   return dynamicRooms;
+}
+
+/**
+ * Async wrapper that checks Redis cache key `room-catalog:{userId}:{profileVersion}` (1h EX TTL)
+ * first and only computes + writes-through to Redis on a cache miss.
+ */
+export async function getOrGenerateDynamicRoomsWithCache(
+  recentlyPlayed: SpotifyPlayHistory[] = [],
+  topArtists: SpotifyArtist[] = [],
+  topTracks: SpotifyTrack[] = [],
+  userTasteProfile?: UserTasteProfile,
+  customLanguage?: string | null,
+  userId?: string | null,
+  profileVersion: number = 1
+): Promise<DynamicJamRoom[]> {
+  if (userId) {
+    const cachedRooms = await getCachedRoomCatalog(userId, profileVersion);
+    if (cachedRooms && Array.isArray(cachedRooms) && cachedRooms.length > 0) {
+      return cachedRooms;
+    }
+  }
+
+  // Cache miss or no userId: compute dynamic rooms
+  const rooms = generateDynamicRoomsFromListeningData(
+    recentlyPlayed,
+    topArtists,
+    topTracks,
+    userTasteProfile,
+    customLanguage
+  );
+
+  if (userId && rooms.length > 0) {
+    // Write-through to Redis with 1h EX TTL
+    setCachedRoomCatalog(userId, profileVersion, rooms).catch(() => {});
+  }
+
+  return rooms;
 }

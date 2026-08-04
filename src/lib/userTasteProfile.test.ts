@@ -4,6 +4,7 @@ import {
   extractTopGenres,
   inferLanguageFromArtists,
   buildUserTasteProfile,
+  getCachedTasteProfile,
   SUPPORTED_LANGUAGES,
 } from "./userTasteProfile";
 import { SpotifyArtist } from "./spotify";
@@ -70,5 +71,10 @@ describe("User Taste Profile Engine", () => {
     // Overriding language preference
     const profileOverridden = buildUserTasteProfile(sampleArtists, undefined, "Spanish");
     assert.strictEqual(profileOverridden.preferredLanguage, "Spanish");
+  });
+
+  test("getCachedTasteProfile returns null when no cache row or expired (>12h)", async () => {
+    const cached = await getCachedTasteProfile("non_existent_user_123");
+    assert.strictEqual(cached, null);
   });
 });

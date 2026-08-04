@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "@types/jszip": "^3.4.0",
+    "@upstash/redis": "^1.38.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",
@@ -17,6 +19,7 @@
     "lucide-react": "^1.28.0",
     "next": "16.2.12",
     "next-auth": "^4.24.15",
+    "node-cron": "^4.6.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.10.1",
@@ -25,10 +28,12 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/node-cron": "^3.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "prisma": "^5.22.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

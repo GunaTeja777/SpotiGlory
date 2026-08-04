@@ -1,0 +1,21 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model UserTasteProfile {
+  user_id            String   @id
+  top_genres         Json
+  preferred_language String
+  dominant_cluster   String
+  entropy            Float
+  loyalty            Float
+  computed_at        DateTime @default(now())
+  version            Int      @default(1)
+
+  @@map("user_taste_profiles")
+}
