@@ -189,3 +189,32 @@ export async function getRecentlyPlayed(
 export async function getUserProfile(accessToken: string): Promise<SpotifyUserProfile> {
   return fetchSpotifyApi<SpotifyUserProfile>("/me", accessToken);
 }
+
+/**
+ * Obtains a Spotify Client Credentials access token for public API queries (e.g. searching public playlists)
+ */
+export async function getClientCredentialsToken(): Promise<string | null> {
+  const clientId = (process.env.SPOTIFY_CLIENT_ID || "").trim();
+  const clientSecret = (process.env.SPOTIFY_CLIENT_SECRET || "").trim();
+
+  if (!clientId || !clientSecret) return null;
+
+  try {
+    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+    const response = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${basicAuth}`,
+      },
+      body: "grant_type=client_credentials",
+    });
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.access_token || null;
+  } catch (error) {
+    console.error("Failed to fetch Spotify client credentials token:", error);
+    return null;
+  }
+}

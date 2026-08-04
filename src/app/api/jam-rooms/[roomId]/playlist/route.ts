@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { getTopArtists, getRecentlyPlayed, getTopTracks } from "@/lib/spotify";
+import { getTopArtists, getRecentlyPlayed, getTopTracks, getClientCredentialsToken } from "@/lib/spotify";
 import { computeBehavioralFeatures } from "@/lib/features";
 import { buildUserTasteProfile } from "@/lib/userTasteProfile";
 import { getRoomPlaylistWithQuery, getRoomPlaylist } from "@/lib/roomPlaylistSource";
@@ -20,32 +20,33 @@ export async function GET(
     const session = await getServerSession(authOptions);
     const room = getRoomBySlug(roomId) || getRoomById(roomId);
 
-    if (!session || !session.accessToken) {
-      // Unauthenticated / Demo Fallback
-      const defaultTaste = buildUserTasteProfile([], undefined, customLang);
-      const playlist = await getRoomPlaylistWithQuery(roomId, defaultTaste, undefined, forceRefresh);
-      return NextResponse.json({
-        status: "success",
-        isDemo: true,
-        playlist,
-      });
+    let token: string | undefined = session?.accessToken;
+    let isDemoMode = false;
+
+    if (!token) {
+      token = (await getClientCredentialsToken()) || undefined;
+      isDemoMode = true;
     }
 
-    const token = session.accessToken;
+    // 1. Fetch real-time recent song listening history & top datasets in parallel if authenticated
+    let recentlyPlayed: any[] = [];
+    let shortTermArtists: any[] = [];
+    let mediumTermArtists: any[] = [];
+    let shortTermTracks: any[] = [];
 
-    // 1. Fetch real-time recent song listening history & top datasets in parallel
-    const [recentlyPlayedRes, shortTermArtistsRes, mediumTermArtistsRes, shortTermTracksRes] =
-      await Promise.all([
-        getRecentlyPlayed(token, 50).catch(() => ({ items: [] })),
-        getTopArtists(token, "short_term", 30).catch(() => ({ items: [] })),
-        getTopArtists(token, "medium_term", 30).catch(() => ({ items: [] })),
-        getTopTracks(token, "short_term", 30).catch(() => ({ items: [] })),
+    if (session?.accessToken) {
+      const userToken = session.accessToken;
+      const [rpRes, staRes, mtaRes, sttRes] = await Promise.all([
+        getRecentlyPlayed(userToken, 50).catch(() => ({ items: [] })),
+        getTopArtists(userToken, "short_term", 30).catch(() => ({ items: [] })),
+        getTopArtists(userToken, "medium_term", 30).catch(() => ({ items: [] })),
+        getTopTracks(userToken, "short_term", 30).catch(() => ({ items: [] })),
       ]);
-
-    const recentlyPlayed = recentlyPlayedRes.items || [];
-    const shortTermArtists = shortTermArtistsRes.items || [];
-    const mediumTermArtists = mediumTermArtistsRes.items || [];
-    const shortTermTracks = shortTermTracksRes.items || [];
+      recentlyPlayed = rpRes.items || [];
+      shortTermArtists = staRes.items || [];
+      mediumTermArtists = mtaRes.items || [];
+      shortTermTracks = sttRes.items || [];
+    }
 
     // Combine short-term & medium-term artists to prioritize recent listening taste
     const allArtistsMap = new Map();
