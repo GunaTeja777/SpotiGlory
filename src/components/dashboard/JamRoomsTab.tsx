@@ -140,52 +140,30 @@ export const JamRoomsTab: React.FC = () => {
     };
   }, []);
 
-  const loadAllData = async () => {
+  const loadAllData = async (forceRefresh = false) => {
     setIsRefreshing(true);
     try {
       const savedLang = typeof window !== "undefined" ? localStorage.getItem("spotiglory_user_language") || "" : "";
       const langParam = savedLang ? `&language=${encodeURIComponent(savedLang)}` : "";
 
-      // 1. Recompute room recommendations from moodRoomEngine
+      const res = await fetch(`/api/jam-rooms/recommendations?forceRefresh=${forceRefresh}${langParam}`).catch(() => null);
+
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data.status === "success") {
+          if (data.activeMood) setActiveMood(data.activeMood);
+          if (data.recentSongCount !== undefined) setRecentSongCount(data.recentSongCount);
+          if (data.userOcean) setUserOcean(data.userOcean);
+          if (data.userClusters) setUserClusters(data.userClusters);
+          if (data.roomRecs) setRoomRecs(data.roomRecs);
+          if (data.peopleMatches) setPeopleMatches(data.peopleMatches);
+          return;
+        }
+      }
+
+      // Local fallback calculation if endpoint is unavailable
       const recs = getRecommendedRooms(activeMood, userClusters, userOcean);
-
-      // 2. Fetch fresh dynamic playlists for top 3 rooms
-      const updatedTopRooms = await Promise.all(
-        recs.topRooms.map(async (evalRoom) => {
-          try {
-            const res = await fetch(`/api/jam-rooms/${evalRoom.room.slug}/playlist?forceRefresh=true${langParam}`).catch(() => null);
-            if (res && res.ok) {
-              const data = await res.json();
-              if (data.playlist?.tracks?.length > 0) {
-                return {
-                  ...evalRoom,
-                  room: {
-                    ...evalRoom.room,
-                    playlistPreview: {
-                      title: data.playlist.title,
-                      tracksCount: data.playlist.tracks.length,
-                      sampleTracks: data.playlist.tracks.slice(0, 3).map((t: any) => ({
-                        title: t.name,
-                        artist: t.artist,
-                      })),
-                    },
-                  },
-                };
-              }
-            }
-          } catch (e) {
-            // Keep default preview if fetch fails
-          }
-          return evalRoom;
-        })
-      );
-
-      setRoomRecs({
-        ...recs,
-        topRooms: updatedTopRooms,
-      });
-
-      // 3. Get suggested people matches from jamMatching engine
+      setRoomRecs(recs);
       const candidates = getSyntheticUsers();
       const top5People = findJamMatches(
         {
@@ -205,9 +183,9 @@ export const JamRoomsTab: React.FC = () => {
   };
 
   useEffect(() => {
-    loadAllData();
+    loadAllData(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeMood]);
+  }, []);
 
   return (
     <div className="flex flex-col gap-8">
@@ -258,7 +236,7 @@ export const JamRoomsTab: React.FC = () => {
           <GlassButton
             variant="primary"
             size="md"
-            onClick={loadAllData}
+            onClick={() => loadAllData(true)}
             disabled={isRefreshing}
             leftIcon={<RotateCw className={`w-4 h-4 text-black ${isRefreshing ? "animate-spin" : ""}`} />}
             className="w-full sm:w-auto shrink-0 font-bold text-xs shadow-[0_0_20px_rgba(29,185,84,0.5)]"
