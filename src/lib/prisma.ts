@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../generated/client";
 
 // Ensure fallback environment variables exist during Next.js build-time evaluation
 if (!process.env.DATABASE_URL) {
