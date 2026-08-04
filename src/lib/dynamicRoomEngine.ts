@@ -102,7 +102,7 @@ export function generateDynamicRoomsFromListeningData(
     const slug = `${lang.toLowerCase()}-${genre.replace(/[^a-z0-9]/g, "-")}-room`;
     const roomTitle = `${langPrefix}${formattedGenre} Sanctuary`.trim();
 
-    const searchQuery = `${langPrefix}${genre} ${topArtistList[idx] || ""} playlist`.trim();
+    const searchQuery = `${langPrefix}${genre} playlist`.trim();
 
     const matchScore = Math.max(85, 98 - idx * 4);
 

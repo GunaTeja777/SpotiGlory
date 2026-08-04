@@ -96,13 +96,33 @@ export default function IndividualJamRoomPage() {
   };
 
   useEffect(() => {
-    // 1. Fetch room details
-    const foundRoom = getRoomBySlug(roomIdSlug) || getRoomById(roomIdSlug) || getRoomBySlug("midnight-neon-sanctuary");
-    if (foundRoom) {
-      setRoom(foundRoom);
-      const bot = getBotCompanion(foundRoom.slug);
-      setBotConfig(bot);
-    }
+    // 1. Fetch room details (support static and 100% dynamic rooms)
+    const staticRoom = getRoomBySlug(roomIdSlug) || getRoomById(roomIdSlug);
+
+    const formattedTitle = roomIdSlug
+      .replace(/-room$/i, "")
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+
+    const currentRoom: MoodRoom = staticRoom || {
+      id: roomIdSlug,
+      slug: roomIdSlug,
+      name: formattedTitle,
+      primaryMood: "Reflective",
+      secondaryMoods: ["Calm"],
+      vibeTag: "Live Dynamic Match",
+      description: `Live listening room dynamically matched to your stream.`,
+      activeListenersCount: 32,
+      iconName: "Moon",
+      playlistPreview: { title: `${formattedTitle} Playlist`, tracksCount: 15, sampleTracks: [] },
+      dominantCluster: "Reflective & Complex",
+      oceanMatchTraits: ["High Openness"],
+    };
+
+    setRoom(currentRoom);
+    const bot = getBotCompanion(currentRoom.slug);
+    setBotConfig(bot);
 
     // 2. Fetch room playlist via connected end-to-end pipeline
     fetchDynamicPlaylist(false);

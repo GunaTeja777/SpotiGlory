@@ -41,22 +41,60 @@ export function inferLanguageFromArtists(
     .join(" ")
     .toLowerCase();
 
-  if (allGenreText.includes("telugu") || allGenreText.includes("tollywood")) {
-    return "Telugu";
-  }
-  if (allGenreText.includes("tamil") || allGenreText.includes("kollywood")) {
+  const artistNamesLower = artists.map((a) => (a.name || "").toLowerCase()).join(" ");
+
+  // Artist name matching signals
+  if (
+    allGenreText.includes("tamil") ||
+    allGenreText.includes("kollywood") ||
+    artistNamesLower.includes("anirudh") ||
+    artistNamesLower.includes("ravichander") ||
+    artistNamesLower.includes("sai abhyankkar") ||
+    artistNamesLower.includes("harris jayaraj") ||
+    artistNamesLower.includes("santhosh narayanan") ||
+    artistNamesLower.includes("yuvan shankar raja") ||
+    artistNamesLower.includes("gv prakash")
+  ) {
     return "Tamil";
+  }
+  if (
+    allGenreText.includes("telugu") ||
+    allGenreText.includes("tollywood") ||
+    artistNamesLower.includes("devi sri prasad") ||
+    artistNamesLower.includes("thaman") ||
+    artistNamesLower.includes("sid sriram") ||
+    artistNamesLower.includes("hesham abdul wahab")
+  ) {
+    return "Telugu";
   }
   if (
     allGenreText.includes("hindi") ||
     allGenreText.includes("bollywood") ||
     allGenreText.includes("filmi") ||
     allGenreText.includes("desi") ||
-    allGenreText.includes("indian pop")
+    allGenreText.includes("indian pop") ||
+    artistNamesLower.includes("arijit singh") ||
+    artistNamesLower.includes("pritam") ||
+    artistNamesLower.includes("shreya ghoshal") ||
+    artistNamesLower.includes("atif aslam") ||
+    artistNamesLower.includes("neha kakkar") ||
+    artistNamesLower.includes("badshah") ||
+    artistNamesLower.includes("jubin nautiyal") ||
+    artistNamesLower.includes("sachin-jigar") ||
+    artistNamesLower.includes("b praak")
   ) {
     return "Hindi";
   }
-  if (allGenreText.includes("punjabi") || allGenreText.includes("bhangra")) {
+  if (
+    allGenreText.includes("punjabi") ||
+    allGenreText.includes("bhangra") ||
+    artistNamesLower.includes("diljit") ||
+    artistNamesLower.includes("ap dhillon") ||
+    artistNamesLower.includes("karan aujla") ||
+    artistNamesLower.includes("sidhu moose") ||
+    artistNamesLower.includes("shubh") ||
+    artistNamesLower.includes("guru randhawa")
+  ) {
     return "Punjabi";
   }
   if (allGenreText.includes("malayalam") || allGenreText.includes("mollywood")) {
@@ -70,11 +108,16 @@ export function inferLanguageFromArtists(
     allGenreText.includes("reggaeton") ||
     allGenreText.includes("spanish") ||
     allGenreText.includes("salsa") ||
-    allGenreText.includes("bachata")
+    allGenreText.includes("bachata") ||
+    artistNamesLower.includes("bad bunny") ||
+    artistNamesLower.includes("rauw alejandro") ||
+    artistNamesLower.includes("rosalía") ||
+    artistNamesLower.includes("daddy yankee") ||
+    artistNamesLower.includes("j balvin")
   ) {
     return "Spanish";
   }
-  if (allGenreText.includes("k-pop") || allGenreText.includes("korean")) {
+  if (allGenreText.includes("k-pop") || allGenreText.includes("korean") || artistNamesLower.includes("bts") || artistNamesLower.includes("blackpink")) {
     return "Korean";
   }
   if (
@@ -85,7 +128,7 @@ export function inferLanguageFromArtists(
   ) {
     return "Japanese";
   }
-  if (allGenreText.includes("french") || allGenreText.includes("chanson")) {
+  if (allGenreText.includes("french") || allGenreText.includes("chanson") || artistNamesLower.includes("indila") || artistNamesLower.includes("stromae")) {
     return "French";
   }
   if (allGenreText.includes("german") || allGenreText.includes("deutschrock")) {

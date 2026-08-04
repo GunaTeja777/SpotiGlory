@@ -397,7 +397,20 @@ export async function getRoomPlaylistWithQuery(
     }
   }
 
-  const defaultFallback = ROOM_PLAYLIST_DATABASE[roomSlug] || ROOM_PLAYLIST_DATABASE["midnight-neon-sanctuary"];
+  const dynamicTitle = roomSlug
+    .replace(/-room$/i, "")
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
+  const defaultFallback = ROOM_PLAYLIST_DATABASE[roomSlug] || {
+    roomId: roomSlug,
+    title: dynamicTitle,
+    description: `Live acoustic listening room dynamically matched to your stream.`,
+    updatedAt: new Date().toISOString(),
+    sourceType: "curated_fallback",
+    tracks: ROOM_PLAYLIST_DATABASE["midnight-neon-sanctuary"].tracks,
+  };
 
   if (!accessToken) {
     return defaultFallback;
