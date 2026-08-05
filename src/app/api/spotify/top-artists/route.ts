@@ -27,22 +27,22 @@ export async function GET(request: NextRequest) {
       let items = [];
       if (timeRange === "short_term") {
         items = [
-          { id: "art_1", name: "HOME", genres: ["synthwave", "electronic"], images: [{ url: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150&auto=format&fit=crop&q=60" }], popularity: 62 },
-          { id: "art_2", name: "Tycho", genres: ["ambient", "downtempo"], images: [{ url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=60" }], popularity: 58 },
-          { id: "art_3", name: "Hammock", genres: ["ambient", "post-rock"], images: [{ url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=60" }], popularity: 50 },
-          { id: "art_4", name: "Explosions in the Sky", genres: ["post-rock", "instrumental"], images: [{ url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=150&auto=format&fit=crop&q=60" }], popularity: 55 }
+          { id: "art_1", name: "HOME", genres: ["synthwave", "electronic"], images: [{ url: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150&auto=format&fit=crop&q=60" }], popularity: 62, followers: { total: 450000 }, external_urls: { spotify: "https://open.spotify.com" } },
+          { id: "art_2", name: "Tycho", genres: ["ambient", "downtempo"], images: [{ url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=60" }], popularity: 58, followers: { total: 820000 }, external_urls: { spotify: "https://open.spotify.com" } },
+          { id: "art_3", name: "Hammock", genres: ["ambient", "post-rock"], images: [{ url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=60" }], popularity: 50, followers: { total: 290000 }, external_urls: { spotify: "https://open.spotify.com" } },
+          { id: "art_4", name: "Explosions in the Sky", genres: ["post-rock", "instrumental"], images: [{ url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=150&auto=format&fit=crop&q=60" }], popularity: 55, followers: { total: 640000 }, external_urls: { spotify: "https://open.spotify.com" } }
         ];
       } else if (timeRange === "medium_term") {
         items = [
-          { id: "art_5", name: "Radiohead", genres: ["alternative", "electronic"], images: [{ url: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=150&auto=format&fit=crop&q=60" }], popularity: 82 },
-          { id: "art_6", name: "Sid Sriram", genres: ["carnatic", "indie", "tamil"], images: [{ url: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=150&auto=format&fit=crop&q=60" }], popularity: 70 },
-          { id: "art_7", name: "Nujabes", genres: ["lofi", "hip-hop"], images: [{ url: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=150&auto=format&fit=crop&q=60" }], popularity: 65 }
+          { id: "art_5", name: "Radiohead", genres: ["alternative", "electronic"], images: [{ url: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=150&auto=format&fit=crop&q=60" }], popularity: 82, followers: { total: 9800000 }, external_urls: { spotify: "https://open.spotify.com" } },
+          { id: "art_6", name: "Sid Sriram", genres: ["carnatic", "indie", "tamil"], images: [{ url: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=150&auto=format&fit=crop&q=60" }], popularity: 70, followers: { total: 3200000 }, external_urls: { spotify: "https://open.spotify.com" } },
+          { id: "art_7", name: "Nujabes", genres: ["lofi", "hip-hop"], images: [{ url: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=150&auto=format&fit=crop&q=60" }], popularity: 65, followers: { total: 1100000 }, external_urls: { spotify: "https://open.spotify.com" } }
         ];
       } else {
         items = [
-          { id: "art_8", name: "The Weeknd", genres: ["pop", "r&b"], images: [{ url: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=150&auto=format&fit=crop&q=60" }], popularity: 94 },
-          { id: "art_9", name: "Nirvana", genres: ["grunge", "rock"], images: [{ url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=60" }], popularity: 80 },
-          { id: "art_10", name: "A.R. Rahman", genres: ["bollywood", "sufi", "tamil"], images: [{ url: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=150&auto=format&fit=crop&q=60" }], popularity: 78 }
+          { id: "art_8", name: "The Weeknd", genres: ["pop", "r&b"], images: [{ url: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=150&auto=format&fit=crop&q=60" }], popularity: 94, followers: { total: 78000000 }, external_urls: { spotify: "https://open.spotify.com" } },
+          { id: "art_9", name: "Nirvana", genres: ["grunge", "rock"], images: [{ url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=60" }], popularity: 80, followers: { total: 22000000 }, external_urls: { spotify: "https://open.spotify.com" } },
+          { id: "art_10", name: "A.R. Rahman", genres: ["bollywood", "sufi", "tamil"], images: [{ url: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=150&auto=format&fit=crop&q=60" }], popularity: 78, followers: { total: 31000000 }, external_urls: { spotify: "https://open.spotify.com" } }
         ];
       }
 
