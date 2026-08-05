@@ -14,7 +14,7 @@ import {
 } from "@/lib/spotify";
 import { computeBehavioralFeatures } from "@/lib/features";
 import { computeOceanScores } from "@/lib/oceanScoring";
-import { buildUserTasteProfile, getCachedTasteProfile, UserTasteProfile } from "@/lib/userTasteProfile";
+import { buildUserTasteProfile, getCachedTasteProfile, UserTasteProfile, inferLanguageFromArtists } from "@/lib/userTasteProfile";
 import { generateDynamicRoomsFromListeningData, getOrGenerateDynamicRoomsWithCache, DynamicJamRoom } from "@/lib/dynamicRoomEngine";
 import { findJamMatches, MoodType, OceanVector, MusicClusterVector } from "@/lib/jamMatching";
 import { getSyntheticUsers } from "@/lib/syntheticUsers";
@@ -248,7 +248,7 @@ export async function GET(request: Request) {
     if (cachedRecord) {
       tasteProfile = {
         topGenres: cachedRecord.top_genres,
-        preferredLanguage: customLang || cachedRecord.preferred_language,
+        preferredLanguage: customLang || inferLanguageFromArtists(combinedArtists, cachedRecord.top_genres),
         dominantMusicCluster: cachedRecord.dominant_cluster,
       };
     } else {
