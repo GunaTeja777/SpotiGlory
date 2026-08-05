@@ -110,12 +110,16 @@ export const PersonalityTab: React.FC = () => {
     user?: { name: string };
     features?: any;
   } | null>(null);
-  const [activeResearchTab, setActiveResearchTab] = useState<string>("personality");
+  const [expandedResearch, setExpandedResearch] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
   const [submittedRatings, setSubmittedRatings] = useState<Record<string, FeedbackRating>>({});
   const [expandedDrawers, setExpandedDrawers] = useState<Record<string, boolean>>({});
+
+  const toggleResearch = (key: string) => {
+    setExpandedResearch((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const toggleDrawer = (traitKey: string) => {
     setExpandedDrawers((prev) => ({ ...prev, [traitKey]: !prev[traitKey] }));
@@ -198,7 +202,6 @@ export const PersonalityTab: React.FC = () => {
   const narrative = data.narrative;
 
   const backing = data.scientificBacking || RESEARCH_INSIGHTS;
-  const currentBacking = backing.find(b => b.key === activeResearchTab) || backing[0];
 
   // Format data for Recharts RadarChart
   const radarData = [
@@ -334,81 +337,88 @@ export const PersonalityTab: React.FC = () => {
         </div>
       </GlassCard>
 
-      {/* 2. Scientific Foundation & Spotify Research (Dynamic Interactive Pills) */}
-      <GlassCard
-        variant="elevated"
-        radius="3xl"
-        className="p-5 sm:p-6 border-purple-500/30 shadow-[0_20px_50px_rgba(168,85,247,0.15)] relative overflow-hidden"
-      >
-        <div className="absolute top-0 right-0 w-60 h-60 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between pb-3 border-b border-white/10">
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-purple-400" />
-              <h3 className="text-sm font-bold text-white tracking-tight">Scientific Foundation & Empirical Evidence</h3>
-            </div>
-            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider hidden sm:inline">
-              Spotify Research & Psychometrics
-            </span>
+      {/* 2. Scientific Foundation & Spotify Research (Dynamic Interactive 3x2 Grid) */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between pb-2 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-purple-400" />
+            <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">Scientific Foundation & Empirical Evidence</h3>
           </div>
+          <span className="text-[10px] font-mono text-purple-400 uppercase tracking-wider hidden sm:inline font-bold">
+            Spotify Research & Psychometrics
+          </span>
+        </div>
 
-          {/* Horizontal Pills Selector */}
-          <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-            {backing.map((item) => {
-              const isActive = activeResearchTab === item.key;
-              const activeColor = 
-                item.key === "personality" ? "border-cyan-500/50 bg-cyan-500/10 text-cyan-300" :
-                item.key === "demographics" ? "border-purple-500/50 bg-purple-500/10 text-purple-300" :
-                item.key === "values" ? "border-pink-500/50 bg-pink-500/10 text-pink-300" :
-                item.key === "mood" ? "border-amber-500/50 bg-amber-500/10 text-amber-300" :
-                item.key === "nlp" ? "border-[#1DB954]/50 bg-[#1DB954]/10 text-[#1DB954]" :
-                "border-red-500/50 bg-red-500/10 text-red-300";
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {backing.map((item) => {
+            const isExpanded = expandedResearch[item.key] || false;
+            const activeColor = 
+              item.key === "personality" ? "text-cyan-400 border-cyan-500/30 bg-cyan-500/10" :
+              item.key === "demographics" ? "text-purple-400 border-purple-500/30 bg-purple-500/10" :
+              item.key === "values" ? "text-pink-400 border-pink-500/30 bg-pink-500/10" :
+              item.key === "mood" ? "text-amber-400 border-amber-500/30 bg-amber-500/10" :
+              item.key === "nlp" ? "text-[#1DB954] border-[#1DB954]/30 bg-[#1DB954]/10" :
+              "text-red-400 border-red-500/30 bg-red-500/10";
 
-              return (
+            return (
+              <GlassCard
+                key={item.key}
+                variant="interactive"
+                radius="2xl"
+                className="p-5 border-white/10 flex flex-col justify-between gap-4 group transition-all duration-300 relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] rounded-full blur-2xl pointer-events-none" />
+
+                <div>
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-8 h-8 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                      {BACKING_ICONS[item.key] || <BookOpen className="w-4 h-4 text-cyan-400" />}
+                    </div>
+                    <span className="text-[9px] font-mono text-gray-400 uppercase tracking-wider font-semibold truncate max-w-[150px]">
+                      {item.source}
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h4 className="text-sm font-bold text-white group-hover:text-[#1DB954] transition-colors leading-tight">
+                    {item.title}
+                  </h4>
+
+                  {/* Description or Prediction Drawer */}
+                  {isExpanded ? (
+                    <div className="mt-3 p-3 rounded-xl bg-black/50 border border-white/10 text-xs text-gray-200 leading-relaxed font-medium transition-all duration-300 animate-fadeIn">
+                      <span className="text-[10px] font-mono text-[#1DB954] block mb-1 font-bold">✓ REAL-TIME ESTIMATION:</span>
+                      {item.description}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-gray-400 leading-relaxed mt-2 line-clamp-3">
+                      Empirical listening log analysis models predict your traits, demographics, and behavioral features.
+                    </p>
+                  )}
+                </div>
+
+                {/* Expand Toggle Button */}
                 <button
-                  key={item.key}
-                  onClick={() => setActiveResearchTab(item.key)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition-all border shrink-0 ${
-                    isActive 
-                      ? `${activeColor} shadow-[0_0_15px_rgba(255,255,255,0.05)] scale-105` 
+                  onClick={() => toggleResearch(item.key)}
+                  className={`w-full py-1.5 rounded-xl border text-[10px] font-mono font-bold uppercase transition-all tracking-wider flex items-center justify-center gap-1 ${
+                    isExpanded 
+                      ? `${activeColor}` 
                       : "bg-white/[0.04] border-white/10 text-gray-300 hover:border-white/30 hover:bg-white/10"
                   }`}
                 >
-                  {item.title}
+                  <span>{isExpanded ? "Hide estimation ▲" : "Run prediction ▼"}</span>
                 </button>
-              );
-            })}
-          </div>
-
-          {/* Active Tab Content Card */}
-          {currentBacking && (
-            <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex items-start gap-4 transition-all duration-300">
-              <div className="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center shrink-0">
-                {BACKING_ICONS[currentBacking.key] || <BookOpen className="w-4 h-4 text-cyan-400" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
-                  <h4 className="text-xs sm:text-sm font-bold text-white leading-none">
-                    {currentBacking.title}
-                  </h4>
-                  <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider font-semibold">
-                    Source: {currentBacking.source}
-                  </span>
-                </div>
-                <p className="text-[11px] sm:text-xs text-gray-300 leading-relaxed font-medium">
-                  {currentBacking.description}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Research Disclaimer Alert embedded contextually */}
-          <div className="mt-1 p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-[11px] text-purple-300 leading-relaxed font-medium">
-            <strong>MUSIC Model Disclaimer:</strong> {data.disclaimer}
-          </div>
+              </GlassCard>
+            );
+          })}
         </div>
-      </GlassCard>
+
+        {/* Research Disclaimer Alert embedded contextually */}
+        <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-xs text-purple-300 leading-relaxed font-medium">
+          <strong>MUSIC Model Research Disclaimer:</strong> {data.disclaimer}
+        </div>
+      </div>
 
       {/* 3. Main Grid: Radar Chart + MUSIC Model Clusters */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
