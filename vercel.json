@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/refresh-taste-profiles",
-      "schedule": "0 */12 * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
