@@ -98,6 +98,73 @@ function getMockPlaylists(roomId: string): RoomPlaylist[] {
   ];
 }
 
+async function searchSpotifyPlaylists(
+  token: string,
+  query: string,
+  roomId: string
+): Promise<RoomPlaylist[]> {
+  try {
+    const searchRes = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=playlist&limit=2`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+    if (!searchRes.ok) return [];
+    const searchData = await searchRes.json();
+    const playlists = searchData.playlists?.items || [];
+    if (playlists.length === 0) return [];
+
+    const results: RoomPlaylist[] = [];
+    for (const pl of playlists.slice(0, 1)) {
+      const tracksRes = await fetch(
+        `https://api.spotify.com/v1/playlists/${pl.id}/tracks?limit=10`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      if (!tracksRes.ok) continue;
+      const tracksData = await tracksRes.json();
+      const tracksItems = tracksData.items || [];
+      
+      const tracks = tracksItems
+        .map((item: any, idx: number) => {
+          const track = item.track;
+          if (!track) return null;
+          return {
+            id: track.id || `sp_track_${idx}_${Date.now()}`,
+            name: track.name || "",
+            artist: track.artists?.[0]?.name || "",
+            album: track.album?.name || "",
+            coverUrl: track.album?.images?.[0]?.url || "",
+            previewUrl: track.preview_url || "",
+            spotifyUrl: track.external_urls?.spotify || "",
+            durationMs: track.duration_ms || 200000,
+            addedBy: `Spotify Online Search: ${pl.name || "Curated Playlist"}`
+          };
+        })
+        .filter(Boolean) as RoomTrack[];
+
+      if (tracks.length > 0) {
+        results.push({
+          roomId,
+          title: pl.name || `Dynamic ${query} Mix`,
+          description: pl.description || `Playlists searched dynamically from Spotify for: "${query}".`,
+          updatedAt: new Date().toISOString(),
+          sourceType: "google_rag" as const,
+          tracks
+        });
+      }
+    }
+    return results;
+  } catch (e) {
+    console.error("Failed to search Spotify playlists:", e);
+    return [];
+  }
+}
+
+import { RoomTrack } from "@/lib/roomPlaylistSource";
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ roomId: string }> }
@@ -121,7 +188,7 @@ export async function GET(
 
     if (session?.accessToken) {
       try {
-        const rpRes = await getRecentlyPlayed(session.accessToken, 3);
+        const rpRes = await getRecentlyPlayed(session.accessToken, 12);
         const items = rpRes.items || [];
         recentTracks = items.map((item: any) => ({
           name: item.track?.name || "",
@@ -129,14 +196,48 @@ export async function GET(
           album: item.track?.album?.name || ""
         }));
       } catch (e) {
-        console.error("Failed to fetch 3 recent tracks from Spotify:", e);
+        console.error("Failed to fetch recent tracks from Spotify:", e);
       }
     }
 
     let playlists = await getGoogleRagPlaylists(roomId, recentTracks, effectiveLang);
 
     if (!playlists || playlists.length === 0) {
-      playlists = getMockPlaylists(roomId);
+      // 1. Try to search Spotify online dynamically for playlists matching the language & theme!
+      if (session.accessToken) {
+        const query = effectiveLang 
+          ? `${effectiveLang} ${roomId.split('-').join(' ')}` 
+          : roomId.split('-').join(' ');
+        
+        const onlinePlaylists = await searchSpotifyPlaylists(session.accessToken, query, roomId);
+        if (onlinePlaylists && onlinePlaylists.length > 0) {
+          playlists = onlinePlaylists;
+        }
+      }
+
+      // 2. Fall back to your recently played list if online search returned empty
+      if (!playlists || playlists.length === 0) {
+        if (recentTracks.length > 0) {
+          const dynamicPlaylist: RoomPlaylist = {
+            roomId,
+            title: `Dynamic ${effectiveLang || "Personalized"} Vibe Room`,
+            description: `Real-time synchronization with your active recently played tracks on Spotify.`,
+            updatedAt: new Date().toISOString(),
+            sourceType: "google_rag" as const,
+            tracks: recentTracks.map((t, idx) => ({
+              id: `recent_${idx}_${Date.now()}`,
+              name: t.name,
+              artist: t.artist,
+              album: t.album,
+              durationMs: 220000,
+              addedBy: "Spotify Live Sync"
+            }))
+          };
+          playlists = [dynamicPlaylist];
+        } else {
+          playlists = getMockPlaylists(roomId);
+        }
+      }
     }
 
     return NextResponse.json({

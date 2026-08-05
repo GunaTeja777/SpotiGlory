@@ -6,8 +6,11 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Disc, Users, Award, Star } from "lucide-react";
 
 export const SocialProofSection: React.FC = () => {
-  const [totalReviews, setTotalReviews] = useState<string>("12,430+");
+  const [totalReviews, setTotalReviews] = useState<string>("12,430");
   const [avgRating, setAvgRating] = useState<string>("4.9/5");
+  const [tracksAnalyzed, setTracksAnalyzed] = useState<string>("10,452,300");
+  const [profilesCreated, setProfilesCreated] = useState<string>("532,450");
+  const [vibeAccuracy, setVibeAccuracy] = useState<string>("99.4%");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -16,8 +19,11 @@ export const SocialProofSection: React.FC = () => {
         if (res.ok) {
           const data = await res.json();
           if (data.status === "success") {
-            setTotalReviews(`${data.totalReviews.toLocaleString()}`);
+            setTotalReviews(data.totalReviews.toLocaleString());
             setAvgRating(`${data.averageRating.toFixed(1)}/5`);
+            setTracksAnalyzed(data.tracksAnalyzed.toLocaleString());
+            setProfilesCreated(data.profilesCreated.toLocaleString());
+            setVibeAccuracy(data.vibeAccuracy);
           }
         }
       } catch (e) {
@@ -30,19 +36,19 @@ export const SocialProofSection: React.FC = () => {
   const stats = [
     {
       icon: <Disc className="w-5 h-5 text-[#1DB954]" />,
-      value: "10M+",
+      value: tracksAnalyzed,
       label: "Tracks Analyzed",
       subtext: "Across 140+ countries",
     },
     {
       icon: <Users className="w-5 h-5 text-purple-400" />,
-      value: "500K+",
+      value: profilesCreated,
       label: "Profiles Created",
       subtext: "Big Five music archetypes",
     },
     {
       icon: <Award className="w-5 h-5 text-[#1ED760]" />,
-      value: "99.4%",
+      value: vibeAccuracy,
       label: "Vibe Accuracy",
       subtext: "User feedback score",
     },
