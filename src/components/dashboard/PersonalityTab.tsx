@@ -12,7 +12,6 @@ import {
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { NarrativeLoading } from "./NarrativeLoading";
-import { ModelAccuracyChart } from "./ModelAccuracyChart";
 import { OceanScoresResult, explainTraitScore } from "@/lib/oceanScoring";
 import { ClusterDistribution } from "@/lib/genreClusters";
 import { NarrativeProfile } from "@/lib/narrativePrompt";
@@ -29,8 +28,60 @@ import {
   Share2,
   Check,
   Lightbulb,
-  AlertCircle
+  AlertCircle,
+  BookOpen,
+  Users,
+  Globe,
+  Scale,
+  Music,
+  ShieldAlert
 } from "lucide-react";
+
+interface ResearchInsight {
+  title: string;
+  source: string;
+  icon: React.ReactNode;
+  description: string;
+}
+
+const RESEARCH_INSIGHTS: ResearchInsight[] = [
+  {
+    title: "Personality Traits (Big Five)",
+    source: "Spotify Research • Lindenwood University",
+    icon: <Users className="w-4 h-4 text-cyan-400" />,
+    description: "Spotify Research shows personality is detectable from listening logs without self-reporting. High conscientiousness concentrates listening into narrow time windows; extraverts favor social playlists; introverts explore individual artist catalogs deeply. These links are cross-culturally validated across 53 countries."
+  },
+  {
+    title: "Demographics Inference",
+    source: "Last.fm Listening Logs Study",
+    icon: <Globe className="w-4 h-4 text-purple-400" />,
+    description: "Age, gender, and nationality can be predicted from listening logs. Algorithms analyze temporal patterns and audio-derived features alongside collaborative filtering to infer demographic attributes reliably."
+  },
+  {
+    title: "Values & Moral Leanings",
+    source: "arXiv Psychometrics Literature",
+    icon: <Scale className="w-4 h-4 text-pink-400" />,
+    description: "Musical taste is strongly tied to personal values, political orientation, and sophistication. Passive listening histories allow reliable inference of demographics, while moral values represent a more complex, multi-layered signal."
+  },
+  {
+    title: "Mood & Emotion Regulation",
+    source: "arXiv Affective Computing",
+    icon: <Activity className="w-4 h-4 text-amber-400" />,
+    description: "Listeners actively manage and regulate their emotional states through tailored playlists. This active regulation pattern is highly correlated with core personality traits, allowing real-time mood estimation."
+  },
+  {
+    title: "Lyrics + Audio NLP Fusion",
+    source: "University of California Press (2023)",
+    icon: <Music className="w-4 h-4 text-[#1DB954]" />,
+    description: "Combining acoustic features with natural language processing (NLP) of lyrics significantly boosts prediction accuracy of Big Five personality attributes, capturing nuances at both domain and facet levels."
+  },
+  {
+    title: "Privacy & The 'Attack' Framing",
+    source: "arXiv Offensive Security Study",
+    icon: <ShieldAlert className="w-4 h-4 text-red-400" />,
+    description: "Security literature highlights that public playlist-level attributes encode sensitive personal lifestyle habits and personality traits, showing that attributes can be recovered without access to private histories."
+  }
+];
 
 export const PersonalityTab: React.FC = () => {
   const [data, setData] = useState<{
@@ -425,8 +476,50 @@ export const PersonalityTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Model Accuracy Over Time Recharts Line Chart */}
-      <ModelAccuracyChart />
+      {/* 4. Scientific Backing & Empirical Research */}
+      <GlassCard
+        variant="elevated"
+        radius="3xl"
+        className="p-6 sm:p-8 border-cyan-500/20 shadow-[0_20px_50px_rgba(6,182,212,0.15)] relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="flex items-center gap-3 pb-4 border-b border-white/10 mb-6">
+          <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
+            <BookOpen className="w-5 h-5 text-cyan-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white leading-tight">Scientific Foundation & Spotify Research</h3>
+            <p className="text-xs text-gray-400 mt-1">Empirical models mapping listening records to personal psychology</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {RESEARCH_INSIGHTS.map((item, idx) => (
+            <div
+              key={idx}
+              className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between gap-3 hover:bg-white/[0.06] hover:border-cyan-500/30 transition-all duration-300 group"
+            >
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-7 h-7 rounded-lg bg-white/[0.06] border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    {item.icon}
+                  </div>
+                  <span className="text-[10px] font-mono text-cyan-400 font-bold tracking-wider truncate uppercase">
+                    {item.source}
+                  </span>
+                </div>
+                <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  {item.title}
+                </h4>
+                <p className="text-[11px] text-gray-300 leading-relaxed mt-2 font-medium">
+                  {item.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
 
       {/* 5. 5 OCEAN Trait Cards Matrix with Claude Insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
