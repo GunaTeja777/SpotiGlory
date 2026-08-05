@@ -1,11 +1,32 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Disc, Users, Award, Star } from "lucide-react";
 
 export const SocialProofSection: React.FC = () => {
+  const [totalReviews, setTotalReviews] = useState<string>("12,430+");
+  const [avgRating, setAvgRating] = useState<string>("4.9/5");
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/reviews");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === "success") {
+            setTotalReviews(`${data.totalReviews.toLocaleString()}`);
+            setAvgRating(`${data.averageRating.toFixed(1)}/5`);
+          }
+        }
+      } catch (e) {
+        // Fallback silently to static stats
+      }
+    };
+    fetchStats();
+  }, []);
+
   const stats = [
     {
       icon: <Disc className="w-5 h-5 text-[#1DB954]" />,
@@ -27,9 +48,9 @@ export const SocialProofSection: React.FC = () => {
     },
     {
       icon: <Star className="w-5 h-5 text-amber-400" />,
-      value: "4.9/5",
+      value: avgRating,
       label: "Community Rating",
-      subtext: "From 12,000+ reviews",
+      subtext: `From ${totalReviews} reviews`,
     },
   ];
 
@@ -39,7 +60,6 @@ export const SocialProofSection: React.FC = () => {
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
-
       >
         <GlassCard
           variant="elevated"

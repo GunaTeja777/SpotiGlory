@@ -14,6 +14,7 @@ import { PersonalityTab } from "@/components/dashboard/PersonalityTab";
 import { JamRoomsTab } from "@/components/dashboard/JamRoomsTab";
 import { UploadHistoryTab } from "@/components/dashboard/UploadHistoryTab";
 import { LanguageSettingsCard } from "@/components/dashboard/LanguageSettingsCard";
+import { CommunityReviewCard } from "@/components/dashboard/CommunityReviewCard";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { SpotifyIcon } from "@/components/landing/LandingNav";
@@ -131,6 +132,7 @@ function DashboardContent() {
         {activeTab === "settings" && (
           <div className="flex flex-col gap-6 max-w-2xl">
             <LanguageSettingsCard />
+            <CommunityReviewCard />
 
             <GlassCard variant="elevated" radius="3xl" className="p-8 border-white/18 text-left">
               <div className="flex items-center gap-3 pb-4 border-b border-white/10 mb-5">

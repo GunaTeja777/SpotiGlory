@@ -22,3 +22,23 @@ model UserTasteProfile {
 
   @@map("user_taste_profiles")
 }
+
+model CommunityReview {
+  id         String   @id @default(uuid())
+  user_id    String
+  user_name  String
+  rating     Int
+  comment    String
+  created_at DateTime @default(now())
+
+  @@map("community_reviews")
+}
+
+model LanguageMapping {
+  id       String @id @default(uuid())
+  language String // e.g. "Tamil", "Telugu", "Hindi", "Spanish"
+  type     String // "genre" or "artist"
+  pattern  String // e.g. "kollywood", "anirudh"
+
+  @@map("language_mappings")
+}

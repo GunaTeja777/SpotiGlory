@@ -1,6 +1,7 @@
 import { SpotifyArtist } from "./spotify";
 import { BehavioralFeatures, GenreDistributionItem } from "./features";
 import { computeClusterDistribution } from "./genreClusters";
+import { prisma } from "./prisma";
 
 export const SUPPORTED_LANGUAGES = [
   "English",
@@ -33,106 +34,62 @@ export function inferLanguageFromArtists(
   artists: SpotifyArtist[] = [],
   topGenres: string[] = []
 ): string {
-  const allGenreText = [
-    ...artists.flatMap((a) => a.genres || []),
-    ...topGenres,
-    ...artists.map((a) => a.name || ""),
-  ]
-    .join(" ")
-    .toLowerCase();
+  const counts: Record<string, number> = {
+    Tamil: 0,
+    Telugu: 0,
+    Hindi: 0,
+    Punjabi: 0,
+    Spanish: 0,
+    Korean: 0,
+    Japanese: 0,
+    Malayalam: 0,
+    Kannada: 0,
+    French: 0,
+    German: 0
+  };
 
-  const artistNamesLower = artists.map((a) => (a.name || "").toLowerCase()).join(" ");
+  const mappingsList = cachedMappings || DEFAULT_MAPPINGS;
 
-  // Artist name matching signals
-  if (
-    allGenreText.includes("tamil") ||
-    allGenreText.includes("kollywood") ||
-    artistNamesLower.includes("anirudh") ||
-    artistNamesLower.includes("ravichander") ||
-    artistNamesLower.includes("sai abhyankkar") ||
-    artistNamesLower.includes("harris jayaraj") ||
-    artistNamesLower.includes("santhosh narayanan") ||
-    artistNamesLower.includes("yuvan shankar raja") ||
-    artistNamesLower.includes("gv prakash")
-  ) {
-    return "Tamil";
-  }
-  if (
-    allGenreText.includes("telugu") ||
-    allGenreText.includes("tollywood") ||
-    artistNamesLower.includes("devi sri prasad") ||
-    artistNamesLower.includes("thaman") ||
-    artistNamesLower.includes("sid sriram") ||
-    artistNamesLower.includes("hesham abdul wahab")
-  ) {
-    return "Telugu";
-  }
-  if (
-    allGenreText.includes("hindi") ||
-    allGenreText.includes("bollywood") ||
-    allGenreText.includes("filmi") ||
-    allGenreText.includes("desi") ||
-    allGenreText.includes("indian pop") ||
-    artistNamesLower.includes("arijit singh") ||
-    artistNamesLower.includes("pritam") ||
-    artistNamesLower.includes("shreya ghoshal") ||
-    artistNamesLower.includes("atif aslam") ||
-    artistNamesLower.includes("neha kakkar") ||
-    artistNamesLower.includes("badshah") ||
-    artistNamesLower.includes("jubin nautiyal") ||
-    artistNamesLower.includes("sachin-jigar") ||
-    artistNamesLower.includes("b praak")
-  ) {
-    return "Hindi";
-  }
-  if (
-    allGenreText.includes("punjabi") ||
-    allGenreText.includes("bhangra") ||
-    artistNamesLower.includes("diljit") ||
-    artistNamesLower.includes("ap dhillon") ||
-    artistNamesLower.includes("karan aujla") ||
-    artistNamesLower.includes("sidhu moose") ||
-    artistNamesLower.includes("shubh") ||
-    artistNamesLower.includes("guru randhawa")
-  ) {
-    return "Punjabi";
-  }
-  if (allGenreText.includes("malayalam") || allGenreText.includes("mollywood")) {
-    return "Malayalam";
-  }
-  if (allGenreText.includes("kannada")) {
-    return "Kannada";
-  }
-  if (
-    allGenreText.includes("latin") ||
-    allGenreText.includes("reggaeton") ||
-    allGenreText.includes("spanish") ||
-    allGenreText.includes("salsa") ||
-    allGenreText.includes("bachata") ||
-    artistNamesLower.includes("bad bunny") ||
-    artistNamesLower.includes("rauw alejandro") ||
-    artistNamesLower.includes("rosalía") ||
-    artistNamesLower.includes("daddy yankee") ||
-    artistNamesLower.includes("j balvin")
-  ) {
-    return "Spanish";
-  }
-  if (allGenreText.includes("k-pop") || allGenreText.includes("korean") || artistNamesLower.includes("bts") || artistNamesLower.includes("blackpink")) {
-    return "Korean";
-  }
-  if (
-    allGenreText.includes("j-pop") ||
-    allGenreText.includes("j-rock") ||
-    allGenreText.includes("anime") ||
-    allGenreText.includes("japanese")
-  ) {
-    return "Japanese";
-  }
-  if (allGenreText.includes("french") || allGenreText.includes("chanson") || artistNamesLower.includes("indila") || artistNamesLower.includes("stromae")) {
-    return "French";
-  }
-  if (allGenreText.includes("german") || allGenreText.includes("deutschrock")) {
-    return "German";
+  artists.forEach((artist) => {
+    const name = (artist.name || "").toLowerCase();
+    const genres = (artist.genres || []).map((g) => g.toLowerCase());
+    const combinedText = [name, ...genres].join(" ");
+
+    mappingsList.forEach((mapping) => {
+      if (mapping.type === "genre") {
+        if (combinedText.includes(mapping.pattern.toLowerCase())) {
+          counts[mapping.language] = (counts[mapping.language] || 0) + 1;
+        }
+      } else if (mapping.type === "artist") {
+        if (name.includes(mapping.pattern.toLowerCase())) {
+          counts[mapping.language] = (counts[mapping.language] || 0) + 1;
+        }
+      }
+    });
+  });
+
+  topGenres.forEach((genre) => {
+    const norm = genre.toLowerCase();
+    mappingsList.forEach((mapping) => {
+      if (mapping.type === "genre" && norm.includes(mapping.pattern.toLowerCase())) {
+        counts[mapping.language] = (counts[mapping.language] || 0) + 1;
+      }
+    });
+  });
+
+  let bestLang = "English";
+  let maxCount = 0;
+
+  Object.entries(counts).forEach(([lang, count]) => {
+    if (count > maxCount) {
+      maxCount = count;
+      bestLang = lang;
+    }
+  });
+
+  const threshold = artists.length <= 2 ? 1 : 3;
+  if (maxCount >= threshold) {
+    return bestLang;
   }
 
   return "English";
@@ -197,8 +154,6 @@ export function getDominantClusterLabel(distribution: GenreDistributionItem[] = 
       return "Diverse & Eclectic";
   }
 }
-
-import { prisma } from "./prisma";
 
 export interface UserTasteProfileRecord {
   user_id: string;
@@ -350,4 +305,105 @@ export function buildUserTasteProfile(
   }
 
   return profile;
+}
+
+export const DEFAULT_MAPPINGS = [
+  { language: "Tamil", type: "genre", pattern: "tamil" },
+  { language: "Tamil", type: "genre", pattern: "kollywood" },
+  { language: "Tamil", type: "artist", pattern: "anirudh" },
+  { language: "Tamil", type: "artist", pattern: "ravichander" },
+  { language: "Tamil", type: "artist", pattern: "sai abhyankkar" },
+  { language: "Tamil", type: "artist", pattern: "harris jayaraj" },
+  { language: "Tamil", type: "artist", pattern: "santhosh narayanan" },
+  { language: "Tamil", type: "artist", pattern: "yuvan shankar raja" },
+  { language: "Tamil", type: "artist", pattern: "gv prakash" },
+
+  { language: "Telugu", type: "genre", pattern: "telugu" },
+  { language: "Telugu", type: "genre", pattern: "tollywood" },
+  { language: "Telugu", type: "artist", pattern: "devi sri prasad" },
+  { language: "Telugu", type: "artist", pattern: "thaman" },
+  { language: "Telugu", type: "artist", pattern: "sid sriram" },
+  { language: "Telugu", type: "artist", pattern: "hesham abdul wahab" },
+
+  { language: "Hindi", type: "genre", pattern: "hindi" },
+  { language: "Hindi", type: "genre", pattern: "bollywood" },
+  { language: "Hindi", type: "genre", pattern: "filmi" },
+  { language: "Hindi", type: "genre", pattern: "desi" },
+  { language: "Hindi", type: "genre", pattern: "indian pop" },
+  { language: "Hindi", type: "artist", pattern: "arijit" },
+  { language: "Hindi", type: "artist", pattern: "pritam" },
+  { language: "Hindi", type: "artist", pattern: "shreya" },
+  { language: "Hindi", type: "artist", pattern: "atif aslam" },
+  { language: "Hindi", type: "artist", pattern: "neha kakkar" },
+  { language: "Hindi", type: "artist", pattern: "badshah" },
+  { language: "Hindi", type: "artist", pattern: "jubin nautiyal" },
+  { language: "Hindi", type: "artist", pattern: "sachin-jigar" },
+  { language: "Hindi", type: "artist", pattern: "b praak" },
+
+  { language: "Punjabi", type: "genre", pattern: "punjabi" },
+  { language: "Punjabi", type: "genre", pattern: "bhangra" },
+  { language: "Punjabi", type: "artist", pattern: "diljit" },
+  { language: "Punjabi", type: "artist", pattern: "ap dhillon" },
+  { language: "Punjabi", type: "artist", pattern: "karan aujla" },
+  { language: "Punjabi", type: "artist", pattern: "sidhu moose" },
+  { language: "Punjabi", type: "artist", pattern: "shubh" },
+  { language: "Punjabi", type: "artist", pattern: "guru randhawa" },
+
+  { language: "Malayalam", type: "genre", pattern: "malayalam" },
+  { language: "Malayalam", type: "genre", pattern: "mollywood" },
+
+  { language: "Kannada", type: "genre", pattern: "kannada" },
+
+  { language: "Spanish", type: "genre", pattern: "latin" },
+  { language: "Spanish", type: "genre", pattern: "reggaeton" },
+  { language: "Spanish", type: "genre", pattern: "spanish" },
+  { language: "Spanish", type: "genre", pattern: "salsa" },
+  { language: "Spanish", type: "genre", pattern: "bachata" },
+  { language: "Spanish", type: "artist", pattern: "bad bunny" },
+  { language: "Spanish", type: "artist", pattern: "rauw alejandro" },
+  { language: "Spanish", type: "artist", pattern: "rosalía" },
+  { language: "Spanish", type: "artist", pattern: "daddy yankee" },
+  { language: "Spanish", type: "artist", pattern: "j balvin" },
+
+  { language: "Korean", type: "genre", pattern: "k-pop" },
+  { language: "Korean", type: "genre", pattern: "korean" },
+  { language: "Korean", type: "artist", pattern: "bts" },
+  { language: "Korean", type: "artist", pattern: "blackpink" },
+
+  { language: "Japanese", type: "genre", pattern: "j-pop" },
+  { language: "Japanese", type: "genre", pattern: "j-rock" },
+  { language: "Japanese", type: "genre", pattern: "anime" },
+  { language: "Japanese", type: "genre", pattern: "japanese" },
+
+  { language: "French", type: "genre", pattern: "french" },
+  { language: "French", type: "genre", pattern: "chanson" },
+  { language: "French", type: "artist", pattern: "indila" },
+  { language: "French", type: "artist", pattern: "stromae" },
+
+  { language: "German", type: "genre", pattern: "german" },
+  { language: "German", type: "genre", pattern: "deutschrock" }
+];
+
+export let cachedMappings: { language: string; type: string; pattern: string }[] | null = null;
+
+export async function ensureMappingsLoaded() {
+  if (cachedMappings !== null) return cachedMappings;
+  try {
+    let rows = await prisma.languageMapping.findMany();
+    if (rows.length === 0) {
+      const toInsert = DEFAULT_MAPPINGS.map(m => ({
+        language: m.language,
+        type: m.type,
+        pattern: m.pattern
+      }));
+      await prisma.languageMapping.createMany({ data: toInsert });
+      rows = await prisma.languageMapping.findMany();
+    }
+    cachedMappings = rows;
+    return cachedMappings;
+  } catch (e) {
+    console.error("Failed to load mappings from database, falling back to defaults", e);
+    cachedMappings = DEFAULT_MAPPINGS;
+    return cachedMappings;
+  }
 }

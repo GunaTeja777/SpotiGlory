@@ -14,7 +14,7 @@ import {
 } from "@/lib/spotify";
 import { computeBehavioralFeatures } from "@/lib/features";
 import { computeOceanScores } from "@/lib/oceanScoring";
-import { buildUserTasteProfile, getCachedTasteProfile, UserTasteProfile, inferLanguageFromArtists } from "@/lib/userTasteProfile";
+import { buildUserTasteProfile, getCachedTasteProfile, UserTasteProfile, inferLanguageFromArtists, ensureMappingsLoaded } from "@/lib/userTasteProfile";
 import { generateDynamicRoomsFromListeningData, getOrGenerateDynamicRoomsWithCache, DynamicJamRoom } from "@/lib/dynamicRoomEngine";
 import { findJamMatches, MoodType, OceanVector, MusicClusterVector } from "@/lib/jamMatching";
 import { getSyntheticUsers } from "@/lib/syntheticUsers";
@@ -183,6 +183,7 @@ export async function GET(request: Request) {
     }
 
     const userId = session?.user?.id || (session?.user as any)?.email || "unknown";
+    await ensureMappingsLoaded();
     const cacheKey = `jam-rooms:recommendations:${userId}:${customLang}`;
 
     if (!forceRefresh) {
