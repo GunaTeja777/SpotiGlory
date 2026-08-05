@@ -76,12 +76,22 @@ export async function GET(request: Request) {
             slug: "nocturnal-coding-haven",
             name: "Nocturnal Coding Haven",
             description: "A dark-mode sanctuary featuring deep techno and focus modular synthesis for midnight curators.",
-            mood: "Reflective",
-            playlistName: "Deep Focus Techno",
-            imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=60",
-            vibeType: "Electronic",
-            matchScore: 96,
-            recommendationReason: "Strong affinity with your late-night 78% electronic stream density."
+            primaryMood: "Reflective" as const,
+            secondaryMoods: ["Calm" as const],
+            vibeTag: "Electronic & Focus",
+            iconName: "Moon" as const,
+            activeListenersCount: 42,
+            dominantCluster: "Reflective & Complex",
+            oceanMatchTraits: ["High Openness", "Moderate Neuroticism"],
+            playlistPreview: {
+              title: "Deep Focus Techno",
+              tracksCount: 15,
+              sampleTracks: [
+                { title: "Resonance", artist: "HOME" },
+                { title: "Aria", artist: "Hammock" },
+                { title: "Vanilla", artist: "Tycho" }
+              ]
+            }
           }
         },
         {
@@ -92,12 +102,21 @@ export async function GET(request: Request) {
             slug: "woodland-indie-acoustic",
             name: "Woodland Acoustic Study",
             description: "Warm fingerpicking folk and quiet organic harmonies for coding or reading on rainy days.",
-            mood: "Calm",
-            playlistName: "Cozy Acoustic Folk",
-            imageUrl: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&auto=format&fit=crop&q=60",
-            vibeType: "Acoustic",
-            matchScore: 88,
-            recommendationReason: "Aligned with your high reflective/complex music cluster score."
+            primaryMood: "Calm" as const,
+            secondaryMoods: ["Reflective" as const],
+            vibeTag: "Acoustic & Folk",
+            iconName: "Wind" as const,
+            activeListenersCount: 28,
+            dominantCluster: "Reflective & Complex",
+            oceanMatchTraits: ["High Openness", "High Agreeableness"],
+            playlistPreview: {
+              title: "Cozy Acoustic Folk",
+              tracksCount: 20,
+              sampleTracks: [
+                { title: "Woodland", artist: "The Paper Kites" },
+                { title: "Holocene", artist: "Bon Iver" }
+              ]
+            }
           }
         },
         {
@@ -108,12 +127,21 @@ export async function GET(request: Request) {
             slug: "midnight-lofi-beats",
             name: "Midnight Lofi Lounge",
             description: "Cozy jazz piano loops, dust crackles, and laid-back lofi beats for late-night chillout sessions.",
-            mood: "Reflective",
-            playlistName: "Lofi Study Beats",
-            imageUrl: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&auto=format&fit=crop&q=60",
-            vibeType: "Lofi",
-            matchScore: 85,
-            recommendationReason: "Matches your mellow ambient and lofi focus profile."
+            primaryMood: "Reflective" as const,
+            secondaryMoods: ["Calm" as const],
+            vibeTag: "Lofi & Jazz",
+            iconName: "Moon" as const,
+            activeListenersCount: 56,
+            dominantCluster: "Reflective & Complex",
+            oceanMatchTraits: ["High Openness", "High Agreeableness"],
+            playlistPreview: {
+              title: "Lofi Study Beats",
+              tracksCount: 18,
+              sampleTracks: [
+                { title: "Snowman", artist: "Wys" },
+                { title: "Feather", artist: "Nujabes" }
+              ]
+            }
           }
         }
       ];
