@@ -261,15 +261,15 @@ export async function fetchSpotifyPlaylistTracks(
       .map((item: any) => item.track)
       .filter(Boolean)
       .map((track: any) => ({
-        id: track.id || Math.random().toString(),
-        name: track.name || "Live Stream",
-        artist: track.artists?.map((a: any) => a.name).join(", ") || "Live Artist",
-        album: track.album?.name || "Spotify Playlist",
-        coverUrl: track.album?.images?.[0]?.url || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80",
+        id: track.id || "",
+        name: track.name || "",
+        artist: track.artists?.map((a: any) => a.name).join(", ") || "",
+        album: track.album?.name || "",
+        coverUrl: track.album?.images?.[0]?.url || "",
         previewUrl: track.preview_url,
         spotifyUrl: track.external_urls?.spotify,
-        durationMs: track.duration_ms || 180000,
-        addedBy: "Room Curator (AI Companion)",
+        durationMs: track.duration_ms || 0,
+        addedBy: "",
       }));
   } catch (e) {
     return [];

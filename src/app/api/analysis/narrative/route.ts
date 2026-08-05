@@ -22,8 +22,9 @@ import {
 } from "@/prompts/persona_v1.1.0";
 import { validateNarrativeJson, build1ShotCorrectionPrompt } from "@/lib/narrativeSchema";
 import { generateFallbackNarrative, NarrativeProfile } from "@/lib/narrativePrompt";
+import { getCachedData, setCachedData } from "@/lib/redis";
 
-export async function GET() {
+export async function GET(request: Request) {
   const startTime = Date.now();
   let retryAttempts = 0;
   let modelUsed = "template-fallback";
@@ -31,6 +32,9 @@ export async function GET() {
   let estimatedCostUsd = 0;
 
   try {
+    const { searchParams } = new URL(request.url);
+    const forceRefresh = searchParams.get("forceRefresh") === "true";
+
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
@@ -47,6 +51,19 @@ export async function GET() {
     }
 
     const token = session.accessToken;
+    const userId = (session.user as any)?.id || "unknown";
+    const cacheKey = `analysis:narrative:${userId}`;
+
+    if (!forceRefresh) {
+      const cached = await getCachedData<any>(cacheKey);
+      if (cached) {
+        return NextResponse.json({
+          ...cached,
+          fromCache: true,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
 
     // Fetch Spotify datasets in parallel
     const [topTracksRes, topArtistsRes, recentlyPlayedRes, shortTermArtistsRes, longTermArtistsRes] =
@@ -183,9 +200,8 @@ export async function GET() {
 
     const latencyMs = Date.now() - startTime;
 
-    return NextResponse.json({
+    const payload = {
       status: "success",
-      timestamp: new Date().toISOString(),
       isAiGenerated,
       user: {
         name: session.user?.name || "Music Listener",
@@ -203,6 +219,13 @@ export async function GET() {
       clusters,
       ocean,
       disclaimer: ocean.disclaimer,
+    };
+
+    await setCachedData(cacheKey, payload, 600); // 10 minutes cache TTL
+
+    return NextResponse.json({
+      ...payload,
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     if (error instanceof SpotifyApiError) {

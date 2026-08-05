@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { getTopTracks, SpotifyApiError } from "@/lib/spotify";
+import { getCachedData, setCachedData } from "@/lib/redis";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const timeRangeParam = searchParams.get("time_range");
     const limitParam = searchParams.get("limit");
+    const forceRefresh = searchParams.get("forceRefresh") === "true";
 
     const timeRange = (
       ["short_term", "medium_term", "long_term"].includes(timeRangeParam || "")
@@ -28,8 +30,27 @@ export async function GET(request: NextRequest) {
 
     const limit = limitParam ? parseInt(limitParam, 10) : 20;
 
+    const userId = (session.user as any)?.id || "unknown";
+    const cacheKey = `spotify:top-tracks:${userId}:${timeRange}:${limit}`;
+
+    if (!forceRefresh) {
+      const cached = await getCachedData<any>(cacheKey);
+      if (cached) {
+        return NextResponse.json({
+          ...cached,
+          fromCache: true,
+        });
+      }
+    }
+
     const data = await getTopTracks(session.accessToken, timeRange, limit);
-    return NextResponse.json(data);
+
+    await setCachedData(cacheKey, data, 600); // 10 minutes cache TTL
+
+    return NextResponse.json({
+      ...data,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
     if (error instanceof SpotifyApiError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

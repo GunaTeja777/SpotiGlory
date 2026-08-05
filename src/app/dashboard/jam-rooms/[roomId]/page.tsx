@@ -9,8 +9,8 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { GlassSkeleton } from "@/components/ui/GlassSkeleton";
 import { getRoomBySlug, getRoomById, MoodRoom } from "@/lib/moodRoomEngine";
-import { getCuratedFallbackPlaylists, RoomPlaylist, RoomTrack } from "@/lib/roomPlaylistSource";
-import { getBotCompanion, BotCompanionConfig, ChatMessage, generateCompanionReply } from "@/lib/roomChatCompanion";
+import { RoomPlaylist, RoomTrack } from "@/lib/roomPlaylistSource";
+import { getBotCompanion, BotCompanionConfig, ChatMessage } from "@/lib/roomChatCompanion";
 import {
   ArrowLeft,
   RotateCw,
@@ -20,12 +20,7 @@ import {
   ExternalLink,
   Send,
   Bot,
-  Sparkles,
-  User,
-  Radio,
-  Clock,
   Disc,
-  Headphones,
   Moon,
   Zap,
   Flame,
@@ -92,8 +87,7 @@ export default function IndividualJamRoomPage() {
       // Fallback
     }
 
-    const fallbackPl = getCuratedFallbackPlaylists(roomIdSlug, typeof window !== "undefined" ? localStorage.getItem("spotiglory_user_language") || "" : "");
-    setPlaylists(fallbackPl);
+    setPlaylists([]);
   };
 
   useEffect(() => {
@@ -379,78 +373,92 @@ export default function IndividualJamRoomPage() {
               )}
 
               {/* Tracks List */}
-              <div className="flex flex-col gap-2.5">
-                {playlists[activePlaylistIndex]?.tracks.map((track, idx) => {
-                  const isPlaying = activePlayingId === track.id;
-                  return (
-                    <div
-                      key={track.id || idx}
-                      className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.07] hover:border-white/20 flex items-center justify-between gap-3 transition-all duration-200 group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className="w-5 text-center text-xs font-mono text-gray-400 font-bold shrink-0">
-                          {idx + 1}
-                        </span>
+              {playlists.length > 0 ? (
+                <div className="flex flex-col gap-2.5">
+                  {playlists[activePlaylistIndex]?.tracks.map((track, idx) => {
+                    const isPlaying = activePlayingId === track.id;
+                    return (
+                      <div
+                        key={track.id || idx}
+                        className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.07] hover:border-white/20 flex items-center justify-between gap-3 transition-all duration-200 group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="w-5 text-center text-xs font-mono text-gray-400 font-bold shrink-0">
+                            {idx + 1}
+                          </span>
 
-                        {/* Track Album Art / Play Overlay */}
-                        <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0">
-                          {track.coverUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={track.coverUrl} alt={track.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-white/5">
-                              <Music2 className="w-4 h-4 text-gray-500" />
-                            </div>
-                          )}
+                          {/* Track Album Art / Play Overlay */}
+                          <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0">
+                            {track.coverUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={track.coverUrl} alt={track.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-white/5">
+                                <Music2 className="w-4 h-4 text-gray-500" />
+                              </div>
+                            )}
 
-                          {track.previewUrl && (
-                            <button
-                              onClick={() => toggleTrackPlay(track)}
-                              className={`absolute inset-0 m-auto flex items-center justify-center transition-all ${
-                                isPlaying
-                                  ? "bg-[#1DB954] text-black opacity-100"
-                                  : "bg-black/60 text-white opacity-0 group-hover:opacity-100 hover:bg-[#1DB954] hover:text-black"
-                              }`}
-                              title={isPlaying ? "Pause Preview" : "Play 30s Preview"}
+                            {track.previewUrl && (
+                              <button
+                                onClick={() => toggleTrackPlay(track)}
+                                className={`absolute inset-0 m-auto flex items-center justify-center transition-all ${
+                                  isPlaying
+                                    ? "bg-[#1DB954] text-black opacity-100"
+                                    : "bg-black/60 text-white opacity-0 group-hover:opacity-100 hover:bg-[#1DB954] hover:text-black"
+                                }`}
+                                title={isPlaying ? "Pause Preview" : "Play 30s Preview"}
+                              >
+                                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Track Title & Artist */}
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-bold text-white truncate group-hover:text-[#1DB954] transition-colors">
+                              {track.name}
+                            </h4>
+                            <p className="text-[11px] text-gray-400 truncate">
+                              {track.artist} • <span className="text-gray-400">{track.album}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Right Track Actions */}
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="text-[11px] font-mono text-gray-400 hidden sm:block">
+                            {formatMs(track.durationMs)}
+                          </span>
+
+                          {track.spotifyUrl && (
+                            <a
+                              href={track.spotifyUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 rounded-lg bg-white/[0.05] border border-white/10 text-gray-400 hover:text-[#1DB954] hover:border-[#1DB954]/40 transition-colors"
+                              title="Open on Spotify"
                             >
-                              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
-                            </button>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
                           )}
                         </div>
-
-                        {/* Track Title & Artist */}
-                        <div className="min-w-0">
-                          <h4 className="text-xs font-bold text-white truncate group-hover:text-[#1DB954] transition-colors">
-                            {track.name}
-                          </h4>
-                          <p className="text-[11px] text-gray-400 truncate">
-                            {track.artist} • <span className="text-gray-400">{track.album}</span>
-                          </p>
-                        </div>
                       </div>
-
-                      {/* Right Track Actions */}
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-[11px] font-mono text-gray-400 hidden sm:block">
-                          {formatMs(track.durationMs)}
-                        </span>
-
-                        {track.spotifyUrl && (
-                          <a
-                            href={track.spotifyUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 rounded-lg bg-white/[0.05] border border-white/10 text-gray-400 hover:text-[#1DB954] hover:border-[#1DB954]/40 transition-colors"
-                            title="Open on Spotify"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-12 flex flex-col items-center justify-center text-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center">
+                    <Music2 className="w-5 h-5 text-gray-400 animate-pulse" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">No Playlists Found</h4>
+                    <p className="text-xs text-gray-400 max-w-sm mt-1 leading-relaxed">
+                      We couldn't source playlists from the Google RAG Agent. Try listening to some songs on Spotify first to build your active profile history!
+                    </p>
+                  </div>
+                </div>
+              )}
             </GlassCard>
           </div>
 

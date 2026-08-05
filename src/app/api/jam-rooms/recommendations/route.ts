@@ -19,6 +19,7 @@ import { generateDynamicRoomsFromListeningData, getOrGenerateDynamicRoomsWithCac
 import { findJamMatches, MoodType, OceanVector, MusicClusterVector } from "@/lib/jamMatching";
 import { getSyntheticUsers } from "@/lib/syntheticUsers";
 import { computeClusterDistribution } from "@/lib/genreClusters";
+import { getCachedData, setCachedData } from "@/lib/redis";
 
 const parseMood = (raw?: string): MoodType => {
   if (!raw) return "Reflective";
@@ -43,9 +44,23 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const forceRefresh = searchParams.get("forceRefresh") === "true";
-    const customLang = searchParams.get("language");
+    const customLang = searchParams.get("language") || "default";
 
     const session = await getServerSession(authOptions);
+    const userId = session?.user?.id || (session?.user as any)?.email || "unknown";
+    const cacheKey = `jam-rooms:recommendations:${userId}:${customLang}`;
+
+    if (!forceRefresh) {
+      const cached = await getCachedData<any>(cacheKey);
+      if (cached) {
+        return NextResponse.json({
+          ...cached,
+          fromCache: true,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+
     let token: string | undefined = session?.accessToken;
 
     if (!token) {
@@ -81,8 +96,8 @@ export async function GET(request: Request) {
     const combinedArtists = Array.from(allArtistsMap.values());
 
     // 1. Check getCachedTasteProfile() for 12h fresh profile
-    const userId = session?.user?.email || session?.user?.name;
-    const cachedRecord = userId ? await getCachedTasteProfile(userId) : null;
+    const emailOrName = session?.user?.email || session?.user?.name;
+    const cachedRecord = emailOrName ? await getCachedTasteProfile(emailOrName) : null;
 
     let tasteProfile: UserTasteProfile;
 
@@ -207,7 +222,7 @@ export async function GET(request: Request) {
       5
     );
 
-    return NextResponse.json({
+    const payload = {
       status: "success",
       recentSongCount: recentlyPlayed.length,
       activeMood,
@@ -219,6 +234,13 @@ export async function GET(request: Request) {
         adjacentRooms: [],
       },
       peopleMatches,
+    };
+
+    await setCachedData(cacheKey, payload, 600); // 10 minutes cache TTL
+
+    return NextResponse.json({
+      ...payload,
+      timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
     console.error("Jam Rooms recommendations API error:", error);

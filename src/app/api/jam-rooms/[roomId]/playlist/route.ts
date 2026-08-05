@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { getRecentlyPlayed } from "@/lib/spotify";
-import { getGoogleRagPlaylists, getCuratedFallbackPlaylists } from "@/lib/roomPlaylistSource";
+import { getGoogleRagPlaylists } from "@/lib/roomPlaylistSource";
 
 function extractLanguageFromSlug(slug: string, customLang?: string | null): string | undefined {
   if (customLang && customLang.trim().length > 0) return customLang.trim();
@@ -39,9 +39,9 @@ export async function GET(
         const rpRes = await getRecentlyPlayed(session.accessToken, 3);
         const items = rpRes.items || [];
         recentTracks = items.map((item: any) => ({
-          name: item.track?.name || "Unknown Track",
-          artist: item.track?.artists?.[0]?.name || "Unknown Artist",
-          album: item.track?.album?.name || "Single"
+          name: item.track?.name || "",
+          artist: item.track?.artists?.[0]?.name || "",
+          album: item.track?.album?.name || ""
         }));
       } catch (e) {
         console.error("Failed to fetch 3 recent tracks from Spotify:", e);
@@ -57,15 +57,9 @@ export async function GET(
     });
   } catch (error: any) {
     console.error("Room playlist API error:", error);
-    const { roomId } = await params;
-    const { searchParams } = new URL(request.url);
-    const customLang = searchParams.get("language");
-    const effectiveLang = extractLanguageFromSlug(roomId, customLang);
-    const fallback = getCuratedFallbackPlaylists(roomId, effectiveLang);
-
     return NextResponse.json({
       status: "fallback",
-      playlists: fallback
+      playlists: []
     });
   }
 }

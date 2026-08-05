@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getRoomBySlug, getRoomById } from "@/lib/moodRoomEngine";
-import { getCuratedFallbackPlaylists } from "@/lib/roomPlaylistSource";
 import { getBotCompanion } from "@/lib/roomChatCompanion";
 import {
   ROOM_BOT_PROMPT_VERSION,
@@ -31,11 +30,7 @@ export async function POST(
     const bot = getBotCompanion(room ? room.slug : roomId);
 
     // 2. Resolve currently playing track from room playlist if not provided
-    let currentTrack = currentTrackParam;
-    if (!currentTrack) {
-      const playlists = getCuratedFallbackPlaylists(room ? room.slug : roomId);
-      currentTrack = playlists[0]?.tracks[0];
-    }
+    const currentTrack = currentTrackParam || null;
 
     const openRouterKey = process.env.OPENROUTER_API_KEY;
     let botReply: RoomBotReply;

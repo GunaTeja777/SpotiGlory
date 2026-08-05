@@ -13,9 +13,13 @@ import {
 import { computeBehavioralFeatures } from "@/lib/features";
 import { computeClusterDistribution } from "@/lib/genreClusters";
 import { computeOceanScores } from "@/lib/oceanScoring";
+import { getCachedData, setCachedData } from "@/lib/redis";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const forceRefresh = searchParams.get("forceRefresh") === "true";
+
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
@@ -34,6 +38,19 @@ export async function GET() {
     }
 
     const token = session.accessToken;
+    const userId = (session.user as any)?.id || "unknown";
+    const cacheKey = `analysis:ocean:${userId}`;
+
+    if (!forceRefresh) {
+      const cached = await getCachedData<any>(cacheKey);
+      if (cached) {
+        return NextResponse.json({
+          ...cached,
+          fromCache: true,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
 
     // Fetch Spotify datasets in parallel
     const [topTracksRes, topArtistsRes, recentlyPlayedRes, shortTermArtistsRes, longTermArtistsRes] =
@@ -66,9 +83,8 @@ export async function GET() {
     // 3. Compute Big Five (OCEAN) personality scores
     const ocean = computeOceanScores(features, clusters);
 
-    return NextResponse.json({
+    const payload = {
       status: "success",
-      timestamp: new Date().toISOString(),
       user: {
         name: session.user?.name || "Music Listener",
         image: session.user?.image || null,
@@ -76,6 +92,13 @@ export async function GET() {
       clusters,
       ocean,
       disclaimer: ocean.disclaimer,
+    };
+
+    await setCachedData(cacheKey, payload, 600); // 10 minutes cache TTL
+
+    return NextResponse.json({
+      ...payload,
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     if (error instanceof SpotifyApiError) {

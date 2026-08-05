@@ -1,20 +1,9 @@
 import assert from "node:assert";
 import { test, describe } from "node:test";
-import {
-  getCuratedFallbackPlaylists,
-  getGoogleRagPlaylists
-} from "./roomPlaylistSource";
+import { getGoogleRagPlaylists } from "./roomPlaylistSource";
 
 describe("Room Playlist Google RAG Sourcing Engine", () => {
-  test("getCuratedFallbackPlaylists returns exactly 3 curated playlists with tracks", () => {
-    const playlists = getCuratedFallbackPlaylists("midnight-neon-sanctuary", "Tamil");
-    assert.strictEqual(playlists.length, 3);
-    assert.ok(playlists[0].title.length > 0);
-    assert.ok(playlists[0].tracks.length > 0);
-    assert.strictEqual(playlists[0].roomId, "midnight-neon-sanctuary");
-  });
-
-  test("getGoogleRagPlaylists falls back to curated lists when unauthenticated/no key", async () => {
+  test("getGoogleRagPlaylists returns empty array when unconfigured or key is not set", async () => {
     const playlists = await getGoogleRagPlaylists(
       "deep-focus-acoustic",
       [
@@ -23,8 +12,6 @@ describe("Room Playlist Google RAG Sourcing Engine", () => {
       "English"
     );
 
-    assert.strictEqual(playlists.length, 3);
-    assert.strictEqual(playlists[0].roomId, "deep-focus-acoustic");
-    assert.ok(playlists[0].tracks.length > 0);
+    assert.strictEqual(playlists.length, 0);
   });
 });
