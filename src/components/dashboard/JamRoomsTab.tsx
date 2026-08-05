@@ -354,10 +354,10 @@ export const JamRoomsTab: React.FC = () => {
 
                       {/* Playlist Preview Box */}
                       <div className="p-3.5 rounded-2xl bg-black/50 border border-white/10 flex flex-col gap-2">
-                        <div className="flex items-center justify-between text-xs font-mono pb-2 border-b border-white/10">
-                          <span className="text-white font-bold flex items-center gap-1.5 truncate">
-                            <Disc className="w-3.5 h-3.5 text-[#1DB954]" />
-                            {room.playlistPreview.title}
+                        <div className="flex items-center justify-between text-xs font-mono pb-2 border-b border-white/10 gap-2">
+                          <span className="text-white font-bold flex items-center gap-1.5 min-w-0 truncate">
+                            <Disc className="w-3.5 h-3.5 text-[#1DB954] shrink-0" />
+                            <span className="truncate">{room.playlistPreview.title}</span>
                           </span>
                           <span className="text-gray-400 text-[10px] shrink-0">
                             {room.playlistPreview.tracksCount} tracks
