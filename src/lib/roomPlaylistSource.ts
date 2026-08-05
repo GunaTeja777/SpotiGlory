@@ -83,7 +83,7 @@ Return exactly 3 playlists, each containing 5 to 6 actual real tracks. Use reali
       },
       signal: controller.signal,
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "openrouter/free",
         temperature: 0.5,
         messages: [
           { role: "system", content: "You are a precise JSON generator that returns Spotify/Google playlists." },
@@ -98,7 +98,8 @@ Return exactly 3 playlists, each containing 5 to 6 actual real tracks. Use reali
     if (res.ok) {
       const data = await res.json();
       const content = data.choices?.[0]?.message?.content || "";
-      const parsed = JSON.parse(content);
+      const cleaned = content.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
 
       if (parsed && Array.isArray(parsed.playlists) && parsed.playlists.length >= 3) {
         return parsed.playlists.slice(0, 3).map((pl: any, listIdx: number) => ({

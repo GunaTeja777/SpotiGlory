@@ -101,7 +101,7 @@ export async function GET(request: Request) {
     let isAiGenerated = false;
 
     if (openRouterKey && openRouterKey !== "your_openrouter_api_key_here") {
-      modelUsed = "anthropic/claude-3.5-sonnet (via OpenRouter)";
+      modelUsed = "openrouter/free";
       const userPrompt = buildUserPromptV1_1(groundedContext, features, features.topGenreDistribution, topArtists);
 
       try {
@@ -114,7 +114,7 @@ export async function GET(request: Request) {
             "X-Title": "SpotiGlory",
           },
           body: JSON.stringify({
-            model: "anthropic/claude-3.5-sonnet",
+            model: "openrouter/free",
             temperature: RECOMMENDED_TEMPERATURE,
             max_tokens: 1000,
             messages: [
@@ -159,7 +159,7 @@ export async function GET(request: Request) {
                 "X-Title": "SpotiGlory",
               },
               body: JSON.stringify({
-                model: "anthropic/claude-3.5-sonnet",
+                model: "openrouter/free",
                 temperature: 0.1,
                 max_tokens: 1000,
                 messages: [
