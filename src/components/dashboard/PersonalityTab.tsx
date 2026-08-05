@@ -38,47 +38,56 @@ import {
 } from "lucide-react";
 
 interface ResearchInsight {
+  key: string;
   title: string;
   source: string;
-  icon: React.ReactNode;
   description: string;
 }
 
+const BACKING_ICONS: Record<string, React.ReactNode> = {
+  personality: <Users className="w-4 h-4 text-cyan-400" />,
+  demographics: <Globe className="w-4 h-4 text-purple-400" />,
+  values: <Scale className="w-4 h-4 text-pink-400" />,
+  mood: <Activity className="w-4 h-4 text-amber-400" />,
+  nlp: <Music className="w-4 h-4 text-[#1DB954]" />,
+  privacy: <ShieldAlert className="w-4 h-4 text-red-400" />,
+};
+
 const RESEARCH_INSIGHTS: ResearchInsight[] = [
   {
+    key: "personality",
     title: "Personality Traits (Big Five)",
     source: "Spotify Research • Lindenwood University",
-    icon: <Users className="w-4 h-4 text-cyan-400" />,
     description: "Spotify Research shows personality is detectable from listening logs without self-reporting. High conscientiousness concentrates listening into narrow time windows; extraverts favor social playlists; introverts explore individual artist catalogs deeply. These links are cross-culturally validated across 53 countries."
   },
   {
+    key: "demographics",
     title: "Demographics Inference",
     source: "Last.fm Listening Logs Study",
-    icon: <Globe className="w-4 h-4 text-purple-400" />,
     description: "Age, gender, and nationality can be predicted from listening logs. Algorithms analyze temporal patterns and audio-derived features alongside collaborative filtering to infer demographic attributes reliably."
   },
   {
+    key: "values",
     title: "Values & Moral Leanings",
     source: "arXiv Psychometrics Literature",
-    icon: <Scale className="w-4 h-4 text-pink-400" />,
     description: "Musical taste is strongly tied to personal values, political orientation, and sophistication. Passive listening histories allow reliable inference of demographics, while moral values represent a more complex, multi-layered signal."
   },
   {
+    key: "mood",
     title: "Mood & Emotion Regulation",
     source: "arXiv Affective Computing",
-    icon: <Activity className="w-4 h-4 text-amber-400" />,
     description: "Listeners actively manage and regulate their emotional states through tailored playlists. This active regulation pattern is highly correlated with core personality traits, allowing real-time mood estimation."
   },
   {
+    key: "nlp",
     title: "Lyrics + Audio NLP Fusion",
     source: "University of California Press (2023)",
-    icon: <Music className="w-4 h-4 text-[#1DB954]" />,
     description: "Combining acoustic features with natural language processing (NLP) of lyrics significantly boosts prediction accuracy of Big Five personality attributes, capturing nuances at both domain and facet levels."
   },
   {
+    key: "privacy",
     title: "Privacy & The 'Attack' Framing",
     source: "arXiv Offensive Security Study",
-    icon: <ShieldAlert className="w-4 h-4 text-red-400" />,
     description: "Security literature highlights that public playlist-level attributes encode sensitive personal lifestyle habits and personality traits, showing that attributes can be recovered without access to private histories."
   }
 ];
@@ -90,6 +99,7 @@ export const PersonalityTab: React.FC = () => {
     ocean: OceanScoresResult;
     disclaimer: string;
     isAiGenerated?: boolean;
+    scientificBacking?: ResearchInsight[];
     telemetry?: {
       latencyMs: number;
       tokenCount: number;
@@ -100,6 +110,7 @@ export const PersonalityTab: React.FC = () => {
     user?: { name: string };
     features?: any;
   } | null>(null);
+  const [activeResearchTab, setActiveResearchTab] = useState<string>("personality");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
@@ -185,6 +196,9 @@ export const PersonalityTab: React.FC = () => {
   const ocean = data.ocean;
   const clusters = data.clusters;
   const narrative = data.narrative;
+
+  const backing = data.scientificBacking || RESEARCH_INSIGHTS;
+  const currentBacking = backing.find(b => b.key === activeResearchTab) || backing[0];
 
   // Format data for Recharts RadarChart
   const radarData = [
@@ -320,21 +334,81 @@ export const PersonalityTab: React.FC = () => {
         </div>
       </GlassCard>
 
-      {/* 2. Research Disclaimer Alert */}
-      <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 backdrop-blur-xl text-left flex items-start gap-3 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
-        <HelpCircle className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <h4 className="text-xs font-bold text-purple-200 uppercase tracking-wide flex items-center gap-2">
-            <span>Rentfrow & Gosling MUSIC Preference Model</span>
-            <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-[9px] font-mono border border-purple-500/30">
-              RESEARCH DISCLAIMER
+      {/* 2. Scientific Foundation & Spotify Research (Dynamic Interactive Pills) */}
+      <GlassCard
+        variant="elevated"
+        radius="3xl"
+        className="p-5 sm:p-6 border-purple-500/30 shadow-[0_20px_50px_rgba(168,85,247,0.15)] relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-60 h-60 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between pb-3 border-b border-white/10">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-purple-400" />
+              <h3 className="text-sm font-bold text-white tracking-tight">Scientific Foundation & Empirical Evidence</h3>
+            </div>
+            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider hidden sm:inline">
+              Spotify Research & Psychometrics
             </span>
-          </h4>
-          <p className="text-xs text-purple-300/90 mt-1 leading-relaxed">
-            {data.disclaimer}
-          </p>
+          </div>
+
+          {/* Horizontal Pills Selector */}
+          <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {backing.map((item) => {
+              const isActive = activeResearchTab === item.key;
+              const activeColor = 
+                item.key === "personality" ? "border-cyan-500/50 bg-cyan-500/10 text-cyan-300" :
+                item.key === "demographics" ? "border-purple-500/50 bg-purple-500/10 text-purple-300" :
+                item.key === "values" ? "border-pink-500/50 bg-pink-500/10 text-pink-300" :
+                item.key === "mood" ? "border-amber-500/50 bg-amber-500/10 text-amber-300" :
+                item.key === "nlp" ? "border-[#1DB954]/50 bg-[#1DB954]/10 text-[#1DB954]" :
+                "border-red-500/50 bg-red-500/10 text-red-300";
+
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => setActiveResearchTab(item.key)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold font-mono transition-all border shrink-0 ${
+                    isActive 
+                      ? `${activeColor} shadow-[0_0_15px_rgba(255,255,255,0.05)] scale-105` 
+                      : "bg-white/[0.04] border-white/10 text-gray-300 hover:border-white/30 hover:bg-white/10"
+                  }`}
+                >
+                  {item.title}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active Tab Content Card */}
+          {currentBacking && (
+            <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex items-start gap-4 transition-all duration-300">
+              <div className="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center shrink-0">
+                {BACKING_ICONS[currentBacking.key] || <BookOpen className="w-4 h-4 text-cyan-400" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
+                  <h4 className="text-xs sm:text-sm font-bold text-white leading-none">
+                    {currentBacking.title}
+                  </h4>
+                  <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider font-semibold">
+                    Source: {currentBacking.source}
+                  </span>
+                </div>
+                <p className="text-[11px] sm:text-xs text-gray-300 leading-relaxed font-medium">
+                  {currentBacking.description}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Research Disclaimer Alert embedded contextually */}
+          <div className="mt-1 p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-[11px] text-purple-300 leading-relaxed font-medium">
+            <strong>MUSIC Model Disclaimer:</strong> {data.disclaimer}
+          </div>
         </div>
-      </div>
+      </GlassCard>
 
       {/* 3. Main Grid: Radar Chart + MUSIC Model Clusters */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -476,50 +550,7 @@ export const PersonalityTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Scientific Backing & Empirical Research */}
-      <GlassCard
-        variant="elevated"
-        radius="3xl"
-        className="p-6 sm:p-8 border-cyan-500/20 shadow-[0_20px_50px_rgba(6,182,212,0.15)] relative overflow-hidden"
-      >
-        <div className="absolute top-0 right-0 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="flex items-center gap-3 pb-4 border-b border-white/10 mb-6">
-          <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-cyan-400" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-white leading-tight">Scientific Foundation & Spotify Research</h3>
-            <p className="text-xs text-gray-400 mt-1">Empirical models mapping listening records to personal psychology</p>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {RESEARCH_INSIGHTS.map((item, idx) => (
-            <div
-              key={idx}
-              className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between gap-3 hover:bg-white/[0.06] hover:border-cyan-500/30 transition-all duration-300 group"
-            >
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 rounded-lg bg-white/[0.06] border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    {item.icon}
-                  </div>
-                  <span className="text-[10px] font-mono text-cyan-400 font-bold tracking-wider truncate uppercase">
-                    {item.source}
-                  </span>
-                </div>
-                <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
-                  {item.title}
-                </h4>
-                <p className="text-[11px] text-gray-300 leading-relaxed mt-2 font-medium">
-                  {item.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </GlassCard>
 
       {/* 5. 5 OCEAN Trait Cards Matrix with Claude Insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
