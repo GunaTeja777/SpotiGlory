@@ -35,7 +35,12 @@ const SCIENTIFIC_BACKING = [
     key: "demographics",
     title: "Demographics Inference",
     source: "Last.fm Listening Logs Study",
-    description: "Age, gender, and nationality can be predicted from listening logs. Algorithms analyze temporal patterns and audio-derived features alongside collaborative filtering to infer demographic attributes reliably."
+    description: "Age, gender, and nationality can be predicted from listening logs. Algorithms analyze temporal patterns and audio-derived features alongside collaborative filtering to infer demographic attributes reliably.",
+    metadata: {
+      age: "26-35 (Eclectic Contemporary)",
+      region: "Global / Anglosphere Broad Affinity",
+      gender: "Balanced Cognitive Fluidity"
+    }
   },
   {
     key: "values",
@@ -139,7 +144,12 @@ function computeDynamicScientificBacking(features: any, clusters: any, ocean: an
       key: "demographics",
       title: "Demographics Inference",
       source: "Last.fm Listening Logs Study",
-      description: `Predicted Age Range: ${agePrediction}. Inferred Regional Affinity: ${regionalAffinity}. Cognitive Gender Resonance: ${genderResonance}. (Empirically predicted from temporal distribution & audio-derived features without self-report surveys).`
+      description: "Empirically predicted from temporal distribution & audio-derived features without self-report surveys.",
+      metadata: {
+        age: agePrediction,
+        region: regionalAffinity,
+        gender: genderResonance
+      }
     },
     {
       key: "values",

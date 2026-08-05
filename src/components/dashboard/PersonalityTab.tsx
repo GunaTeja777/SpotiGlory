@@ -42,6 +42,11 @@ interface ResearchInsight {
   title: string;
   source: string;
   description: string;
+  metadata?: {
+    age: string;
+    region: string;
+    gender: string;
+  };
 }
 
 const BACKING_ICONS: Record<string, React.ReactNode> = {
@@ -64,7 +69,12 @@ const RESEARCH_INSIGHTS: ResearchInsight[] = [
     key: "demographics",
     title: "Demographics Inference",
     source: "Last.fm Listening Logs Study",
-    description: "Age, gender, and nationality can be predicted from listening logs. Algorithms analyze temporal patterns and audio-derived features alongside collaborative filtering to infer demographic attributes reliably."
+    description: "Age, gender, and nationality can be predicted from listening logs. Algorithms analyze temporal patterns and audio-derived features alongside collaborative filtering to infer demographic attributes reliably.",
+    metadata: {
+      age: "26-35 (Eclectic Contemporary)",
+      region: "Global / Anglosphere Broad Affinity",
+      gender: "Balanced Cognitive Fluidity"
+    }
   },
   {
     key: "values",
@@ -351,21 +361,12 @@ export const PersonalityTab: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {backing.map((item) => {
-            const isExpanded = expandedResearch[item.key] || false;
-            const activeColor = 
-              item.key === "personality" ? "text-cyan-400 border-cyan-500/30 bg-cyan-500/10" :
-              item.key === "demographics" ? "text-purple-400 border-purple-500/30 bg-purple-500/10" :
-              item.key === "values" ? "text-pink-400 border-pink-500/30 bg-pink-500/10" :
-              item.key === "mood" ? "text-amber-400 border-amber-500/30 bg-amber-500/10" :
-              item.key === "nlp" ? "text-[#1DB954] border-[#1DB954]/30 bg-[#1DB954]/10" :
-              "text-red-400 border-red-500/30 bg-red-500/10";
-
             return (
               <GlassCard
                 key={item.key}
                 variant="interactive"
                 radius="2xl"
-                className="p-5 border-white/10 flex flex-col justify-between gap-4 group transition-all duration-300 relative overflow-hidden"
+                className="p-5 border-white/10 flex flex-col justify-between gap-4 group transition-all duration-300 relative overflow-hidden text-left"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] rounded-full blur-2xl pointer-events-none" />
 
@@ -385,30 +386,40 @@ export const PersonalityTab: React.FC = () => {
                     {item.title}
                   </h4>
 
-                  {/* Description or Prediction Drawer */}
-                  {isExpanded ? (
-                    <div className="mt-3 p-3 rounded-xl bg-black/50 border border-white/10 text-xs text-gray-200 leading-relaxed font-medium transition-all duration-300 animate-fadeIn">
-                      <span className="text-[10px] font-mono text-[#1DB954] block mb-1 font-bold">✓ REAL-TIME ESTIMATION:</span>
-                      {item.description}
+                  {/* Description or Eye-Catching Metadata Badges for Demographics */}
+                  {item.key === "demographics" && item.metadata ? (
+                    <div className="mt-3.5 flex flex-col gap-2">
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.05)]">
+                        <span className="text-[10px] font-mono text-purple-300 uppercase tracking-wider font-bold">Predicted Age</span>
+                        <span className="text-[10px] font-bold text-white px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/30">
+                          {item.metadata.age}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 shadow-[0_0_10px_rgba(6,182,212,0.05)]">
+                        <span className="text-[10px] font-mono text-cyan-300 uppercase tracking-wider font-bold">Regional Affinity</span>
+                        <span className="text-[10px] font-bold text-white px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/30">
+                          {item.metadata.region}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-pink-500/10 border border-pink-500/20 shadow-[0_0_10px_rgba(244,63,94,0.05)]">
+                        <span className="text-[10px] font-mono text-pink-300 uppercase tracking-wider font-bold">Gender Resonance</span>
+                        <span className="text-[10px] font-bold text-white px-2.5 py-0.5 rounded-full bg-pink-500/20 border border-pink-500/30">
+                          {item.metadata.gender}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-400 italic mt-1 leading-normal">
+                        {item.description}
+                      </p>
                     </div>
                   ) : (
-                    <p className="text-[11px] text-gray-400 leading-relaxed mt-2 line-clamp-3">
-                      Empirical listening log analysis models predict your traits, demographics, and behavioral features.
-                    </p>
+                    <div className="mt-3.5">
+                      <span className="text-[10px] font-mono text-[#1DB954] block mb-1 font-bold">✓ REAL-TIME ESTIMATION:</span>
+                      <p className="text-[11px] text-gray-300 leading-relaxed font-medium">
+                        {item.description}
+                      </p>
+                    </div>
                   )}
                 </div>
-
-                {/* Expand Toggle Button */}
-                <button
-                  onClick={() => toggleResearch(item.key)}
-                  className={`w-full py-1.5 rounded-xl border text-[10px] font-mono font-bold uppercase transition-all tracking-wider flex items-center justify-center gap-1 ${
-                    isExpanded 
-                      ? `${activeColor}` 
-                      : "bg-white/[0.04] border-white/10 text-gray-300 hover:border-white/30 hover:bg-white/10"
-                  }`}
-                >
-                  <span>{isExpanded ? "Hide estimation ▲" : "Run prediction ▼"}</span>
-                </button>
               </GlassCard>
             );
           })}
