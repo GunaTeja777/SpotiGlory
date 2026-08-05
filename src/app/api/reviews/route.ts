@@ -5,33 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const BASELINE_COUNT = 12430;
-const BASELINE_SUM = 60907; // 12430 * 4.9 average
-
-// Seed baseline reviews to display on frontend
-const BASELINE_REVIEWS = [
-  {
-    id: "baseline_1",
-    user_name: "Sarah Jenkins",
-    rating: 5,
-    comment: "SpotiGlory accurately matched my late-night coding vibe! The AI companion chat was surprisingly insightful about lofi progression.",
-    created_at: new Date(Date.now() - 3600000 * 2).toISOString()
-  },
-  {
-    id: "baseline_2",
-    user_name: "Marcus Chen",
-    rating: 4,
-    comment: "The Ridge Regression training updates on trait corrections are genius. Dynamic Spanish playlist matching worked instantly.",
-    created_at: new Date(Date.now() - 3600000 * 8).toISOString()
-  },
-  {
-    id: "baseline_3",
-    user_name: "Elena Rostova",
-    rating: 5,
-    comment: "I love the glassmorphic dark design. Spot-on personality analysis, and the RAG sourcing was 100% accurate to my recent electronic streams.",
-    created_at: new Date(Date.now() - 3600000 * 24).toISOString()
-  }
-];
+const BASELINE_REVIEWS: any[] = [];
 
 export async function GET() {
   try {
@@ -41,21 +15,18 @@ export async function GET() {
     ]);
 
     const dbSum = dbReviews.reduce((sum, r) => sum + r.rating, 0);
-    const totalCount = BASELINE_COUNT + dbReviews.length;
-    const averageRating = ((BASELINE_SUM + dbSum) / totalCount).toFixed(1);
+    const totalCount = dbReviews.length;
+    const averageRating = totalCount > 0 ? (dbSum / totalCount).toFixed(1) : "0.0";
 
-    // Dynamic Vibe Accuracy calculation
-    const BASELINE_ACCURATE = 12355; // 99.4% of 12430
+    // Dynamic Vibe Accuracy calculation (ratio of >= 4 stars reviews)
     const dbAccurate = dbReviews.filter(r => r.rating >= 4).length;
-    const accuracyVal = (((BASELINE_ACCURATE + dbAccurate) / totalCount) * 100).toFixed(1);
+    const accuracyVal = totalCount > 0 ? ((dbAccurate / totalCount) * 100).toFixed(1) : "0.0";
 
     // Dynamic Profiles Created
-    const BASELINE_PROFILES = 532450; 
-    const totalProfiles = BASELINE_PROFILES + dbProfilesCount;
+    const totalProfiles = dbProfilesCount;
 
-    // Dynamic Tracks Analyzed
-    const BASELINE_TRACKS = 10452300; 
-    const totalTracks = BASELINE_TRACKS + (dbProfilesCount * 80) + (dbReviews.length * 15);
+    // Dynamic Tracks Analyzed (approx. 80 tracks per taste profile analysis)
+    const totalTracks = dbProfilesCount * 80;
 
     // Merge baseline and dynamic db reviews
     const formattedDbReviews = dbReviews.map(r => ({
@@ -79,12 +50,12 @@ export async function GET() {
     console.error("Failed to fetch community reviews:", error);
     return NextResponse.json({
       status: "success",
-      totalReviews: BASELINE_COUNT,
-      averageRating: 4.9,
-      vibeAccuracy: "99.4%",
-      profilesCreated: 532450,
-      tracksAnalyzed: 10452300,
-      reviews: BASELINE_REVIEWS
+      totalReviews: 0,
+      averageRating: 0.0,
+      vibeAccuracy: "0.0%",
+      profilesCreated: 0,
+      tracksAnalyzed: 0,
+      reviews: []
     });
   }
 }

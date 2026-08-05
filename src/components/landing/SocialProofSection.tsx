@@ -6,11 +6,11 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Disc, Users, Award, Star } from "lucide-react";
 
 export const SocialProofSection: React.FC = () => {
-  const [totalReviews, setTotalReviews] = useState<string>("12,430");
-  const [avgRating, setAvgRating] = useState<string>("4.9/5");
-  const [tracksAnalyzed, setTracksAnalyzed] = useState<string>("10,452,300");
-  const [profilesCreated, setProfilesCreated] = useState<string>("532,450");
-  const [vibeAccuracy, setVibeAccuracy] = useState<string>("99.4%");
+  const [totalReviews, setTotalReviews] = useState<string>("0");
+  const [avgRating, setAvgRating] = useState<string>("0.0/5");
+  const [tracksAnalyzed, setTracksAnalyzed] = useState<string>("0");
+  const [profilesCreated, setProfilesCreated] = useState<string>("0");
+  const [vibeAccuracy, setVibeAccuracy] = useState<string>("0.0%");
 
   useEffect(() => {
     const fetchStats = async () => {
