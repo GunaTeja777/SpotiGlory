@@ -99,10 +99,13 @@ Calculates pure mathematical signals from streaming records:
 - **Dynamic Values & Mood Regulation**: Maps Shannon genre entropy to openness-centric value systems, and active playlist trends to stress regulation modes (Calm, Reflective, Energized, Upbeat).
 - **Interactive Box Design**: Rendered in a modular `3x2 grid` directly above the Radar Chart, highlighting predicted values with vibrant neon badges.
 
-### 14. 🎧 Context-Guided RAG Playlist Sourcing Engine (`src/lib/roomPlaylistSource.ts`)
-- Leverages the OpenRouter free model router (`openrouter/free`) to simulate a credit-free, cost-free search assistant.
-- Dynamically sources 3 custom thematic playlists matching the vibe and target language based on the user's 3 most recently played tracks.
-- Includes a graceful fallback pipeline: if the user's recent history is empty, the RAG sourcing engine generates high-quality playlist selections organically without hardcoded default files.
+### 14. 🎧 Context-Guided RAG Sourcing Engine (`src/lib/roomPlaylistSource.ts`)
+- **Local Document Corpus**: Maintains a structured template library of diverse musical styles with authentic seed tracks.
+- **VSM Cosine Similarity Search**: Maps user context (recent tracks, room slug, and language constraints) into a binary tag vector space. It computes binary cosine similarity (Ochiai coefficient) against corpus document tags:
+  $$\text{Similarity}(Q, D) = \frac{|Q \cap D|}{\sqrt{|Q| \times |D|}}$$
+  and retrieves the top 3 closest matching templates.
+- **Ground-Truth Augmentation**: Injects these retrieved candidates into the OpenRouter LLM context to ground the playlist generation in cohesive musical formats rather than hallucinated tracks.
+- **Graceful Fallback**: Under zero-history or offline conditions, the engine operates on language/vibe baselines dynamically rather than using stale static templates.
 
 ---
 
