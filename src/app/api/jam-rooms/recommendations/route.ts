@@ -48,6 +48,112 @@ export async function GET(request: Request) {
     const customLang = customLangParam && customLangParam !== "default" ? customLangParam : null;
 
     const session = await getServerSession(authOptions);
+
+    if (!session || !session.accessToken) {
+      // Mock Aria Vance Profile Vectors
+      const userOcean = {
+        openness: 88,
+        conscientiousness: 52,
+        extraversion: 45,
+        agreeableness: 62,
+        neuroticism: 74
+      };
+      const userClusters = {
+        reflectiveComplex: 55,
+        intenseRebellious: 15,
+        upbeatConventional: 10,
+        energeticRhythmic: 20
+      };
+      const activeMood = "Reflective";
+
+      // Evaluate mock rooms
+      const evaluatedTopRooms = [
+        {
+          matchScore: 96,
+          recommendationReason: "Strong affinity with your late-night 78% electronic stream density.",
+          room: {
+            id: "room_synth_01",
+            slug: "nocturnal-coding-haven",
+            name: "Nocturnal Coding Haven",
+            description: "A dark-mode sanctuary featuring deep techno and focus modular synthesis for midnight curators.",
+            mood: "Reflective",
+            playlistName: "Deep Focus Techno",
+            imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=60",
+            vibeType: "Electronic",
+            matchScore: 96,
+            recommendationReason: "Strong affinity with your late-night 78% electronic stream density."
+          }
+        },
+        {
+          matchScore: 88,
+          recommendationReason: "Aligned with your high reflective/complex music cluster score.",
+          room: {
+            id: "room_synth_02",
+            slug: "woodland-indie-acoustic",
+            name: "Woodland Acoustic Study",
+            description: "Warm fingerpicking folk and quiet organic harmonies for coding or reading on rainy days.",
+            mood: "Calm",
+            playlistName: "Cozy Acoustic Folk",
+            imageUrl: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&auto=format&fit=crop&q=60",
+            vibeType: "Acoustic",
+            matchScore: 88,
+            recommendationReason: "Aligned with your high reflective/complex music cluster score."
+          }
+        },
+        {
+          matchScore: 85,
+          recommendationReason: "Matches your mellow ambient and lofi focus profile.",
+          room: {
+            id: "room_synth_03",
+            slug: "midnight-lofi-beats",
+            name: "Midnight Lofi Lounge",
+            description: "Cozy jazz piano loops, dust crackles, and laid-back lofi beats for late-night chillout sessions.",
+            mood: "Reflective",
+            playlistName: "Lofi Study Beats",
+            imageUrl: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&auto=format&fit=crop&q=60",
+            vibeType: "Lofi",
+            matchScore: 85,
+            recommendationReason: "Matches your mellow ambient and lofi focus profile."
+          }
+        }
+      ];
+
+      // Dynamic People Matches based on mock vectors
+      const candidates = getSyntheticUsers();
+      const peopleMatches = findJamMatches(
+        {
+          id: "active_user_demo",
+          ocean: userOcean,
+          musicClusters: userClusters,
+          currentMood: activeMood,
+        },
+        candidates,
+        5
+      );
+
+      return NextResponse.json({
+        status: "success",
+        isDemo: true,
+        recentSongCount: 50,
+        activeMood,
+        userOcean,
+        userClusters,
+        tasteProfile: {
+          userId: "demo_guest",
+          displayName: "Aria Vance",
+          email: "demo@spotiglory.com",
+          topGenre: "electronic",
+          updatedAt: new Date().toISOString()
+        },
+        roomRecs: {
+          topRooms: evaluatedTopRooms,
+          adjacentRooms: []
+        },
+        peopleMatches,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     const userId = session?.user?.id || (session?.user as any)?.email || "unknown";
     const cacheKey = `jam-rooms:recommendations:${userId}:${customLang}`;
 

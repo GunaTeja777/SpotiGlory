@@ -23,17 +23,32 @@ export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
-      const features = computeBehavioralFeatures([], [], [], [], []);
-      const clusters = computeClusterDistribution(features.topGenreDistribution);
-      const ocean = computeOceanScores(features, clusters);
+      const clusters = {
+        reflectiveComplex: 55,
+        intenseRebellious: 15,
+        upbeatConventional: 10,
+        energeticRhythmic: 20
+      };
+      const ocean = {
+        scores: {
+          openness: { score: 88, label: "Very High", description: "You exhibit high cognitive flexibility and gravitate toward complex, multi-layered acoustic arrangements." },
+          conscientiousness: { score: 52, label: "Moderate", description: "Your listening is focused around specific late-night windows, indicating structured focus periods." },
+          extraversion: { score: 45, label: "Moderate", description: "You strike a fine balance between self-curated indie selections and collaborative/social playlists." },
+          agreeableness: { score: 62, label: "High", description: "You gravitate toward cooperative, harmonic, and melodic musical foundations." },
+          neuroticism: { score: 74, label: "High", description: "You utilize contemplative ambient soundscapes to down-regulate emotional variance." }
+        },
+        dominantCluster: "Reflective & Complex",
+        dominantClusterPercentage: 55,
+        description: "Your listening habits demonstrate a rare blend of experimental curiosity and late-night reflection."
+      };
       return NextResponse.json({
         status: "success",
         isDemo: true,
         timestamp: new Date().toISOString(),
-        user: { name: "Demo Listener", image: null },
+        user: { name: "Aria Vance", image: "https://api.dicebear.com/7.x/avataaars/svg?seed=AriaVance" },
         clusters,
         ocean,
-        disclaimer: ocean.disclaimer,
+        disclaimer: "MUSIC Model Disclaimer: Analysis is experimental and based on published music-preference correlations.",
       });
     }
 

@@ -21,12 +21,34 @@ export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
-      const features = computeBehavioralFeatures([], [], [], [], []);
+      const features = {
+        avgArtistPopularity: 48,
+        nightListenerRatio: 78,
+        peakListeningHour: 2, // 2 AM UTC
+        artistLoyalty: 0.45,
+        genreDiversity: {
+          uniqueGenreCount: 12,
+          normalizedEntropy: 0.85
+        },
+        inferredMood: {
+          energyEstimate: 0.28,
+          valenceEstimate: 0.35,
+          label: "Reflective",
+          emoji: "🌙"
+        },
+        topGenreDistribution: [
+          { genre: "electronic", percentage: 40 },
+          { genre: "ambient", percentage: 25 },
+          { genre: "synthwave", percentage: 15 },
+          { genre: "post-rock", percentage: 12 },
+          { genre: "lofi", percentage: 8 }
+        ]
+      };
       return NextResponse.json({
         status: "success",
         isDemo: true,
         timestamp: new Date().toISOString(),
-        sampleCounts: { topTracksCount: 0, topArtistsCount: 0, recentlyPlayedCount: 0, shortTermArtistsCount: 0, longTermArtistsCount: 0 },
+        sampleCounts: { topTracksCount: 50, topArtistsCount: 50, recentlyPlayedCount: 50, shortTermArtistsCount: 50, longTermArtistsCount: 50 },
         features,
       });
     }

@@ -11,10 +11,18 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
-      return NextResponse.json(
-        { error: "Unauthorized: Missing active Spotify session" },
-        { status: 401 }
-      );
+      return NextResponse.json({
+        items: [
+          { id: "art_1", name: "HOME", genres: ["synthwave", "electronic"], images: [{ url: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150&auto=format&fit=crop&q=60" }], popularity: 62 },
+          { id: "art_2", name: "Tycho", genres: ["ambient", "downtempo"], images: [{ url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=60" }], popularity: 58 },
+          { id: "art_3", name: "Hammock", genres: ["ambient", "post-rock"], images: [{ url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=60" }], popularity: 50 },
+          { id: "art_4", name: "Explosions in the Sky", genres: ["post-rock", "instrumental"], images: [{ url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=150&auto=format&fit=crop&q=60" }], popularity: 55 },
+          { id: "art_5", name: "Radiohead", genres: ["alternative", "electronic"], images: [{ url: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=150&auto=format&fit=crop&q=60" }], popularity: 82 },
+          { id: "art_6", name: "Sid Sriram", genres: ["carnatic", "indie", "tamil"], images: [{ url: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=150&auto=format&fit=crop&q=60" }], popularity: 70 },
+          { id: "art_7", name: "Nujabes", genres: ["lofi", "hip-hop"], images: [{ url: "https://images.unsplash.com/photo-1487180142328-0c4e37023af5?w=150&auto=format&fit=crop&q=60" }], popularity: 65 }
+        ],
+        timestamp: new Date().toISOString()
+      });
     }
 
     const { searchParams } = new URL(request.url);

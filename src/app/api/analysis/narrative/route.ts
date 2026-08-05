@@ -183,16 +183,50 @@ export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
-      const features = computeBehavioralFeatures([], [], [], [], []);
-      const clusters = computeClusterDistribution(features.topGenreDistribution);
-      const ocean = computeOceanScores(features, clusters);
-      const fallbackNarrative = generateFallbackNarrative(ocean, features);
+      const mockFeatures = {
+        avgArtistPopularity: 48,
+        nightListenerRatio: 78,
+        peakListeningHour: 2,
+        artistLoyalty: 0.45,
+        genreDiversity: {
+          uniqueGenreCount: 12,
+          normalizedEntropy: 0.85
+        },
+        inferredMood: {
+          energyEstimate: 0.28,
+          valenceEstimate: 0.35,
+          label: "Reflective",
+          emoji: "🌙"
+        },
+        topGenreDistribution: [
+          { genre: "electronic", percentage: 40 },
+          { genre: "ambient", percentage: 25 },
+          { genre: "synthwave", percentage: 15 },
+          { genre: "post-rock", percentage: 12 },
+          { genre: "lofi", percentage: 8 }
+        ]
+      };
+      const mockClusters = {
+        reflectiveComplex: 55,
+        intenseRebellious: 15,
+        upbeatConventional: 10,
+        energeticRhythmic: 20
+      };
+      const dynamicBacking = computeDynamicScientificBacking(mockFeatures, mockClusters, {}, []);
+
+      const narrative = {
+        listeningPersona: "The Nocturnal Alchemist",
+        headline: "Your library weaves atmospheric electronic beats with late-night introspection.",
+        summary: "Analyzing your streaming profile reveals a strong affinity for quiet electronic, ambient soundscapes, and lofi rhythms, with 78% of your activity occurring between 10 PM and 3 AM. This concentrates your listening into a nocturnal chronotype window closely linked with deep focus, introspective coding sessions, and higher levels of openness to experience.",
+        motivationalLine: "Let the soundscapes carry your focus through the quiet hours of the night.",
+      };
+
       return NextResponse.json({
         status: "success",
         isDemo: true,
         timestamp: new Date().toISOString(),
-        narrative: fallbackNarrative,
-        scientificBacking: SCIENTIFIC_BACKING,
+        narrative,
+        scientificBacking: dynamicBacking,
       });
     }
 
