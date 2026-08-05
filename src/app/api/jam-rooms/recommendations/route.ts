@@ -16,9 +16,6 @@ import { computeBehavioralFeatures } from "@/lib/features";
 import { computeOceanScores } from "@/lib/oceanScoring";
 import { buildUserTasteProfile, getCachedTasteProfile, UserTasteProfile } from "@/lib/userTasteProfile";
 import { generateDynamicRoomsFromListeningData, getOrGenerateDynamicRoomsWithCache, DynamicJamRoom } from "@/lib/dynamicRoomEngine";
-import {
-  filterQualityPlaylists,
-} from "@/lib/roomPlaylistSource";
 import { findJamMatches, MoodType, OceanVector, MusicClusterVector } from "@/lib/jamMatching";
 import { getSyntheticUsers } from "@/lib/syntheticUsers";
 import { computeClusterDistribution } from "@/lib/genreClusters";
@@ -32,6 +29,15 @@ const parseMood = (raw?: string): MoodType => {
   if (lower.includes("calm")) return "Calm";
   return "Reflective";
 };
+
+function filterQualityPlaylists(playlists: any[], minTracks: number = 5): any[] {
+  if (!Array.isArray(playlists)) return [];
+  return playlists.filter((pl) => {
+    if (!pl || !pl.id || !pl.name) return false;
+    const trackCount = pl.tracks?.total ?? pl.tracks?.items?.length ?? 0;
+    return trackCount >= minTracks;
+  });
+}
 
 export async function GET(request: Request) {
   try {

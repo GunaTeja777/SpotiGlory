@@ -9,7 +9,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { GlassSkeleton } from "@/components/ui/GlassSkeleton";
 import { getRoomBySlug, getRoomById, MoodRoom } from "@/lib/moodRoomEngine";
-import { getRoomPlaylist, RoomPlaylist, RoomTrack } from "@/lib/roomPlaylistSource";
+import { getCuratedFallbackPlaylists, RoomPlaylist, RoomTrack } from "@/lib/roomPlaylistSource";
 import { getBotCompanion, BotCompanionConfig, ChatMessage, generateCompanionReply } from "@/lib/roomChatCompanion";
 import {
   ArrowLeft,
@@ -47,7 +47,8 @@ export default function IndividualJamRoomPage() {
 
   const [room, setRoom] = useState<MoodRoom | null>(null);
   const [botConfig, setBotConfig] = useState<BotCompanionConfig | null>(null);
-  const [playlist, setPlaylist] = useState<RoomPlaylist | null>(null);
+  const [playlists, setPlaylists] = useState<RoomPlaylist[]>([]);
+  const [activePlaylistIndex, setActivePlaylistIndex] = useState<number>(0);
   const [isRefreshingPlaylist, setIsRefreshingPlaylist] = useState<boolean>(false);
 
   // Playback state
@@ -82,8 +83,8 @@ export default function IndividualJamRoomPage() {
       const res = await fetch(`/api/jam-rooms/${roomIdSlug}/playlist?forceRefresh=${forceRefresh}${langParam}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.playlist) {
-          setPlaylist(data.playlist);
+        if (data.playlists && data.playlists.length > 0) {
+          setPlaylists(data.playlists);
           return;
         }
       }
@@ -91,8 +92,8 @@ export default function IndividualJamRoomPage() {
       // Fallback
     }
 
-    const fallbackPl = await getRoomPlaylist(roomIdSlug, forceRefresh);
-    setPlaylist(fallbackPl);
+    const fallbackPl = getCuratedFallbackPlaylists(roomIdSlug, typeof window !== "undefined" ? localStorage.getItem("spotiglory_user_language") || "" : "");
+    setPlaylists(fallbackPl);
   };
 
   useEffect(() => {
@@ -330,13 +331,13 @@ export default function IndividualJamRoomPage() {
                 <div>
                   <div className="flex items-center gap-2 text-xs font-mono text-[#1DB954] mb-1">
                     <Disc className="w-4 h-4" />
-                    <span>ROOM PLAYLIST SOURCE</span>
+                    <span>ROOM PLAYLIST SOURCE (GOOGLE RAG AGENT)</span>
                   </div>
                   <h3 className="text-lg font-bold text-white leading-tight">
-                    {playlist?.title || `${room.name} Playlist`}
+                    {playlists[activePlaylistIndex]?.title || `${room.name} Playlists`}
                   </h3>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {playlist?.tracks.length || 0} curated tracks • Updated live
+                    {playlists[activePlaylistIndex]?.tracks.length || 0} curated tracks • Updated live
                   </p>
                 </div>
 
@@ -348,13 +349,38 @@ export default function IndividualJamRoomPage() {
                   leftIcon={<RotateCw className={`w-3.5 h-3.5 ${isRefreshingPlaylist ? "animate-spin" : ""}`} />}
                   className="font-bold text-xs shrink-0"
                 >
-                  {isRefreshingPlaylist ? "Re-sourcing..." : "Refresh Playlist"}
+                  {isRefreshingPlaylist ? "Re-sourcing..." : "Refresh Playlists"}
                 </GlassButton>
               </div>
 
+              {/* Playlist Tabs Selector */}
+              {playlists.length > 0 && (
+                <div className="flex gap-2.5 mb-4 overflow-x-auto pb-1.5 border-b border-white/5 scrollbar-thin">
+                  {playlists.map((pl, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setActivePlaylistIndex(idx);
+                        if (audioObj) {
+                          audioObj.pause();
+                          setActivePlayingId(null);
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-2xl text-xs font-bold border transition-all shrink-0 duration-200 ${
+                        activePlaylistIndex === idx
+                          ? "bg-[#1DB954] text-black border-[#1DB954] shadow-[0_0_15px_rgba(29,185,84,0.3)]"
+                          : "bg-white/[0.03] text-gray-400 border-white/10 hover:text-white hover:bg-white/[0.08]"
+                      }`}
+                    >
+                      {pl.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Tracks List */}
               <div className="flex flex-col gap-2.5">
-                {playlist?.tracks.map((track, idx) => {
+                {playlists[activePlaylistIndex]?.tracks.map((track, idx) => {
                   const isPlaying = activePlayingId === track.id;
                   return (
                     <div
