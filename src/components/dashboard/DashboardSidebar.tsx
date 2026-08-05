@@ -52,6 +52,17 @@ export const navItems: NavItemConfig[] = [
     icon: <LayoutDashboard className="w-4 h-4" />,
   },
   {
+    id: "personality",
+    label: "Personality Profile",
+    icon: <Sparkles className="w-4 h-4 text-[#1DB954]" />,
+  },
+  {
+    id: "jam-rooms",
+    label: "Jam Rooms",
+    icon: <Users className="w-4 h-4 text-emerald-400" />,
+    href: "/dashboard/jam-rooms",
+  },
+  {
     id: "top-tracks",
     label: "Top Tracks",
     icon: <Music2 className="w-4 h-4" />,
@@ -77,17 +88,6 @@ export const navItems: NavItemConfig[] = [
     label: "Model Diff",
     icon: <GitCompare className="w-4 h-4 text-purple-400" />,
     href: "/dashboard/model-diff",
-  },
-  {
-    id: "personality",
-    label: "Personality Profile",
-    icon: <Sparkles className="w-4 h-4 text-[#1DB954]" />,
-  },
-  {
-    id: "jam-rooms",
-    label: "Jam Rooms",
-    icon: <Users className="w-4 h-4 text-emerald-400" />,
-    href: "/dashboard/jam-rooms",
   },
   {
     id: "upload-history",
