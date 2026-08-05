@@ -20,7 +20,7 @@ export interface RoomPlaylist {
 }
 
 /**
- * Sources 3 distinct playlists using the Google RAG Agent (OpenRouter API) or returns an empty array.
+ * Sources 3 distinct playlists using the Context-Guided RAG Sourcing Engine (OpenRouter API) or returns an empty array.
  */
 export async function getGoogleRagPlaylists(
   roomSlug: string,
@@ -35,7 +35,7 @@ export async function getGoogleRagPlaylists(
     return [];
   }
 
-  const prompt = `You are a Google RAG Agent. A user is currently listening to these 3 recent songs:
+  const prompt = `You are a Context-Guided RAG Sourcing Engine. A user is currently listening to these 3 recent songs:
 ${recentTracks.length > 0 
   ? recentTracks.map((t, i) => `${i+1}. "${t.name}" by ${t.artist} (Album: ${t.album})`).join("\n") 
   : "No recent track history available."}
@@ -43,7 +43,7 @@ ${recentTracks.length > 0
 Primary Language: "${targetLang}"
 
 ${recentTracks.length > 0
-  ? `Identify the song genres and languages of these 3 recent songs. Based ONLY on the name, artist, album, genre, and language of these 3 songs, simulate retrieving 3 distinct, highly curated thematic playlists from Google/Spotify.
+  ? `Identify the song genres and languages of these 3 recent songs. Based ONLY on the name, artist, album, genre, and language of these 3 songs, simulate retrieving 3 distinct, highly curated thematic playlists.
 Do NOT match or blend the results with any room's aesthetic theme or vibe. The playlists must be generated purely from the characteristics of these 3 source tracks.
 Each of the 3 playlists must represent a different music sub-genre or listening style corresponding to the source tracks' vibes.`
   : `Since no recent track history is available, simulate retrieving 3 distinct, highly curated thematic playlists of popular hits in the Primary Language ("${targetLang}") that match general listening tastes.`}
@@ -81,14 +81,14 @@ Return exactly 3 playlists, each containing 5 to 6 actual real tracks. Use reali
         "Content-Type": "application/json",
         "Authorization": `Bearer ${openRouterKey}`,
         "HTTP-Referer": "https://spotiglory.vercel.app",
-        "X-Title": "SpotiGlory Google RAG Agent"
+        "X-Title": "SpotiGlory RAG Playlist Generator"
       },
       signal: controller.signal,
       body: JSON.stringify({
         model: "openrouter/free",
         temperature: 0.5,
         messages: [
-          { role: "system", content: "You are a precise JSON generator that returns Spotify/Google playlists." },
+          { role: "system", content: "You are a precise JSON generator that returns Spotify playlists." },
           { role: "user", content: prompt }
         ],
         response_format: { type: "json_object" }
@@ -117,13 +117,13 @@ Return exactly 3 playlists, each containing 5 to 6 actual real tracks. Use reali
             album: t.album || "",
             coverUrl: t.coverUrl || "",
             durationMs: t.durationMs || 0,
-            addedBy: "Google RAG Agent (Search Result)"
+            addedBy: "RAG Playlist Generator (Search Result)"
           }))
         }));
       }
     }
   } catch (e) {
-    console.error("OpenRouter Google RAG Agent error:", e);
+    console.error("OpenRouter RAG Playlist Generator error:", e);
   }
 
   return [];

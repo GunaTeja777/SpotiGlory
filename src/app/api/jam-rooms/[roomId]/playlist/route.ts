@@ -48,7 +48,7 @@ export async function GET(
       }
     }
 
-    // Call the Google RAG Agent to fetch/generate 3 playlists matching the taste & room theme
+    // Call the RAG Sourcing Engine to fetch/generate 3 playlists matching the taste & room theme
     const playlists = await getGoogleRagPlaylists(roomId, recentTracks, effectiveLang);
 
     return NextResponse.json({

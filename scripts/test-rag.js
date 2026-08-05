@@ -25,14 +25,14 @@ const targetLang = "English";
 const roomSlug = "default-electronic";
 const recentTracks = []; // Empty recent tracks
 
-const prompt = `You are a Google RAG Agent. A user is currently listening to these 3 recent songs:
+const prompt = `You are a Context-Guided RAG Sourcing Engine. A user is currently listening to these 3 recent songs:
 ${recentTracks.length > 0 
   ? recentTracks.map((t, i) => `${i+1}. "${t.name}" by ${t.artist} (Album: ${t.album})`).join("\n") 
   : "No recent track history available."}
 
 Primary Language: "${targetLang}"
 
-Identify the song genres and languages of these 3 recent songs. Based ONLY on the name, artist, album, genre, and language of these 3 songs, simulate retrieving 3 distinct, highly curated thematic playlists from Google/Spotify.
+Identify the song genres and languages of these 3 recent songs. Based ONLY on the name, artist, album, genre, and language of these 3 songs, simulate retrieving 3 distinct, highly curated thematic playlists.
 Do NOT match or blend the results with any room's aesthetic theme or vibe. The playlists must be generated purely from the characteristics of these 3 source tracks.
 Each of the 3 playlists must represent a different music sub-genre or listening style corresponding to the source tracks' vibes.
 

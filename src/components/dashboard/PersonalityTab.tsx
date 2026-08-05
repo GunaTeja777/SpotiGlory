@@ -390,19 +390,19 @@ export const PersonalityTab: React.FC = () => {
                   {item.key === "demographics" && item.metadata ? (
                     <div className="mt-3.5 flex flex-col gap-2">
                       <div className="flex items-center justify-between p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.05)]">
-                        <span className="text-[10px] font-mono text-purple-300 uppercase tracking-wider font-bold">Predicted Age</span>
+                        <span className="text-[10px] font-mono text-purple-300 uppercase tracking-wider font-bold">Chronotype</span>
                         <span className="text-[10px] font-bold text-white px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/30">
                           {item.metadata.age}
                         </span>
                       </div>
                       <div className="flex items-center justify-between p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 shadow-[0_0_10px_rgba(6,182,212,0.05)]">
-                        <span className="text-[10px] font-mono text-cyan-300 uppercase tracking-wider font-bold">Regional Affinity</span>
+                        <span className="text-[10px] font-mono text-cyan-300 uppercase tracking-wider font-bold">Peak Window</span>
                         <span className="text-[10px] font-bold text-white px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/30">
                           {item.metadata.region}
                         </span>
                       </div>
                       <div className="flex items-center justify-between p-2 rounded-xl bg-pink-500/10 border border-pink-500/20 shadow-[0_0_10px_rgba(244,63,94,0.05)]">
-                        <span className="text-[10px] font-mono text-pink-300 uppercase tracking-wider font-bold">Gender Resonance</span>
+                        <span className="text-[10px] font-mono text-pink-300 uppercase tracking-wider font-bold">Late-Night Ratio</span>
                         <span className="text-[10px] font-bold text-white px-2.5 py-0.5 rounded-full bg-pink-500/20 border border-pink-500/30">
                           {item.metadata.gender}
                         </span>

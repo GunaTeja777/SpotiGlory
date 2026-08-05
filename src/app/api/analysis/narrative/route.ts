@@ -33,13 +33,13 @@ const SCIENTIFIC_BACKING = [
   },
   {
     key: "demographics",
-    title: "Demographics Inference",
-    source: "Last.fm Listening Logs Study",
-    description: "Age, gender, and nationality can be predicted from listening logs. Algorithms analyze temporal patterns and audio-derived features alongside collaborative filtering to infer demographic attributes reliably.",
+    title: "Circadian Rhythm & Chronotype",
+    source: "Chronobiology & Behavioral Psychometrics",
+    description: "Age, gender, and nationality are NOT inferred to protect privacy. Instead, temporal distributions analyze active chronobiology profiles.",
     metadata: {
-      age: "26-35 (Eclectic Contemporary)",
-      region: "Global / Anglosphere Broad Affinity",
-      gender: "Balanced Cognitive Fluidity"
+      age: "Balanced Diurnal",
+      region: "12:00 PM - 2:00 PM",
+      gender: "15% Night-Ratio"
     }
   },
   {
@@ -69,50 +69,41 @@ const SCIENTIFIC_BACKING = [
 ];
 
 function computeDynamicScientificBacking(features: any, clusters: any, ocean: any, topArtists: any[]): any[] {
-  // 1. Regional Affinity based on top genres & artists
-  let regionalAffinity = "Global / Anglosphere Broad Affinity";
-  const genresStr = (features.topGenreDistribution || []).map((g: any) => g.genre.toLowerCase()).join(" ");
-  if (genresStr.includes("tamil") || genresStr.includes("telugu") || genresStr.includes("hindi") || genresStr.includes("punjabi") || genresStr.includes("bollywood") || genresStr.includes("indian")) {
-    regionalAffinity = "South Asian / Indian Subcontinent";
-  } else if (genresStr.includes("k-pop") || genresStr.includes("korean") || genresStr.includes("kpop")) {
-    regionalAffinity = "East Asian / Korean Wave";
-  } else if (genresStr.includes("spanish") || genresStr.includes("latin") || genresStr.includes("reggaeton")) {
-    regionalAffinity = "Latin American / Hispanic regional focus";
-  } else if (genresStr.includes("french")) {
-    regionalAffinity = "Western Europe (Francophone)";
+  // 1. Chronotype & Circadian Rhythm Analysis
+  const nightRatio = features.nightListenerRatio || 0;
+  const peakHour = features.peakListeningHour || 12;
+  
+  let chronotypeLabel = "Balanced Diurnal";
+  if (nightRatio > 35) {
+    chronotypeLabel = "Nocturnal (Night Owl)";
+  } else if (peakHour >= 5 && peakHour <= 9) {
+    chronotypeLabel = "Diurnal (Early Bird)";
+  } else if (peakHour >= 10 && peakHour <= 16) {
+    chronotypeLabel = "Diurnal (Midday Peak)";
+  } else if (peakHour >= 17 && peakHour <= 21) {
+    chronotypeLabel = "Diurnal (Evening Peak)";
   }
 
-  // 2. Tactful Age Prediction (based on artist popularity)
-  let agePrediction = "26-35 (Eclectic Contemporary)";
-  const popularity = features.avgArtistPopularity || 50;
-  if (popularity > 68) {
-    agePrediction = "18-25 (Mainstream Modern Focus)";
-  } else if (popularity < 45) {
-    agePrediction = "35+ (Niche / Independent Collector)";
-  }
+  const formatHour = (h: number) => {
+    const ampm = h >= 12 ? "PM" : "AM";
+    const displayHour = h % 12 === 0 ? 12 : h % 12;
+    return `${displayHour} ${ampm}`;
+  };
+  const peakWindowText = `${formatHour(peakHour)} - ${formatHour((peakHour + 2) % 24)}`;
 
-  // 3. Inclusive Gender/Acoustic Resonance
-  let genderResonance = "Balanced Cognitive Fluidity";
-  const energy = features.inferredMood?.energyEstimate || 0.5;
-  if (energy > 0.7) {
-    genderResonance = "High-Energy Rhythmic Drive (Action-Oriented)";
-  } else if (energy < 0.35) {
-    genderResonance = "Empathic Acoustic Melodic Alignment (Introspective)";
-  }
-
-  // 4. Conscientiousness & Catalog Depth
+  // 2. Conscientiousness & Catalog Depth
   const catalogDepth = features.artistLoyalty || 0.5;
   const catalogDepthText = catalogDepth < 0.3 
     ? "High catalog depth detected: you listen to more tracks per artist, indicating deep exploration of individual catalogs (introversive trait)."
     : "Broad catalog exploration detected: you search across many different artists rather than focusing heavily on a select few (extraversive trait).";
 
-  // 5. Value System
+  // 3. Value System
   const entropy = features.genreDiversity?.normalizedEntropy || 0.5;
   const valueSystem = entropy > 0.65
     ? "Openness-centric & Pluralistic, valuing artistic diversity, intellectual curiosity, and multi-layered perspectives."
     : "Structured & Specialized Focus, valuing technical excellence, aesthetic depth, and stylistic purity.";
 
-  // 6. Active Mood Regulation
+  // 4. Active Mood Regulation
   const mood = features.inferredMood?.label || "Reflective";
   let moodReg = "Down-regulation of arousal to maintain cognitive clarity, focus, and introspective depth.";
   if (mood === "Energized" || mood === "Fiery") {
@@ -123,13 +114,13 @@ function computeDynamicScientificBacking(features: any, clusters: any, ocean: an
     moodReg = "Stress reduction and relaxation, using peaceful, low-tempo soundscapes.";
   }
 
-  // 7. Lyrics + Audio NLP Fusion
+  // 5. Lyrics + Audio NLP Fusion
   const lyricsFocus = (clusters.reflectiveComplex || 0) + (clusters.intenseRebellious || 0);
   const nlpFusion = lyricsFocus > 45
     ? "High semantic lyric focus combined with complex audio features (acousticness/valence) indicating lyric-grounded cognitive processing."
     : "Acoustic beat and structural traits take precedence, prioritizing vibe, production arpeggios, and rhythmic groove.";
 
-  // 8. Privacy Audit
+  // 6. Privacy Audit
   const privacyScore = Math.round(98 - (features.genreDiversity?.uniqueGenreCount || 5) * 1.5);
   const privacyText = `Privacy Score: ${privacyScore}%. Your playlist composition patterns have a ${privacyScore}% privacy-preservation rating against metadata leakage profiling.`;
 
@@ -142,13 +133,13 @@ function computeDynamicScientificBacking(features: any, clusters: any, ocean: an
     },
     {
       key: "demographics",
-      title: "Demographics Inference",
-      source: "Last.fm Listening Logs Study",
+      title: "Circadian Rhythm & Chronotype",
+      source: "Chronobiology & Behavioral Psychometrics",
       description: "Empirically predicted from temporal distribution & audio-derived features without self-report surveys.",
       metadata: {
-        age: agePrediction,
-        region: regionalAffinity,
-        gender: genderResonance
+        age: chronotypeLabel,
+        region: peakWindowText,
+        gender: `${Math.round(nightRatio)}% Night-Ratio`
       }
     },
     {

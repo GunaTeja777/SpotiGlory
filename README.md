@@ -90,19 +90,19 @@ Calculates pure mathematical signals from streaming records:
 - Automatically caches computed Jam Room suggestions and taste profiles per-user (`room-catalog:{userId}`).
 - Supports a query-level bypass (`forceRefresh=true`) on the client to force invalidation, retrieve fresh live data, and write back to Redis.
 
-### 13. 🧠 Real-Time Demographic & Psychometric Prediction Engine (`src/app/api/analysis/narrative/route.ts`)
+### 13. 🧠 Real-Time Circadian Rhythm & Psychometric Prediction Engine (`src/app/api/analysis/narrative/route.ts`)
 - **No Hardcoding**: Computes all assessments dynamically on the server based on live Spotify attributes.
-- **Visual Demographic Predictor**: Maps user's listening logs to predicted demographics:
-  - **Tactful Age Estimation**: Maps average artist popularity to brackets: `18-25 (Mainstream Modern Focus)`, `26-35 (Eclectic Contemporary)`, or `35+ (Niche / Independent Collector)`.
-  - **Regional Nationality Affinity**: Inferred via keyword scans for genres like `tamil`, `telugu`, `hindi`, `k-pop`, `spanish`, etc.
-  - **Inclusive Gender Resonance**: Focuses on acoustic properties (e.g. `High-Energy Rhythmic Drive` or `Empathic Acoustic Melodic Alignment`) to provide positive representation.
+- **Visual Circadian Predictor**: Maps user's listening logs to predicted chronotypes:
+  - **Circadian Chronotype**: Categorizes users (e.g. `Nocturnal (Night Owl)`, `Diurnal (Early Bird)`) based on active listening hour distributions and night ratios.
+  - **Peak Listening Window**: Estimates the active hours when music listening is most highly concentrated.
+  - **Circadian Night Ratio**: Measures the exact percentage of streams occurring during late-night windows.
 - **Dynamic Values & Mood Regulation**: Maps Shannon genre entropy to openness-centric value systems, and active playlist trends to stress regulation modes (Calm, Reflective, Energized, Upbeat).
 - **Interactive Box Design**: Rendered in a modular `3x2 grid` directly above the Radar Chart, highlighting predicted values with vibrant neon badges.
 
-### 14. 🎧 Google RAG Agent Playlist Generator (`src/lib/roomPlaylistSource.ts`)
+### 14. 🎧 Context-Guided RAG Playlist Sourcing Engine (`src/lib/roomPlaylistSource.ts`)
 - Leverages the OpenRouter free model router (`openrouter/free`) to simulate a credit-free, cost-free search assistant.
 - Dynamically sources 3 custom thematic playlists matching the vibe and target language based on the user's 3 most recently played tracks.
-- Includes a graceful fallback pipeline: if the user's recent history is empty, the RAG agent generates high-quality playlist selections organically without hardcoded default files.
+- Includes a graceful fallback pipeline: if the user's recent history is empty, the RAG sourcing engine generates high-quality playlist selections organically without hardcoded default files.
 
 ---
 
@@ -130,7 +130,7 @@ flowchart TD
         G --> H[/api/analysis/narrative: OpenRouter AI Claude 3.5 Sonnet\]
         H -->|1-Shot Schema Validation Retry| I[Fallback Template Engine]
         H & I --> J[Telemetry Observability Latency, Tokens, Cost]
-        K[Google RAG Agent: openrouter/free] -->|Dynamic Playlist Generation| L[src/lib/roomPlaylistSource.ts]
+        K[RAG Sourcing Engine: openrouter/free] -->|Dynamic Playlist Generation| L[src/lib/roomPlaylistSource.ts]
     end
 
     subgraph Ground-Truth Retraining Loop

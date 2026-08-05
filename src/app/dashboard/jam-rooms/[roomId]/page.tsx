@@ -325,7 +325,7 @@ export default function IndividualJamRoomPage() {
                 <div>
                   <div className="flex items-center gap-2 text-xs font-mono text-[#1DB954] mb-1">
                     <Disc className="w-4 h-4" />
-                    <span>ROOM PLAYLIST SOURCE (GOOGLE RAG AGENT)</span>
+                    <span>ROOM PLAYLIST SOURCE (RAG PLAYLIST ENGINE)</span>
                   </div>
                   <h3 className="text-lg font-bold text-white leading-tight">
                     {playlists[activePlaylistIndex]?.title || `${room.name} Playlists`}
@@ -454,7 +454,7 @@ export default function IndividualJamRoomPage() {
                   <div>
                     <h4 className="text-sm font-bold text-white">No Playlists Found</h4>
                     <p className="text-xs text-gray-400 max-w-sm mt-1 leading-relaxed">
-                      We couldn't source playlists from the Google RAG Agent. Try listening to some songs on Spotify first to build your active profile history!
+                      We couldn't source playlists from the RAG Sourcing Engine. Try listening to some songs on Spotify first to build your active profile history!
                     </p>
                   </div>
                 </div>
