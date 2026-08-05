@@ -11,10 +11,13 @@ export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
-      return NextResponse.json(
-        { error: "Unauthorized: Missing active Spotify session" },
-        { status: 401 }
-      );
+      return NextResponse.json({
+        id: "demo_guest",
+        display_name: "Aria Vance",
+        email: "demo@spotiglory.com",
+        images: [{ url: "https://api.dicebear.com/7.x/avataaars/svg?seed=AriaVance" }],
+        timestamp: new Date().toISOString()
+      });
     }
 
     const { searchParams } = new URL(request.url);

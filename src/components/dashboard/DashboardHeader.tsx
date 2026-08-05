@@ -25,9 +25,9 @@ export const DashboardHeader: React.FC = () => {
     );
   }
 
-  const userName = session?.user?.name || "Spotify Member";
-  const userImage = session?.user?.image;
-  const userEmail = session?.user?.email;
+  const userName = session?.user?.name || "Aria Vance";
+  const userImage = session?.user?.image || "https://api.dicebear.com/7.x/avataaars/svg?seed=AriaVance";
+  const userEmail = session?.user?.email || "demo@spotiglory.com";
 
   return (
     <header className="w-full bg-white/[0.06] backdrop-blur-2xl border border-white/[0.14] rounded-3xl p-4 mb-6 shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.25),0_15px_35px_-10px_rgba(0,0,0,0.6)] flex flex-wrap items-center justify-between gap-4">
@@ -46,14 +46,16 @@ export const DashboardHeader: React.FC = () => {
               <User className="w-6 h-6" />
             </div>
           )}
-          <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-[#1DB954] border-2 border-[#0A0A0C]" />
+          <span className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#0A0A0C] ${session ? "bg-[#1DB954]" : "bg-purple-500"}`} />
         </div>
 
         <div>
           <h2 className="text-base font-bold text-white leading-tight flex items-center gap-2">
             {userName}
-            <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-[#1DB954]/15 text-[#1DB954] border border-[#1DB954]/30 hidden sm:inline-block">
-              ACTIVE SESSION
+            <span className={`text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border hidden sm:inline-block ${
+              session ? "bg-[#1DB954]/15 text-[#1DB954] border-[#1DB954]/30" : "bg-purple-500/15 text-purple-300 border-purple-500/30"
+            }`}>
+              {session ? "ACTIVE SESSION" : "DEMO PREVIEW"}
             </span>
           </h2>
           <p className="text-xs text-gray-400 mt-0.5">{userEmail || "Spotify OAuth Connected"}</p>
