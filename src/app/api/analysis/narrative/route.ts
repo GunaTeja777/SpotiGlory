@@ -221,11 +221,23 @@ export async function GET(request: Request) {
         motivationalLine: "Let the soundscapes carry your focus through the quiet hours of the night.",
       };
 
+      const mockOcean = {
+        openness: { score: 88, label: "Very High", description: "You exhibit high cognitive flexibility and gravitate toward complex, multi-layered acoustic arrangements." },
+        conscientiousness: { score: 52, label: "Moderate", description: "Your listening is focused around specific late-night windows, indicating structured focus periods." },
+        extraversion: { score: 45, label: "Moderate", description: "You strike a fine balance between self-curated indie selections and collaborative/social playlists." },
+        agreeableness: { score: 62, label: "High", description: "You gravitate toward cooperative, harmonic, and melodic musical foundations." },
+        neuroticism: { score: 74, label: "High", description: "You utilize contemplative ambient soundscapes to down-regulate emotional variance." }
+      };
+
       return NextResponse.json({
         status: "success",
         isDemo: true,
         timestamp: new Date().toISOString(),
+        user: { name: "Aria Vance", image: "https://api.dicebear.com/7.x/avataaars/svg?seed=AriaVance" },
         narrative,
+        clusters: mockClusters,
+        ocean: mockOcean,
+        disclaimer: "MUSIC Model Disclaimer: Analysis is experimental and based on published music-preference correlations.",
         scientificBacking: dynamicBacking,
       });
     }
