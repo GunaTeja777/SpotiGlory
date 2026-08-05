@@ -90,7 +90,16 @@ Calculates pure mathematical signals from streaming records:
 - Automatically caches computed Jam Room suggestions and taste profiles per-user (`room-catalog:{userId}`).
 - Supports a query-level bypass (`forceRefresh=true`) on the client to force invalidation, retrieve fresh live data, and write back to Redis.
 
-### 13. 🎧 Google RAG Agent Playlist Generator (`src/lib/roomPlaylistSource.ts`)
+### 13. 🧠 Real-Time Demographic & Psychometric Prediction Engine (`src/app/api/analysis/narrative/route.ts`)
+- **No Hardcoding**: Computes all assessments dynamically on the server based on live Spotify attributes.
+- **Visual Demographic Predictor**: Maps user's listening logs to predicted demographics:
+  - **Tactful Age Estimation**: Maps average artist popularity to brackets: `18-25 (Mainstream Modern Focus)`, `26-35 (Eclectic Contemporary)`, or `35+ (Niche / Independent Collector)`.
+  - **Regional Nationality Affinity**: Inferred via keyword scans for genres like `tamil`, `telugu`, `hindi`, `k-pop`, `spanish`, etc.
+  - **Inclusive Gender Resonance**: Focuses on acoustic properties (e.g. `High-Energy Rhythmic Drive` or `Empathic Acoustic Melodic Alignment`) to provide positive representation.
+- **Dynamic Values & Mood Regulation**: Maps Shannon genre entropy to openness-centric value systems, and active playlist trends to stress regulation modes (Calm, Reflective, Energized, Upbeat).
+- **Interactive Box Design**: Rendered in a modular `3x2 grid` directly above the Radar Chart, highlighting predicted values with vibrant neon badges.
+
+### 14. 🎧 Google RAG Agent Playlist Generator (`src/lib/roomPlaylistSource.ts`)
 - Leverages the OpenRouter free model router (`openrouter/free`) to simulate a credit-free, cost-free search assistant.
 - Dynamically sources 3 custom thematic playlists matching the vibe and target language based on the user's 3 most recently played tracks.
 - Includes a graceful fallback pipeline: if the user's recent history is empty, the RAG agent generates high-quality playlist selections organically without hardcoded default files.
