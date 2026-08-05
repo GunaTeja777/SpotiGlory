@@ -44,7 +44,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const forceRefresh = searchParams.get("forceRefresh") === "true";
-    const customLang = searchParams.get("language") || "default";
+    const customLangParam = searchParams.get("language");
+    const customLang = customLangParam && customLangParam !== "default" ? customLangParam : null;
 
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id || (session?.user as any)?.email || "unknown";

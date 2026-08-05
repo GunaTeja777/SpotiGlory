@@ -42,9 +42,11 @@ ${recentTracks.length > 0
 
 Primary Language: "${targetLang}"
 
-Identify the song genres and languages of these 3 recent songs. Based ONLY on the name, artist, album, genre, and language of these 3 songs, simulate retrieving 3 distinct, highly curated thematic playlists from Google/Spotify.
+${recentTracks.length > 0
+  ? `Identify the song genres and languages of these 3 recent songs. Based ONLY on the name, artist, album, genre, and language of these 3 songs, simulate retrieving 3 distinct, highly curated thematic playlists from Google/Spotify.
 Do NOT match or blend the results with any room's aesthetic theme or vibe. The playlists must be generated purely from the characteristics of these 3 source tracks.
-Each of the 3 playlists must represent a different music sub-genre or listening style corresponding to the source tracks' vibes.
+Each of the 3 playlists must represent a different music sub-genre or listening style corresponding to the source tracks' vibes.`
+  : `Since no recent track history is available, simulate retrieving 3 distinct, highly curated thematic playlists of popular hits in the Primary Language ("${targetLang}") that match general listening tastes.`}
 
 Format your output STRICTLY as a raw JSON object matching the TypeScript shape below. DO NOT wrap in markdown \`\`\`json blocks. Do not add comments or extra text.
 
@@ -101,7 +103,7 @@ Return exactly 3 playlists, each containing 5 to 6 actual real tracks. Use reali
       const cleaned = content.replace(/```json/g, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(cleaned);
 
-      if (parsed && Array.isArray(parsed.playlists) && parsed.playlists.length >= 3) {
+      if (parsed && Array.isArray(parsed.playlists) && parsed.playlists.length >= 1) {
         return parsed.playlists.slice(0, 3).map((pl: any, listIdx: number) => ({
           roomId: roomSlug,
           title: pl.title || "",
