@@ -1,19 +1,20 @@
 # 🎵 SpotiGlory
 
-> **Liquid Glass Spotify Audio Analytics, Psychometric Personality Profiler, ML Retraining Engine & GenAI Narrative Pipeline**
+> **Liquid Glass Spotify Audio Analytics, Psychometric Personality Profiler, ML Retraining Engine, Telegram AI Bot & Agentic RAG Pipeline**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16_App_Router-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
 [![Spotify API](https://img.shields.io/badge/Spotify_API-OAuth_2.0-1DB954?style=for-the-badge&logo=spotify)](https://developer.spotify.com/)
-[![OpenRouter AI](https://img.shields.io/badge/OpenRouter-Claude_3.5_Sonnet-7C3AED?style=for-the-badge&logo=anthropic)](https://openrouter.ai/)
+[![OpenRouter AI](https://img.shields.io/badge/OpenRouter-Free_Models_&_Claude_3.5-7C3AED?style=for-the-badge&logo=anthropic)](https://openrouter.ai/)
+[![Telegram Bot](https://img.shields.io/badge/Telegram_Bot-@SpotiGlory__Bot-26A5E4?style=for-the-badge&logo=telegram)](https://t.me/SpotiGlory_Bot)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 ---
 
 ## 🌟 Overview
 
-**SpotiGlory** is a full-stack, state-of-the-art Web application built with **Next.js 16 (App Router, Turbopack)** that transforms Spotify streaming data into a psychometric **Big Five (OCEAN)** personality profile, behavioral feature matrix, ground-truth validated ML model, and OpenRouter AI narrative.
+**SpotiGlory** is a full-stack, state-of-the-art Web application built with **Next.js 16 (App Router, Turbopack)** that transforms Spotify streaming data into a psychometric **Big Five (OCEAN)** personality profile, behavioral feature matrix, ground-truth validated ML model, dynamic Jam Rooms recommendation engine, and OpenRouter AI narrative pipeline.
 
 Designed with an ultra-premium **Liquid Glass** design system—featuring specular refractions, dynamic glassmorphic panels, and Framer Motion micro-animations—SpotiGlory connects securely to Spotify via OAuth 2.0 PKCE. It processes listening data both through live Web API calls and in-browser extraction of **Extended Streaming History** archives (`my_spotify_data.zip`), producing empirical psychometric metrics without compromising user privacy.
 
@@ -21,15 +22,35 @@ Designed with an ultra-premium **Liquid Glass** design system—featuring specul
 
 ## ✨ Key Features
 
-### 1. 🎨 Liquid Glass Design System
+### 1. 🎛️ Dynamic Jam Room Recommendation Engine (`src/lib/dynamicRoomEngine.ts`)
+- **100% Dynamic Room Card Generation**: Evaluates user's live Spotify top tracks, top artists, and recent listening history to dynamically calculate genre clusters, match scores, and room titles.
+- **Real Artist Feature Integration**: Automatically extracts top listened artists (e.g. *Neoni*, *Sia*, *Ed Sheeran*) and embeds them into custom room descriptions and vibe tags.
+- **Dynamic Language Resolution**: Automatically infers listening language preferences from artist metadata (`inferLanguageFromArtists`), discarding hardcoded strings or static template rules.
+- **Upstash Redis Cache Purging & Validation**: Automatically invalidates stale cached room catalogs (`room-catalog:{userId}`) whenever listening profile language or artist stream distributions change.
+
+### 2. 🤖 Agentic RAG Playlist & Track Sourcing (`src/lib/roomPlaylistSource.ts`)
+- **Context-Guided Vector Space Search**: Maps user recent tracks, room tags, and listening context into a binary tag vector space using Ochiai cosine similarity:
+  $$\text{Similarity}(Q, D) = \frac{|Q \cap D|}{\sqrt{|Q| \times |D|}}$$
+- **Anti-Hallucination Prompting**: Enforces strict LLM constraints so AI models never fabricate non-existent song titles or translate artist names into regional languages.
+- **Free Model Routing**: Routes LLM requests through cost-free models via OpenRouter (`openrouter/free`).
+
+### 3. 💬 Live Telegram Bot Integration (`src/app/api/telegram/webhook/route.ts`)
+- **Telegram Bot Webhook**: Fully integrated with `@SpotiGlory_Bot` on Telegram ([t.me/SpotiGlory_Bot](https://t.me/SpotiGlory_Bot)).
+- **Real-Time Music Search & Playlist Delivery**: Responds to user `/start` commands and vibe search queries by executing the Agentic RAG engine in real time to return Markdown playlists directly inside Telegram chats.
+
+### 4. 👥 Multi-Vector Suggested People Matching (`src/data/syntheticUsers.json` & `src/lib/jamMatching.ts`)
+- **Psychometric Cosine Distance Matrix**: Calculates multi-vector distance across OCEAN vectors, MUSIC clusters, and mood states to match compatible listeners.
+- **Real Photo Avatars & Balanced Candidates**: Displays top 3 candidate listener matches (2 male, 1 female) with realistic human portrait avatars.
+
+### 5. 🎨 Liquid Glass Design System
 - Custom **Liquid Glass UI** featuring dynamic specular highlights, backdrop blur refractions, interactive hover glow states, and HSL tailored dark-mode color palettes.
 - Fully responsive navigation with a desktop fixed glass sidebar, mobile drawer, and interactive **Dev Tools Toggle** (`🔒 Dev Tools Hidden / 🔧 Dev Tools Active`).
 
-### 2. 🔑 Spotify OAuth 2.0 & NextAuth.js Integration
+### 6. 🔑 Spotify OAuth 2.0 & NextAuth.js Integration
 - Secure authentication via NextAuth.js (Auth.js) requesting read-only scopes: `user-top-read`, `user-read-recently-played`, `user-read-email`, `user-read-private`.
 - Automatic 1-hour access token refresh rotation handling Spotify token expirations server-side with 429 rate limit exponential backoff.
 
-### 3. 📊 Behavioral Feature Engineering Engine (`src/lib/features.ts`)
+### 7. 📊 Behavioral Feature Engineering Engine (`src/lib/features.ts`)
 Calculates pure mathematical signals from streaming records:
 - **Calibrated Shannon Genre Entropy**:
   $$H = -\sum_{i=1}^n p_i \log_2(p_i), \quad H_{\text{norm}} = \frac{H}{\log_2(n)}$$
@@ -40,9 +61,8 @@ Calculates pure mathematical signals from streaming records:
 - **Average Artist Popularity**: 0–100 mainstream vs. niche score recovery.
 - **Jaccard Genre Taste Stability Score**:
   $$J = \frac{|S_{\text{short}} \cap S_{\text{long}}|}{|S_{\text{short}} \cup S_{\text{long}}|}$$
-- **Recency Concentration Index**: Measures overlap between recently played tracks and top tracks.
 
-### 4. 🧠 Rentfrow & Gosling MUSIC Model & Big Five Scoring Engine (`src/lib/genreClusters.ts` & `src/lib/oceanScoring.ts`)
+### 8. 🧠 Rentfrow & Gosling MUSIC Model & Big Five Scoring Engine (`src/lib/genreClusters.ts` & `src/lib/oceanScoring.ts`)
 - Empirical grouping of Spotify genre strings into 4 **MUSIC clusters** (Rentfrow & Gosling, 2003):
   - **Reflective & Complex**: Jazz, Classical, Blues, Folk, World, Singer-Songwriter.
   - **Intense & Rebellious**: Rock, Metal, Punk, Alternative, Grunge, Emo.
@@ -50,62 +70,31 @@ Calculates pure mathematical signals from streaming records:
   - **Energetic & Rhythmic**: Hip-hop, Rap, R&B, EDM, Electronic, House, Techno.
 - Versioned psychometric scoring matrix (`src/config/oceanWeights.json v1.0.0`) normalizing inputs to $0..1$ *before* weighted sum, and clamping to $0..100$ *after*.
 - **Uncertainty Quantification**: Calculates `confidence` (`"high"` | `"medium"` | `"low"`) and `reliabilityScore` ($0..100$) per trait based on sample variance and count ($N \le 50$).
-- **Interactive Recharts Radar/Spider Chart**: Custom SVG glowing backdrop with specular vertex markers.
 
-### 5. 🔍 "Why this score?" Feature Attribution Engine (`src/lib/oceanScoring.ts`)
-- Pure function `explainTraitScore()` normalizing weighted feature contributions $|w_i \cdot x_i|$ so they sum to exactly $100\%$.
-- Expandable trait card drawers in `PersonalityTab.tsx` rendering stacked liquid-glass progress bars and ranked driver summaries (e.g. *"Neuroticism (62/100) — driven 60% by Night-Listener Ratio, 40% by Recency Concentration"*).
-
-### 6. 🤖 Production GenAI Narrative Pipeline via OpenRouter AI (`src/app/api/analysis/narrative/route.ts`)
-- Integrated OpenRouter API calling `anthropic/claude-3.5-sonnet` with low temperature (`0.3`).
+### 9. 🤖 Production GenAI Narrative Pipeline via OpenRouter AI (`src/app/api/analysis/narrative/route.ts`)
+- Integrated OpenRouter API calling `anthropic/claude-3.5-sonnet` or cost-free fallback routing (`openrouter/free`).
 - **Deterministic Qualitative Grounding (`src/lib/narrativeBands.ts`)**: Pre-computes qualitative score bands (`very_low` .. `very_high`) in TypeScript to eliminate LLM number-to-text contradictions.
-- **Prompt Versioning (`src/prompts/persona_v1.0.0.ts`)**: Versioned prompt template specification (`PROMPT_VERSION = "1.0.0"`).
 - **Strict Schema Validation & 1-Shot Retry (`src/lib/narrativeSchema.ts`)**: Runtime Zod-style schema validator executing an automatic 1-shot retry with error feedback if malformed.
-- **Production Telemetry**: Tracks and displays `{ modelUsed, latencyMs, tokenCount, estimatedCostUsd, promptVersion, retryAttempts }`.
 
-### 7. 🎯 Ground-Truth Validation Quiz & Pearson Correlation Engine (`src/lib/ipipQuiz.ts`)
+### 10. 🎯 Ground-Truth Validation Quiz & Pearson Correlation Engine (`src/lib/ipipQuiz.ts`)
 - 10-Item Mini-IPIP Likert survey on `/dashboard/quiz` measuring self-reported Big Five ground truth.
 - Calculates Pearson correlation coefficients ($r = \frac{\sum (x - \bar{x})(y - \bar{y})}{\sqrt{\sum (x - \bar{x})^2 \sum (y - \bar{y})^2}}$) comparing Spotify computed scores against ground truth.
 
-### 8. 📐 L2 Regularized Ridge Regression & Semver Retraining Engine (`src/lib/ridgeRegression.ts`)
+### 11. 📐 L2 Regularized Ridge Regression & Semver Retraining Engine (`src/lib/ridgeRegression.ts`)
 - Pure TypeScript Ridge Regression solver fitting:
   $$\mathbf{w} = (\mathbf{X}^T \mathbf{X} + \lambda \mathbf{I})^{-1} \mathbf{X}^T \mathbf{y}$$
   using Gauss-Jordan elimination with partial pivoting.
 - **Incremental Retraining (`retrainModel`)**: Aggregates Mini-IPIP quiz results and user feedback corrections.
 - **Semver Model Versioning**: Bumps versions (`v1.0.0` $\rightarrow$ `v1.1.0` $\rightarrow$ `v1.2.0`) and stores version history (`spotiglory_model_versions`) alongside Pearson $r$ accuracy metrics.
-- **10-Pair Auto-Retrain Trigger**: Automatically refits models when 10 user feedback samples accumulate in `src/lib/feedbackStore.ts`.
 
-### 9. 📈 Model Accuracy Over Time Recharts Chart (`src/components/dashboard/ModelAccuracyChart.tsx`)
-- Glowing Recharts Line Chart rendering Pearson $r$ correlation accuracy trending across semver model versions for all 5 OCEAN traits.
-
-### 10. 🔀 Model Version Diff & Coefficient Comparer (`src/app/dashboard/model-diff/page.tsx`)
-- Power-user transparency page allowing side-by-side coefficient weight comparisons between model versions with auto-generated plain-English impact statements.
-
-### 11. 📁 Extended Streaming History Upload & Deep Analytics (`src/lib/extendedHistory.ts`)
+### 12. 📁 Extended Streaming History Upload & Deep Analytics (`src/lib/extendedHistory.ts`)
 - Client-side in-browser extraction using **JSZip**: drop `my_spotify_data.zip` or `Streaming_History_Audio_*.json` files directly.
 - Calculates **All-Time Playback Duration** (in Hours & Days), **Real Skip Rates**, **Monthly Time-Series Bar Chart**, and **Top Tracks/Artists by Duration**.
 
-### 12. ⚡ Upstash Redis Caching Layer (`src/lib/redis.ts`)
-- Implements response-level caching on data-heavy Spotify and Analysis API routes (10-minute TTL) to **reduce Spotify API call count by 90%+**.
+### 13. ⚡ Upstash Redis Caching Layer (`src/lib/redis.ts`)
+- Response-level caching on data-heavy Spotify and Analysis API routes (10-minute TTL) to **reduce Spotify API call count by 90%+**.
 - Automatically caches computed Jam Room suggestions and taste profiles per-user (`room-catalog:{userId}`).
 - Supports a query-level bypass (`forceRefresh=true`) on the client to force invalidation, retrieve fresh live data, and write back to Redis.
-
-### 13. 🧠 Real-Time Circadian Rhythm & Psychometric Prediction Engine (`src/app/api/analysis/narrative/route.ts`)
-- **No Hardcoding**: Computes all assessments dynamically on the server based on live Spotify attributes.
-- **Visual Circadian Predictor**: Maps user's listening logs to predicted chronotypes:
-  - **Circadian Chronotype**: Categorizes users (e.g. `Nocturnal (Night Owl)`, `Diurnal (Early Bird)`) based on active listening hour distributions and night ratios.
-  - **Peak Listening Window**: Estimates the active hours when music listening is most highly concentrated.
-  - **Circadian Night Ratio**: Measures the exact percentage of streams occurring during late-night windows.
-- **Dynamic Values & Mood Regulation**: Maps Shannon genre entropy to openness-centric value systems, and active playlist trends to stress regulation modes (Calm, Reflective, Energized, Upbeat).
-- **Interactive Box Design**: Rendered in a modular `3x2 grid` directly above the Radar Chart, highlighting predicted values with vibrant neon badges.
-
-### 14. 🎧 Context-Guided RAG Sourcing Engine (`src/lib/roomPlaylistSource.ts`)
-- **Local Document Corpus**: Maintains a structured template library of diverse musical styles with authentic seed tracks.
-- **VSM Cosine Similarity Search**: Maps user context (recent tracks, room slug, and language constraints) into a binary tag vector space. It computes binary cosine similarity (Ochiai coefficient) against corpus document tags:
-  $$\text{Similarity}(Q, D) = \frac{|Q \cap D|}{\sqrt{|Q| \times |D|}}$$
-  and retrieves the top 3 closest matching templates.
-- **Ground-Truth Augmentation**: Injects these retrieved candidates into the OpenRouter LLM context to ground the playlist generation in cohesive musical formats rather than hallucinated tracks.
-- **Graceful Fallback**: Under zero-history or offline conditions, the engine operates on language/vibe baselines dynamically rather than using stale static templates.
 
 ---
 
@@ -124,30 +113,29 @@ flowchart TD
         E -->|Write-Through Cache| R[(Upstash Redis Cache)]
     end
 
-    subgraph Feature Engineering & Psychometrics
-        E --> F[lib/genreClusters.ts: MUSIC Classifier]
-        F --> G[lib/oceanScoring.ts: OCEAN Engine & explainTraitScore]
+    subgraph Dynamic Jam Room Engine
+        E --> F[lib/dynamicRoomEngine.ts: Dynamic Genre & Artist Extractor]
+        F --> G[Dynamic Jam Room Cards & Upstash Redis Catalog Cache]
     end
 
-    subgraph GenAI Narrative & Playlist Pipeline
-        G --> H[/api/analysis/narrative: OpenRouter AI Claude 3.5 Sonnet\]
-        H -->|1-Shot Schema Validation Retry| I[Fallback Template Engine]
-        H & I --> J[Telemetry Observability Latency, Tokens, Cost]
-        K[RAG Sourcing Engine: openrouter/free] -->|Dynamic Playlist Generation| L[src/lib/roomPlaylistSource.ts]
+    subgraph GenAI Narrative & RAG Pipeline
+        E --> H[/api/analysis/narrative: OpenRouter AI]
+        H & G --> I[src/lib/roomPlaylistSource.ts: RAG Sourcing Engine]
+        I --> J[Telegram Bot Webhook: /api/telegram/webhook]
     end
 
     subgraph Ground-Truth Retraining Loop
-        M[10-Item Mini-IPIP Quiz /dashboard/quiz] --> N[ipipQuiz.ts: Pearson r Evaluator]
-        O[Trait Card Liquid Feedback UI] --> P[feedbackStore.ts: Correction Pairs]
-        N & P --> S[ridgeRegression.ts: L2 Ridge Regression Solver]
-        S -->|Auto-Trigger @ 10 Pairs| T[Semver Version History v1.0.0 -> v1.1.0]
+        K[10-Item Mini-IPIP Quiz /dashboard/quiz] --> L[ipipQuiz.ts: Pearson r Evaluator]
+        M[Trait Card Liquid Feedback UI] --> N[feedbackStore.ts: Correction Pairs]
+        L & N --> O[ridgeRegression.ts: L2 Ridge Regression Solver]
+        O -->|Auto-Trigger @ 10 Pairs| P[Semver Version History v1.0.0 -> v1.1.0]
     end
 
     subgraph Dashboard UI
-        G & J & T & D & L --> Q[Liquid Glass Dashboard /dashboard]
-        Q --> U[OCEAN Glowing Radar Chart & Stacked Attribution]
-        Q --> V[Model Accuracy Over Time Recharts Chart]
-        Q --> W[Model Version Diff Inspector /dashboard/model-diff]
+        G & I & J & P & D --> Q[Liquid Glass Dashboard /dashboard]
+        Q --> R[OCEAN Glowing Radar Chart & Attribution]
+        Q --> S[Dynamic Jam Rooms & Suggested People]
+        Q --> T[Telegram Bot Assistant Interface]
     end
 ```
 
@@ -164,6 +152,7 @@ flowchart TD
 | **Styling** | [TailwindCSS v4](https://tailwindcss.com/) & Vanilla CSS Liquid Glass Design Tokens |
 | **Authentication** | [NextAuth.js v4](https://next-auth.js.org/) (Spotify OAuth 2.0 Provider & Token Rotation) |
 | **AI / GenAI** | [OpenRouter API](https://openrouter.ai/) (`openrouter/free` cost-free model routing & `anthropic/claude-3.5-sonnet`) |
+| **Telegram Bot** | Telegram Bot Webhook API (`@SpotiGlory_Bot`) |
 | **ML Engine** | Pure TypeScript L2 Regularized Ridge Regression Solver & Pearson $r$ Correlation Evaluator |
 | **Data Visualization** | [Recharts](https://recharts.org/) (RadarChart, LineChart & BarChart) |
 | **Animations** | [Framer Motion 12](https://www.framer.com/motion/) & Lucide React Icons |
@@ -181,6 +170,7 @@ flowchart TD
 - **Supabase Database**: URL connection strings configured via Prisma
 - **Upstash Redis Store**: Serverless REST URL and Token for caching API responses
 - **OpenRouter API Key**: (Required for narrative profile generation & RAG playlist generator)
+- **Telegram Bot Token**: (Optional, for Telegram bot integration `@SpotiGlory_Bot`)
 
 ---
 
@@ -210,7 +200,6 @@ SPOTIFY_CLIENT_ID=your_spotify_client_id_here
 SPOTIFY_CLIENT_SECRET=your_spotify_client_secret_here
 
 # NextAuth Configuration
-# Generate secret via: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 NEXTAUTH_SECRET=your_generated_32_byte_base64_secret
 NEXTAUTH_URL=http://127.0.0.1:3000
 
@@ -224,22 +213,14 @@ DIRECT_URL="postgresql://postgres:password@db.supabase.co:5432/postgres?schema=p
 # Upstash Redis serverless cache details
 UPSTASH_REDIS_REST_URL=your_upstash_redis_rest_url_here
 UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_rest_token_here
+
+# Telegram Bot Token (for @SpotiGlory_Bot)
+TELEGRAM_BOT_TOKEN="your_telegram_bot_token_here"
 ```
 
 ---
 
-### Step 3: Configure Spotify Developer Dashboard
-
-1. Log in to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
-2. Open your Application settings.
-3. Under **Redirect URIs**, add:
-   - `http://127.0.0.1:3000/api/auth/callback/spotify`
-   - `http://localhost:3000/api/auth/callback/spotify`
-4. Click **Save**.
-
----
-
-### Step 4: Run the Development Server
+### Step 3: Run the Development Server
 
 ```bash
 npm run dev
@@ -251,23 +232,11 @@ Open your browser and navigate to **`http://127.0.0.1:3000`**.
 
 ## 🧪 Running Unit Tests
 
-SpotiGlory includes **32 unit tests across 7 test suites** verifying Shannon entropy equations, timestamp bucketing, Jaccard similarity, OCEAN trait score clamping, Ridge Regression linear solvers, Pearson $r$ correlations, and GenAI schema validation.
-
 Run all unit test suites using Node's test runner:
 
 ```bash
 npx tsx --test src/lib/feedbackStore.test.ts src/lib/narrativeEval.test.ts src/lib/ipipQuiz.test.ts src/lib/ridgeRegression.test.ts src/lib/features.test.ts src/lib/oceanScoring.test.ts src/lib/extendedHistory.test.ts
 ```
-
----
-
-## 🔬 Research Citations & Disclaimer
-
-The psychometric scoring models in SpotiGlory draw theoretical framework from:
-
-> **Rentfrow, P. J., & Gosling, S. D. (2003)**. *The Do Re Mi's of everyday life: The structure and personality correlates of music preferences*. Journal of Personality and Social Psychology, 84(6), 1236–1256.
-
-> ⚠️ **Disclaimer**: *SpotiGlory is an experimental analysis tool built for musical self-reflection and entertainment based on published music-preference research. It is not a certified clinical or psychological diagnostic instrument.*
 
 ---
 
