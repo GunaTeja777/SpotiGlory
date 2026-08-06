@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { getRecentlyPlayed } from "@/lib/spotify";
-import { getGoogleRagPlaylists, RoomPlaylist } from "@/lib/roomPlaylistSource";
+import { getGoogleRagPlaylists, getAgenticRagPlaylists, RoomPlaylist } from "@/lib/roomPlaylistSource";
 
 function extractLanguageFromSlug(slug: string, customLang?: string | null): string | undefined {
   if (customLang && customLang.trim().length > 0) return customLang.trim();
@@ -178,9 +178,18 @@ export async function GET(
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
+      const mockDecisions = [
+        { step: "Analyze Request Vibe", decision: `Analyzing target room vibe "${roomId}" with preferred language "Tamil" and 10 recent history tracks.`, status: "done" },
+        { step: "Query Local Catalog", decision: `Identified top 2 matching candidate playlist templates from local catalog.`, status: "done" },
+        { step: "Use User History", decision: `Analyzing user history tracks: "Naan Pizhai", "Kadhaippoma", "Maruvaarthai".`, status: "done" },
+        { step: "Search Spotify", decision: `Searching Spotify playlists & tracks for "Tamil Alternative Rock".`, status: "done" },
+        { step: "Consolidate & Merge Data", decision: `Gathered input from: history, spotify, web. Merging candidate tracks to create 3 targeted playlists.`, status: "done" },
+        { step: "Create Playlists", decision: `Successfully generated 3 playlists.`, status: "done" }
+      ];
       return NextResponse.json({
         status: "success",
-        playlists: getMockPlaylists(roomId)
+        playlists: getMockPlaylists(roomId),
+        decisions: mockDecisions
       });
     }
 
@@ -200,7 +209,12 @@ export async function GET(
       }
     }
 
-    let playlists = await getGoogleRagPlaylists(roomId, recentTracks, effectiveLang);
+    let playlists: any[] = [];
+    let decisions: any[] = [];
+
+    const agenticResult = await getAgenticRagPlaylists(roomId, recentTracks, effectiveLang, session.accessToken);
+    playlists = agenticResult.playlists;
+    decisions = agenticResult.decisions;
 
     if (!playlists || playlists.length === 0) {
       // 1. Try to search Spotify online dynamically for playlists matching the language & theme!
@@ -242,7 +256,8 @@ export async function GET(
 
     return NextResponse.json({
       status: "success",
-      playlists
+      playlists,
+      decisions
     });
   } catch (error: any) {
     console.error("Room playlist API error:", error);

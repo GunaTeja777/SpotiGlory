@@ -45,6 +45,8 @@ export default function IndividualJamRoomPage() {
   const [playlists, setPlaylists] = useState<RoomPlaylist[]>([]);
   const [activePlaylistIndex, setActivePlaylistIndex] = useState<number>(0);
   const [isRefreshingPlaylist, setIsRefreshingPlaylist] = useState<boolean>(false);
+  const [agentDecisions, setAgentDecisions] = useState<{ step: string; decision: string; status: string }[]>([]);
+  const [isAgentTracing, setIsAgentTracing] = useState<boolean>(false);
 
   // Playback state
   const [activePlayingId, setActivePlayingId] = useState<string | null>(null);
@@ -72,12 +74,16 @@ export default function IndividualJamRoomPage() {
   };
 
   const fetchDynamicPlaylist = async (forceRefresh = false) => {
+    setIsAgentTracing(true);
     try {
       const savedLang = typeof window !== "undefined" ? localStorage.getItem("spotiglory_user_language") || "" : "";
       const langParam = savedLang ? `&language=${encodeURIComponent(savedLang)}` : "";
       const res = await fetch(`/api/jam-rooms/${roomIdSlug}/playlist?forceRefresh=${forceRefresh}${langParam}`);
       if (res.ok) {
         const data = await res.json();
+        if (data.decisions) {
+          setAgentDecisions(data.decisions);
+        }
         if (data.playlists && data.playlists.length > 0) {
           setPlaylists(data.playlists);
           return;
@@ -85,6 +91,8 @@ export default function IndividualJamRoomPage() {
       }
     } catch (e) {
       // Fallback
+    } finally {
+      setIsAgentTracing(false);
     }
 
     setPlaylists([]);
@@ -346,6 +354,61 @@ export default function IndividualJamRoomPage() {
                   {isRefreshingPlaylist ? "Re-sourcing..." : "Refresh Playlists"}
                 </GlassButton>
               </div>
+
+              {/* 🤖 Agentic RAG Decision Trace */}
+              {(isAgentTracing || agentDecisions.length > 0) && (
+                <div className="mb-5 p-4 rounded-2xl bg-black/45 border border-emerald-500/30 backdrop-blur-xl relative overflow-hidden transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_8px_32px_0_rgba(0,0,0,0.5)] animate-fadeIn">
+                  <div className="absolute top-0 right-0 p-3 text-[9px] font-mono text-emerald-400/80 flex items-center gap-1.5 uppercase font-bold tracking-widest">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>{isAgentTracing ? "Tracing Execution..." : "Agent Catalog Active"}</span>
+                  </div>
+                  
+                  <h4 className="text-xs font-mono font-bold text-emerald-400 mb-3 flex items-center gap-2 tracking-wide">
+                    <Bot className="w-4 h-4 text-purple-400 animate-bounce" />
+                    <span>AGENTIC RAG DECISION PATH</span>
+                  </h4>
+                  
+                  <div className="flex flex-col gap-2.5 max-h-56 overflow-y-auto pr-1 scrollbar-thin text-xs font-mono">
+                    {agentDecisions.map((dec, idx) => {
+                      let dotColor = "bg-gray-600";
+                      let statusText = "SKIPPED";
+                      let textColor = "text-gray-400";
+                      
+                      if (dec.status === "done") {
+                        dotColor = "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.7)]";
+                        statusText = "SUCCESS";
+                        textColor = "text-gray-200";
+                      } else if (dec.status === "active") {
+                        dotColor = "bg-yellow-400 animate-pulse shadow-[0_0_10px_rgba(250,204,21,0.7)]";
+                        statusText = "RUNNING";
+                        textColor = "text-yellow-200";
+                      }
+                      
+                      return (
+                        <div key={idx} className={`flex items-start gap-2.5 p-2 rounded-xl transition-all duration-300 ${dec.status === 'active' ? 'bg-white/[0.04] border border-white/5 shadow-[0_0_15px_rgba(29,185,84,0.1)]' : ''}`}>
+                          <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${dotColor}`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                              <span className="font-bold text-white tracking-wide">{dec.step}</span>
+                              <span className={`text-[8px] font-bold px-1.5 py-0.2 rounded border ${
+                                dec.status === 'done' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                                dec.status === 'active' ? 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20' : 
+                                'bg-white/[0.04] text-gray-500 border-white/5'
+                              }`}>
+                                {statusText}
+                              </span>
+                            </div>
+                            <p className={`text-[11px] leading-relaxed ${textColor}`}>{dec.decision}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Playlist Tabs Selector */}
               {playlists.length > 0 && (

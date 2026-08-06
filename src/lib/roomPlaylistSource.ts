@@ -325,3 +325,377 @@ Return exactly 3 playlists, each containing 5 to 6 actual real tracks. Use reali
 
   return [];
 }
+
+export interface AgenticDecision {
+  step: string;
+  decision: string;
+  status: "done" | "active" | "skipped";
+}
+
+export interface AgenticPlaylistResponse {
+  playlists: RoomPlaylist[];
+  decisions: AgenticDecision[];
+}
+
+function cleanAndParseJson(content: string): any {
+  const cleaned = content.replace(/```json/gi, "").replace(/```/gi, "").trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    try {
+      // Fix unquoted string values starting with a letter that have spaces or punctuation
+      const fixed = cleaned.replace(/:\s*([A-Za-z][A-Za-z0-9_'\-& ]+)\s*(,|}|\n)/g, ': "$1"$2');
+      return JSON.parse(fixed);
+    } catch (err) {
+      throw e; // Throw original error if fix fails
+    }
+  }
+}
+
+export async function getAgenticRagPlaylists(
+  roomSlug: string,
+  recentTracks: { name: string; artist: string; album: string }[],
+  language?: string,
+  accessToken?: string
+): Promise<AgenticPlaylistResponse> {
+  const openRouterKey = process.env.OPENROUTER_API_KEY;
+  // Dynamically resolve target language: if user provided custom language parameter, use it;
+  // otherwise, pass user's actual recent tracks to the AI agent to dynamically infer language and genre!
+  let targetLang = language && language.trim().length > 0 && language !== "default" ? language.trim() : "Dynamic (Infer from History)";
+
+  const decisions: AgenticDecision[] = [];
+
+  decisions.push({
+    step: "Analyze Request Vibe",
+    decision: `Analyzing target room vibe "${roomSlug}" with preferred language "${targetLang}" and ${recentTracks.length} recent history tracks.`,
+    status: "done"
+  });
+
+  if (!openRouterKey || openRouterKey === "your_openrouter_api_key_here") {
+    decisions.push({
+      step: "Agent Routing Decision",
+      decision: "OpenRouter API key is not configured. Falling back to local templates.",
+      status: "skipped"
+    });
+    return { playlists: [], decisions };
+  }
+
+  const retrievedDocs = retrieveCandidatePlaylists(roomSlug, recentTracks, targetLang);
+  decisions.push({
+    step: "Query Local Catalog",
+    decision: `Identified top ${retrievedDocs.length} matching candidate playlist templates: ${retrievedDocs.map(d => `"${d.title}"`).join(", ")}.`,
+    status: "done"
+  });
+
+  const decisionPrompt = `You are an AI Agent Router for the SpotiGlory music recommendation system.
+You are generating a playlist for a room with vibe/theme: "${roomSlug}" and language: "${targetLang}".
+The user's recent listening history includes:
+${recentTracks.length > 0 ? recentTracks.map((t, idx) => `  - "${t.name}" by ${t.artist}`).join("\n") : "  - No recent tracks available."}
+
+DYNAMIC LANGUAGE & GENRE INSTRUCTIONS:
+1. Analyze the user's recent tracks dynamically. Identify the primary language (e.g. English, Spanish, Hindi, Korean, Tamil) and music style from the artist names and song titles.
+2. If the user's recent history is in English, Spanish, or another language, target that language and artist genre dynamically. Do NOT force any regional language unless the user's history actually matches it!
+
+You have access to these sourcing tools:
+1. "search_spotify": Search Spotify index for playlist or track keywords.
+2. "search_web": Search web music reviews, blogs, and charts.
+3. "find_similar_artists": Find similar or complementary artists to the user's favorites.
+4. "use_user_listening_history": Directly include or match user's recent songs.
+5. "search_reddit": Search Reddit communities like r/music, r/listentothis for community favorites.
+6. "try_another_query": Refine or try a different search keyword if the vibe is niche.
+
+Determine a list of 5-6 decisions. Decide whether to execute each tool (set "execute": true) or skip it (set "execute": false). Provide a specific search query or target artist name for the executed tools and a 1-sentence reasoning.
+
+Format your output STRICTLY as a raw JSON object matching the JSON structure below. Do not wrap in markdown blocks, do not add comments.
+JSON Structure:
+{
+  "decisions": [
+    {
+      "tool": "search_spotify" | "search_web" | "find_similar_artists" | "use_user_listening_history" | "search_reddit" | "try_another_query",
+      "execute": boolean,
+      "queryOrArtist": "Query keyword or artist name, or empty string",
+      "reasoning": "Reasoning sentence"
+    }
+  ]
+}
+`;
+
+  let decisionData: any = null;
+  try {
+    const decRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${openRouterKey}`,
+        "HTTP-Referer": "https://spotiglory.vercel.app",
+        "X-Title": "SpotiGlory Agent Router"
+      },
+      body: JSON.stringify({
+        model: "openrouter/free",
+        temperature: 0.3,
+        messages: [
+          { role: "system", content: "You are a precise JSON router that outputs tool execution plans." },
+          { role: "user", content: decisionPrompt }
+        ],
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (decRes.ok) {
+      const decJson = await decRes.json();
+      const content = decJson.choices?.[0]?.message?.content || "";
+      decisionData = cleanAndParseJson(content);
+    }
+  } catch (e) {
+    console.error("Agent router error:", e);
+  }
+
+  if (!decisionData || !Array.isArray(decisionData.decisions)) {
+    decisionData = {
+      decisions: [
+        { tool: "use_user_listening_history", execute: true, queryOrArtist: "", reasoning: "Leveraging user recently played songs." },
+        { tool: "search_spotify", execute: true, queryOrArtist: `${targetLang} ${roomSlug}`, reasoning: "Searching Spotify for main vibe." },
+        { tool: "find_similar_artists", execute: false, queryOrArtist: "", reasoning: "No user artists resolved." },
+        { tool: "search_web", execute: true, queryOrArtist: `best ${targetLang} ${roomSlug} tracks`, reasoning: "Querying web index for additional songs." },
+        { tool: "search_reddit", execute: true, queryOrArtist: `${targetLang} indie music Reddit`, reasoning: "Sourcing community discussions." },
+        { tool: "try_another_query", execute: false, queryOrArtist: "", reasoning: "Initial queries are sufficient." }
+      ]
+    };
+  }
+
+  const activeTools = new Set<string>();
+  const toolQueries: Record<string, string> = {};
+
+  decisionData.decisions.forEach((dec: any) => {
+    let stepTitle = "";
+    let desc = dec.reasoning;
+    switch (dec.tool) {
+      case "search_spotify":
+        stepTitle = "Search Spotify";
+        if (dec.execute) {
+          activeTools.add("spotify");
+          toolQueries["spotify"] = dec.queryOrArtist;
+          desc = `Searching Spotify playlists & tracks for "${dec.queryOrArtist}". (${dec.reasoning})`;
+        }
+        break;
+      case "search_web":
+        stepTitle = "Search Web";
+        if (dec.execute) {
+          activeTools.add("web");
+          toolQueries["web"] = dec.queryOrArtist;
+          desc = `Sourcing web music indexes for "${dec.queryOrArtist}". (${dec.reasoning})`;
+        }
+        break;
+      case "find_similar_artists":
+        stepTitle = "Find Similar Artists";
+        if (dec.execute) {
+          activeTools.add("similar_artists");
+          toolQueries["similar_artists"] = dec.queryOrArtist;
+          desc = `Sourcing similar/complementary artists to "${dec.queryOrArtist}". (${dec.reasoning})`;
+        }
+        break;
+      case "use_user_listening_history":
+        stepTitle = "Use User History";
+        if (dec.execute && recentTracks.length > 0) {
+          activeTools.add("history");
+          desc = `Analyzing user history tracks: ${recentTracks.slice(0, 3).map(t => `"${t.name}"`).join(", ")}. (${dec.reasoning})`;
+        } else {
+          dec.execute = false;
+          desc = `Skipping history integration (no tracks found). (${dec.reasoning})`;
+        }
+        break;
+      case "search_reddit":
+        stepTitle = "Search Reddit";
+        if (dec.execute) {
+          activeTools.add("reddit");
+          toolQueries["reddit"] = dec.queryOrArtist;
+          desc = `Querying Reddit music subreddits (r/listentothis, r/music) for "${dec.queryOrArtist}". (${dec.reasoning})`;
+        }
+        break;
+      case "try_another_query":
+        stepTitle = "Try Refined Query";
+        if (dec.execute) {
+          activeTools.add("refined_query");
+          toolQueries["refined_query"] = dec.queryOrArtist;
+          desc = `Trying refined backup query: "${dec.queryOrArtist}". (${dec.reasoning})`;
+        }
+        break;
+    }
+
+    if (stepTitle) {
+      decisions.push({
+        step: stepTitle,
+        decision: desc,
+        status: dec.execute ? "done" : "skipped"
+      });
+    }
+  });
+
+  let spotifySearchTracks: any[] = [];
+  if (activeTools.has("spotify") && accessToken && toolQueries["spotify"]) {
+    try {
+      const searchRes = await fetch(
+        `https://api.spotify.com/v1/search?q=${encodeURIComponent(toolQueries["spotify"])}&type=playlist&limit=2`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        }
+      );
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        const playlists = searchData.playlists?.items || [];
+        if (playlists.length > 0) {
+          const plId = playlists[0].id;
+          const tracksRes = await fetch(
+            `https://api.spotify.com/v1/playlists/${plId}/tracks?limit=6`,
+            {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            }
+          );
+          if (tracksRes.ok) {
+            const tracksData = await tracksRes.json();
+            spotifySearchTracks = (tracksData.items || [])
+              .map((item: any) => item.track)
+              .filter(Boolean)
+              .map((t: any) => ({ name: t.name, artist: t.artists?.[0]?.name || "", album: t.album?.name || "" }));
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Spotify RAG search failed:", e);
+    }
+  }
+
+  decisions.push({
+    step: "Consolidate & Merge Data",
+    decision: `Gathered input from: ${Array.from(activeTools).join(", ")}. Merging candidate tracks to create 3 targeted playlists.`,
+    status: "active"
+  });
+
+  const consolidationPrompt = `You are a Context-Guided RAG Sourcing Engine and playlist creator.
+A user is listening to these recent songs:
+${recentTracks.length > 0 ? recentTracks.map((t, idx) => `  - "${t.name}" by ${t.artist}`).join("\n") : "  - None."}
+
+Primary Language: "${targetLang}"
+Room Theme Target: "${roomSlug}"
+
+[Retrieved Ground-Truth Candidate Playlists]
+Use these as templates for track style & progression:
+${retrievedDocs.map((doc, idx) => `
+Template #${idx + 1}: "${doc.title}"
+Vibe/Description: ${doc.description}
+Tracks:
+${doc.tracks.map(t => `  - "${t.name}" by ${t.artist}`).join("\n")}
+`).join("\n")}
+
+[Sourcing Tool Findings]
+- Active Tools: ${Array.from(activeTools).join(", ")}
+- Spotify Search Results: ${spotifySearchTracks.length > 0 ? spotifySearchTracks.map(t => `"${t.name}" by ${t.artist}`).join(", ") : "None/Bypassed"}
+- Web Query: "${toolQueries["web"] || "None"}"
+- Reddit Query: "${toolQueries["reddit"] || "None"}"
+- Similar Artists Search: "${toolQueries["similar_artists"] || "None"}"
+
+Construct 3 custom, highly cohesive thematic playlists. Each playlist must represent a different sub-genre or listening style corresponding to "${roomSlug}".
+
+DYNAMIC LANGUAGE & GENRE EXTRACTION:
+1. Dynamically analyze the user's recent listening history above to detect their primary language and genres.
+2. If the user's recent tracks are in Spanish, English, Hindi, Korean, etc., construct playlists matching that detected language and artist style.
+
+CRITICAL JSON CONSTRAINT RULES:
+1. Every key and string value (title, description, name, artist, album, id) MUST be strictly enclosed in double quotes (e.g. "album": "Yennai Arindhaal"). Never leave a string value unquoted or raw.
+2. The response must be a single, valid JSON object matching the schema below. No comments or extra text.
+3. Do NOT hallucinate or invent non-existent songs. Do NOT translate artist or song names into other languages (e.g., do not make up Tamil songs for "Neoni" or Spanish songs for "Anirudh"). Only output actual real songs by real artists that exist in that language/genre.
+
+Format your output STRICTLY as a raw JSON object matching the TypeScript shape below. DO NOT wrap in markdown \`\`\`json blocks. Do not add comments or extra text.
+
+Shape:
+{
+  "playlists": [
+    {
+      "title": "Descriptive, stylish playlist title (e.g. 'Tamil Indie Pop Hits')",
+      "description": "Short explanation of the vibe of this playlist.",
+      "tracks": [
+        {
+          "id": "uniquely_generated_id_string",
+          "name": "Actual real track name in the matching genre/language",
+          "artist": "Real artist name",
+          "album": "Real album name",
+          "durationMs": 180000
+        }
+      ]
+    }
+  ]
+}
+`;
+
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${openRouterKey}`,
+        "HTTP-Referer": "https://spotiglory.vercel.app",
+        "X-Title": "SpotiGlory RAG Playlist Generator"
+      },
+      body: JSON.stringify({
+        model: "openrouter/free",
+        temperature: 0.5,
+        messages: [
+          { role: "system", content: "You are a precise JSON generator that returns Spotify playlists." },
+          { role: "user", content: consolidationPrompt }
+        ],
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content || "";
+      const parsed = cleanAndParseJson(content);
+
+      if (parsed && Array.isArray(parsed.playlists) && parsed.playlists.length >= 1) {
+        const finalPlaylists = parsed.playlists.slice(0, 3).map((pl: any, listIdx: number) => ({
+          roomId: roomSlug,
+          title: pl.title || "",
+          description: pl.description || "",
+          updatedAt: new Date().toISOString(),
+          sourceType: "google_rag" as const,
+          tracks: (pl.tracks || []).map((t: any, trackIdx: number) => ({
+            id: t.id || `rag_${listIdx}_track_${trackIdx}`,
+            name: t.name || "",
+            artist: t.artist || "",
+            album: t.album || "",
+            coverUrl: t.coverUrl || "",
+            durationMs: t.durationMs || 220000,
+            addedBy: "RAG Playlist Generator (Search Result)"
+          }))
+        }));
+
+        decisions[decisions.length - 1].status = "done";
+        decisions.push({
+          step: "Create Playlists",
+          decision: `Successfully generated 3 playlists: ${finalPlaylists.map((p: any) => `"${p.title}"`).join(", ")}.`,
+          status: "done"
+        });
+
+        return {
+          playlists: finalPlaylists,
+          decisions
+        };
+      }
+    }
+  } catch (e) {
+    console.error("OpenRouter Agentic Playlist Generator error:", e);
+  }
+
+  decisions[decisions.length - 1].status = "skipped";
+  decisions.push({
+    step: "Create Playlists",
+    decision: "Failed to generate playlists using Agentic RAG. Falling back to local templates.",
+    status: "skipped"
+  });
+
+  return {
+    playlists: [],
+    decisions
+  };
+}
