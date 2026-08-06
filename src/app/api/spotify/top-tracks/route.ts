@@ -24,27 +24,23 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.accessToken) {
-      let items = [];
-      if (timeRange === "short_term") {
-        items = [
-          { id: "track_1", name: "Resonance", artists: [{ name: "HOME" }], album: { name: "Odyssey", images: [{ url: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150&auto=format&fit=crop&q=60" }] }, preview_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", popularity: 62, external_urls: { spotify: "https://open.spotify.com" } },
-          { id: "track_2", name: "Aria", artists: [{ name: "Hammock" }], album: { name: "Departure Songs", images: [{ url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=60" }] }, preview_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", popularity: 50, external_urls: { spotify: "https://open.spotify.com" } }
-        ];
-      } else if (timeRange === "medium_term") {
-        items = [
-          { id: "track_3", name: "Vanilla", artists: [{ name: "Tycho" }], album: { name: "Past Is Prologue", images: [{ url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=60" }] }, preview_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", popularity: 58, external_urls: { spotify: "https://open.spotify.com" } },
-          { id: "track_4", name: "First Breath After Coma", artists: [{ name: "Explosions in the Sky" }], album: { name: "The Earth Is Not a Cold Dead Place", images: [{ url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=150&auto=format&fit=crop&q=60" }] }, preview_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3", popularity: 55, external_urls: { spotify: "https://open.spotify.com" } },
-          { id: "track_5", name: "Treefingers", artists: [{ name: "Radiohead" }], album: { name: "Kid A", images: [{ url: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=150&auto=format&fit=crop&q=60" }] }, preview_url: null, popularity: 82, external_urls: { spotify: "https://open.spotify.com" } }
-        ];
-      } else {
-        items = [
-          { id: "track_6", name: "Blinding Lights", artists: [{ name: "The Weeknd" }], album: { name: "After Hours", images: [{ url: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=150&auto=format&fit=crop&q=60" }] }, preview_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3", popularity: 94, external_urls: { spotify: "https://open.spotify.com" } },
-          { id: "track_7", name: "Smells Like Teen Spirit", artists: [{ name: "Nirvana" }], album: { name: "Nevermind", images: [{ url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150&auto=format&fit=crop&q=60" }] }, preview_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3", popularity: 80, external_urls: { spotify: "https://open.spotify.com" } }
-        ];
+      const clientToken = await getClientCredentialsToken().catch(() => null);
+      if (clientToken) {
+        const searchRes = await fetch(`https://api.spotify.com/v1/search?q=top%20hits&type=track&limit=${limit}`, {
+          headers: { Authorization: `Bearer ${clientToken}` }
+        }).catch(() => null);
+
+        if (searchRes && searchRes.ok) {
+          const searchData = await searchRes.json();
+          return NextResponse.json({
+            items: searchData.tracks?.items || [],
+            timestamp: new Date().toISOString()
+          });
+        }
       }
 
       return NextResponse.json({
-        items,
+        items: [],
         timestamp: new Date().toISOString()
       });
     }
