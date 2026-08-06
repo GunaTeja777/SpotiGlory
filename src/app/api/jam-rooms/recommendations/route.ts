@@ -252,11 +252,13 @@ export async function GET(request: Request) {
 
     const inferredLangFromArtists = inferLanguageFromArtists(combinedArtists, features.topGenreDistribution?.map(g => g.genre) || []);
 
-    tasteProfile = {
-      topGenres: cachedRecord?.top_genres || buildUserTasteProfile(combinedArtists, features, customLang, userId).topGenres,
-      preferredLanguage: customLang && customLang !== "default" ? customLang : inferredLangFromArtists,
-      dominantMusicCluster: cachedRecord?.dominant_cluster || buildUserTasteProfile(combinedArtists, features, customLang, userId).dominantMusicCluster,
-    };
+    // Build 100% fresh taste profile from live Spotify top artists and tracks (overwrites any legacy database cache)
+    tasteProfile = buildUserTasteProfile(
+      combinedArtists,
+      features,
+      customLang && customLang !== "default" ? customLang : null,
+      userId
+    );
     // 3. Derive real-time inferred mood
     const customMoodParam = searchParams.get("mood");
     const inferredMood: MoodType = features.inferredMood?.label
