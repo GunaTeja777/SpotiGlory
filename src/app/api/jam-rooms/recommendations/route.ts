@@ -246,15 +246,13 @@ export async function GET(request: Request) {
       mediumTermArtists
     );
 
-    if (cachedRecord) {
-      tasteProfile = {
-        topGenres: cachedRecord.top_genres,
-        preferredLanguage: customLang || inferLanguageFromArtists(combinedArtists, cachedRecord.top_genres),
-        dominantMusicCluster: cachedRecord.dominant_cluster,
-      };
-    } else {
-      tasteProfile = buildUserTasteProfile(combinedArtists, features, customLang, userId);
-    }
+    const inferredLangFromArtists = inferLanguageFromArtists(combinedArtists, features.topGenreDistribution?.map(g => g.genre) || []);
+
+    tasteProfile = {
+      topGenres: cachedRecord?.top_genres || buildUserTasteProfile(combinedArtists, features, customLang, userId).topGenres,
+      preferredLanguage: customLang && customLang !== "default" ? customLang : inferredLangFromArtists,
+      dominantMusicCluster: cachedRecord?.dominant_cluster || buildUserTasteProfile(combinedArtists, features, customLang, userId).dominantMusicCluster,
+    };
     // 3. Derive real-time inferred mood
     const customMoodParam = searchParams.get("mood");
     const inferredMood: MoodType = features.inferredMood?.label
