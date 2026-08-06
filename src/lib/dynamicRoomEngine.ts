@@ -225,7 +225,15 @@ export async function getOrGenerateDynamicRoomsWithCache(
   if (userId) {
     const cachedRooms = await getCachedRoomCatalog(userId, profileVersion);
     if (cachedRooms && Array.isArray(cachedRooms) && cachedRooms.length > 0) {
-      return cachedRooms;
+      const currentLang = (userTasteProfile?.preferredLanguage || "").trim().toLowerCase();
+      const cachedLang = (cachedRooms[0]?.language || "").trim().toLowerCase();
+
+      // 100% Dynamic Cache Validation:
+      // If cached room language matches user's current inferred taste profile language, use cache.
+      // If language changed dynamically (for ANY language), invalidate cache automatically!
+      if (!cachedLang || !currentLang || cachedLang === currentLang) {
+        return cachedRooms;
+      }
     }
   }
 
@@ -240,7 +248,7 @@ export async function getOrGenerateDynamicRoomsWithCache(
 
   if (userId && rooms.length > 0) {
     // Write-through to Redis with 1h EX TTL
-    setCachedRoomCatalog(userId, profileVersion, rooms).catch(() => {});
+    setCachedRoomCatalog(userId, profileVersion, rooms).catch(() => { });
   }
 
   return rooms;
