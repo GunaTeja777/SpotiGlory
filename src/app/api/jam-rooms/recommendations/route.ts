@@ -156,7 +156,7 @@ export async function GET(request: Request) {
           currentMood: activeMood,
         },
         candidates,
-        5
+        3
       );
 
       return NextResponse.json({
@@ -357,7 +357,7 @@ export async function GET(request: Request) {
         currentMood: activeMood,
       },
       candidates,
-      5
+      3
     );
 
     const payload = {

@@ -167,7 +167,7 @@ export const JamRoomsTab: React.FC = () => {
       const recs = getRecommendedRooms(targetMood, userClusters, userOcean);
       setRoomRecs(recs);
       const candidates = getSyntheticUsers();
-      const top5People = findJamMatches(
+      const top3People = findJamMatches(
         {
           id: "active_user_current",
           ocean: userOcean,
@@ -175,9 +175,9 @@ export const JamRoomsTab: React.FC = () => {
           currentMood: targetMood,
         },
         candidates,
-        5
+        3
       );
-      setPeopleMatches(top5People);
+      setPeopleMatches(top3People);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
