@@ -73,3 +73,16 @@ export async function setCachedData(key: string, value: any, ttlSeconds = 600): 
     return false;
   }
 }
+
+/**
+ * Deletes a generic cached item from Redis.
+ */
+export async function deleteCachedData(key: string): Promise<boolean> {
+  if (!redis) return false;
+  try {
+    await redis.del(key);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}

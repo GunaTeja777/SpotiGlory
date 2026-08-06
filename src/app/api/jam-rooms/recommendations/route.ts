@@ -19,7 +19,7 @@ import { generateDynamicRoomsFromListeningData, getOrGenerateDynamicRoomsWithCac
 import { findJamMatches, MoodType, OceanVector, MusicClusterVector } from "@/lib/jamMatching";
 import { getSyntheticUsers } from "@/lib/syntheticUsers";
 import { computeClusterDistribution } from "@/lib/genreClusters";
-import { getCachedData, setCachedData } from "@/lib/redis";
+import { getCachedData, setCachedData, deleteCachedData } from "@/lib/redis";
 
 const parseMood = (raw?: string): MoodType => {
   if (!raw) return "Reflective";
@@ -183,10 +183,14 @@ export async function GET(request: Request) {
     }
 
     const userId = session?.user?.id || (session?.user as any)?.email || "unknown";
+    let profileVersion = 1;
     await ensureMappingsLoaded();
     const cacheKey = `jam-rooms:recommendations:${userId}:${customLang}`;
 
-    if (!forceRefresh) {
+    if (forceRefresh) {
+      await deleteCachedData(cacheKey);
+      await deleteCachedData(`room-catalog:${userId}:${profileVersion}`);
+    } else {
       const cached = await getCachedData<any>(cacheKey);
       if (cached && Array.isArray(cached.roomRecs?.topRooms) && cached.roomRecs.topRooms.length > 0) {
         const firstRoomName = (cached.roomRecs.topRooms[0]?.room?.name || "").toLowerCase();
@@ -285,7 +289,7 @@ export async function GET(request: Request) {
       neuroticism: oceanScores.neuroticism?.score ?? 54,
     };
 
-    const profileVersion = cachedRecord?.version ?? 1;
+    profileVersion = cachedRecord?.version ?? 1;
 
     // 6. Generate dynamic Jam Rooms with Redis room-catalog cache key (1h EX)
     const dynamicRoomList = await getOrGenerateDynamicRoomsWithCache(
