@@ -143,12 +143,10 @@ export const JamRoomsTab: React.FC = () => {
   const loadAllData = async (forceRefresh = false, moodOverride?: MoodType) => {
     setIsRefreshing(true);
     try {
-      const savedLang = typeof window !== "undefined" ? localStorage.getItem("spotiglory_user_language") || "" : "";
-      const langParam = savedLang ? `&language=${encodeURIComponent(savedLang)}` : "";
       const targetMood = moodOverride || activeMood;
       const moodParam = `&mood=${encodeURIComponent(targetMood)}`;
 
-      const res = await fetch(`/api/jam-rooms/recommendations?forceRefresh=${forceRefresh}${langParam}${moodParam}`).catch(() => null);
+      const res = await fetch(`/api/jam-rooms/recommendations?forceRefresh=${forceRefresh}${moodParam}`).catch(() => null);
 
       if (res && res.ok) {
         const data = await res.json();

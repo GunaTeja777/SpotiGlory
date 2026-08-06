@@ -76,9 +76,7 @@ export default function IndividualJamRoomPage() {
   const fetchDynamicPlaylist = async (forceRefresh = false) => {
     setIsAgentTracing(true);
     try {
-      const savedLang = typeof window !== "undefined" ? localStorage.getItem("spotiglory_user_language") || "" : "";
-      const langParam = savedLang ? `&language=${encodeURIComponent(savedLang)}` : "";
-      const res = await fetch(`/api/jam-rooms/${roomIdSlug}/playlist?forceRefresh=${forceRefresh}${langParam}`);
+      const res = await fetch(`/api/jam-rooms/${roomIdSlug}/playlist?forceRefresh=${forceRefresh}`);
       if (res.ok) {
         const data = await res.json();
         if (data.decisions) {
