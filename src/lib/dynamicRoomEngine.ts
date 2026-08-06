@@ -154,13 +154,14 @@ export function generateDynamicRoomsFromListeningData(
 
   const langPrefix = lang && lang !== "English" ? `${lang} ` : "";
 
-  // 2. Select top 3 distinct music clusters/genres from user listening history
-  const activeGenres =
-    sortedGenres.length >= 3
-      ? sortedGenres.slice(0, 3)
-      : userTasteProfile?.topGenres && userTasteProfile.topGenres.length >= 3
-        ? userTasteProfile.topGenres.slice(0, 3)
-        : ["electronic", "alternative rock", "jazz acoustic"];
+  // 2. Select top 6 distinct music clusters/genres from user listening history (2 rows of 3 cards each)
+  const defaultFallbackGenres = ["pop", "alternative rock", "indie pop", "electronic", "downtempo", "acoustic"];
+  let activeGenres = sortedGenres.slice(0, 6);
+
+  if (activeGenres.length < 6) {
+    const combined = [...activeGenres, ...(userTasteProfile?.topGenres || []), ...defaultFallbackGenres];
+    activeGenres = Array.from(new Set(combined)).slice(0, 6);
+  }
 
   const topArtistList = Array.from(artistNamesSet);
 

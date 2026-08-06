@@ -20,38 +20,6 @@ function extractLanguageFromSlug(slug: string, customLang?: string | null): stri
 }
 
 function getMockPlaylists(roomId: string): RoomPlaylist[] {
-  const lower = roomId.toLowerCase();
-  if (lower.includes("tamil")) {
-    return [
-      {
-        roomId,
-        title: "Tamil Alternative Rock Mix",
-        description: "Energetic Tamil rock and indie anthems with atmospheric melodies.",
-        updatedAt: new Date().toISOString(),
-        sourceType: "google_rag" as const,
-        tracks: [
-          { id: "tamil_1", name: "Naan Pizhai", artist: "Anirudh Ravichander", album: "Kaathuvaakula Rendu Kaadhal", durationMs: 270000, addedBy: "RAG Sourcing Engine" },
-          { id: "tamil_2", name: "Maruvaarthai", artist: "Sid Sriram", album: "Enai Noki Paayum Thota", durationMs: 350000, addedBy: "RAG Sourcing Engine" },
-          { id: "tamil_3", name: "Kadhaippoma", artist: "Sid Sriram", album: "Oh My Kadavule", durationMs: 290000, addedBy: "RAG Sourcing Engine" },
-          { id: "tamil_4", name: "Hayyoda", artist: "Anirudh Ravichander", album: "Jawan", durationMs: 220000, addedBy: "RAG Sourcing Engine" },
-          { id: "tamil_5", name: "Kannazhaga", artist: "Anirudh Ravichander", album: "3", durationMs: 200000, addedBy: "RAG Sourcing Engine" }
-        ]
-      },
-      {
-        roomId,
-        title: "Tamil Indie Chill Vibes",
-        description: "Mellow acoustic and independent Tamil compositions for focus.",
-        updatedAt: new Date().toISOString(),
-        sourceType: "google_rag" as const,
-        tracks: [
-          { id: "tamil_6", name: "Bodhai Kanave", artist: "Kabin", album: "Indie Hits", durationMs: 210000, addedBy: "RAG Sourcing Engine" },
-          { id: "tamil_7", name: "Oru Manam", artist: "Karthik", album: "Dhruva Natchathiram", durationMs: 310000, addedBy: "RAG Sourcing Engine" },
-          { id: "tamil_8", name: "Neeyum Naanum", artist: "Anirudh Ravichander", album: "Naanum Rowdydhaan", durationMs: 280000, addedBy: "RAG Sourcing Engine" }
-        ]
-      }
-    ];
-  }
-
   return [
     {
       roomId,
