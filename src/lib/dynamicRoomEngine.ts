@@ -87,10 +87,10 @@ function buildRoomDescription(genre: string, artistName?: string): string {
 /**
  * Generates distinct match reasons for each room recommendation card.
  */
-function buildMatchReason(genre: string, lang: string, index: number): string {
+function buildMatchReason(genre: string, index: number): string {
   const formatted = capitalizeWords(genre);
   if (index === 0) {
-    return `Direct match for your high-rotation ${formatted} listening streams and ${lang} regional frequency.`;
+    return `Direct match for your high-rotation ${formatted} listening streams.`;
   }
   if (index === 1) {
     return `Calculated from your high ${formatted} track diversity and Openness personality vector.`;
@@ -99,14 +99,14 @@ function buildMatchReason(genre: string, lang: string, index: number): string {
 }
 
 /**
- * Generates generic sample track placeholders derived dynamically from genre and language.
+ * Generates generic sample track placeholders derived dynamically from genre.
  */
-function getGenericSampleTracks(genre: string, lang: string): { title: string; artist: string }[] {
+function getGenericSampleTracks(genre: string): { title: string; artist: string }[] {
   const formatted = capitalizeWords(genre);
   return [
-    { title: `${formatted} Stream #1`, artist: `${lang} Live Session` },
-    { title: `${formatted} Stream #2`, artist: `${lang} Curator` },
-    { title: `${formatted} Stream #3`, artist: `${lang} Acoustic Wave` },
+    { title: `${formatted} Stream #1`, artist: `Live Session` },
+    { title: `${formatted} Stream #2`, artist: `Curator` },
+    { title: `${formatted} Stream #3`, artist: `Acoustic Wave` },
   ];
 }
 
@@ -178,21 +178,22 @@ export function generateDynamicRoomsFromListeningData(
   const dynamicRooms: DynamicJamRoom[] = activeGenres.map((genre, idx) => {
     const formattedGenre = capitalizeWords(genre);
     const suffix = getRoomSuffix(genre, idx);
-    const slug = `${lang.toLowerCase()}-${genre.replace(/[^a-z0-9]/g, "-")}-room`;
-    const roomTitle = `${langPrefix}${formattedGenre} ${suffix}`.trim();
+    const genreSlug = genre.replace(/[^a-z0-9]/g, "-").toLowerCase();
+    const slug = `${genreSlug}-room`;
+    const roomTitle = `${formattedGenre} ${suffix}`.trim();
 
     const assignedArtist = topArtistList[idx % Math.max(1, topArtistList.length)];
     const description = buildRoomDescription(genre, assignedArtist);
-    const recommendationReason = buildMatchReason(genre, lang, idx);
+    const recommendationReason = buildMatchReason(genre, idx);
 
-    const searchQuery = `${langPrefix}${genre} playlist`.trim();
+    const searchQuery = `${genre} playlist`.trim();
     const matchScore = Math.max(85, 98 - idx * 4);
 
     return {
       id: slug,
       slug,
       name: roomTitle,
-      vibeTag: `${lang} • ${formattedGenre}`,
+      vibeTag: formattedGenre,
       description,
       iconName: ICONS[idx % ICONS.length],
       matchScore,
@@ -202,7 +203,7 @@ export function generateDynamicRoomsFromListeningData(
       playlistPreview: {
         title: `${roomTitle} Playlist`,
         tracksCount: 15,
-        sampleTracks: getGenericSampleTracks(genre, lang),
+        sampleTracks: getGenericSampleTracks(genre),
       },
     };
   });
