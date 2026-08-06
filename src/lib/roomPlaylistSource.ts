@@ -687,15 +687,43 @@ Shape:
     console.error("OpenRouter Agentic Playlist Generator error:", e);
   }
 
+function getLocalFallbackPlaylists(roomSlug: string): RoomPlaylist[] {
+  const lower = roomSlug.toLowerCase();
+
+  let matchedDocs = PLAYLIST_CORPUS.filter((doc) =>
+    doc.genres.some((g) => lower.includes(g)) || doc.vibe.split(" ").some((v) => v.length > 3 && lower.includes(v))
+  );
+
+  if (matchedDocs.length < 3) {
+    matchedDocs = Array.from(new Set([...matchedDocs, ...PLAYLIST_CORPUS])).slice(0, 3);
+  }
+
+  return matchedDocs.slice(0, 3).map((doc, idx) => ({
+    roomId: roomSlug,
+    title: doc.title,
+    description: doc.description,
+    updatedAt: new Date().toISOString(),
+    sourceType: "google_rag" as const,
+    tracks: doc.tracks.map((t, tIdx) => ({
+      id: `fallback_${idx}_track_${tIdx}`,
+      name: t.name,
+      artist: t.artist,
+      album: t.album,
+      durationMs: 220000,
+      addedBy: "RAG Sourcing Engine (Vector Match)",
+    })),
+  }));
+}
+
   decisions[decisions.length - 1].status = "skipped";
   decisions.push({
     step: "Create Playlists",
     decision: "Failed to generate playlists using Agentic RAG. Falling back to local templates.",
-    status: "skipped"
+    status: "skipped",
   });
 
   return {
-    playlists: [],
-    decisions
+    playlists: getLocalFallbackPlaylists(roomSlug),
+    decisions,
   };
 }

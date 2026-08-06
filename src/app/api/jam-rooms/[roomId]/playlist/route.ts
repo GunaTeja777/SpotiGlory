@@ -197,7 +197,7 @@ export async function GET(
         }
       }
 
-      // 2. Fall back to your recently played list if online search returned empty
+      // 2. Fall back to your recently played list or mock playlists if online search returned empty
       if (!playlists || playlists.length === 0) {
         if (recentTracks.length > 0) {
           const dynamicPlaylist: RoomPlaylist = {
@@ -220,6 +220,10 @@ export async function GET(
           playlists = getMockPlaylists(roomId);
         }
       }
+    }
+
+    if (!playlists || playlists.length === 0) {
+      playlists = getMockPlaylists(roomId);
     }
 
     return NextResponse.json({
