@@ -442,6 +442,21 @@ export default function IndividualJamRoomPage() {
                       track.spotifyUrl ||
                       `https://open.spotify.com/search/${encodeURIComponent(`${track.name} ${track.artist}`)}`;
 
+                    const coverUrl =
+                      track.coverUrl ||
+                      `https://images.unsplash.com/photo-${
+                        [
+                          "1618005182384-a83a8bd57fbe",
+                          "1514525253161-7a46d19cd819",
+                          "1498038432885-c6f3f1b912ee",
+                          "1511671782779-c97d3d27a1d4",
+                          "1465847899084-d164df4dedc6",
+                          "1511379938547-c1f69419868d",
+                          "1508700115892-45ecd05ae2ad",
+                          "1470225620780-dba8ba36b745",
+                        ][idx % 8]
+                      }?w=300&auto=format&fit=crop&q=80`;
+
                     return (
                       <div
                         key={track.id || idx}
@@ -453,15 +468,9 @@ export default function IndividualJamRoomPage() {
                           </span>
 
                           {/* Track Album Art / Play Overlay */}
-                          <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0">
-                            {track.coverUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={track.coverUrl} alt={track.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-white/5">
-                                <Music2 className="w-4 h-4 text-gray-500" />
-                              </div>
-                            )}
+                          <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-black/40 border border-white/10 shrink-0 shadow-md">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={coverUrl} alt={track.name} className="w-full h-full object-cover" />
 
                             {track.previewUrl && (
                               <button

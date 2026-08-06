@@ -687,6 +687,24 @@ Shape:
     console.error("OpenRouter Agentic Playlist Generator error:", e);
   }
 
+const ALBUM_COVERS = [
+  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&auto=format&fit=crop&q=80",
+];
+
+function getAlbumCoverUrl(trackName: string, artistName: string, idx: number): string {
+  const hash = Math.abs(
+    (trackName + artistName).split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) + idx
+  );
+  return ALBUM_COVERS[hash % ALBUM_COVERS.length];
+}
+
 function getLocalFallbackPlaylists(roomSlug: string): RoomPlaylist[] {
   const lower = roomSlug.toLowerCase();
 
@@ -711,6 +729,7 @@ function getLocalFallbackPlaylists(roomSlug: string): RoomPlaylist[] {
       album: t.album,
       durationMs: 220000,
       addedBy: "RAG Sourcing Engine (Vector Match)",
+      coverUrl: getAlbumCoverUrl(t.name, t.artist, tIdx),
     })),
   }));
 }

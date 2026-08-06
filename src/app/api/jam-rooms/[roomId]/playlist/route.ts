@@ -19,6 +19,24 @@ function extractLanguageFromSlug(slug: string, customLang?: string | null): stri
   return undefined;
 }
 
+const ALBUM_COVERS = [
+  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=300&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&auto=format&fit=crop&q=80",
+];
+
+export function getAlbumCoverUrl(trackName: string, artistName: string, idx: number): string {
+  const hash = Math.abs(
+    (trackName + artistName).split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) + idx
+  );
+  return ALBUM_COVERS[hash % ALBUM_COVERS.length];
+}
+
 function getMockPlaylists(roomId: string): RoomPlaylist[] {
   return [
     {
@@ -28,11 +46,11 @@ function getMockPlaylists(roomId: string): RoomPlaylist[] {
       updatedAt: new Date().toISOString(),
       sourceType: "google_rag" as const,
       tracks: [
-        { id: "track_synth_1", name: "Resonance", artist: "HOME", album: "Odyssey", durationMs: 210000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_2", name: "Aria", artist: "Hammock", album: "Departure Songs", durationMs: 250000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_3", name: "Vanilla", artist: "Tycho", album: "Past Is Prologue", durationMs: 230000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_4", name: "First Breath After Coma", artist: "Explosions in the Sky", album: "The Earth Is Not a Cold Dead Place", durationMs: 310000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_5", name: "Treefingers", artist: "Radiohead", album: "Kid A", durationMs: 180000, addedBy: "RAG Sourcing Engine" }
+        { id: "track_synth_1", name: "Resonance", artist: "HOME", album: "Odyssey", durationMs: 210000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[0] },
+        { id: "track_synth_2", name: "Aria", artist: "Hammock", album: "Departure Songs", durationMs: 250000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[1] },
+        { id: "track_synth_3", name: "Vanilla", artist: "Tycho", album: "Past Is Prologue", durationMs: 230000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[2] },
+        { id: "track_synth_4", name: "First Breath After Coma", artist: "Explosions in the Sky", album: "The Earth Is Not a Cold Dead Place", durationMs: 310000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[3] },
+        { id: "track_synth_5", name: "Treefingers", artist: "Radiohead", album: "Kid A", durationMs: 180000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[4] }
       ]
     },
     {
@@ -42,11 +60,11 @@ function getMockPlaylists(roomId: string): RoomPlaylist[] {
       updatedAt: new Date().toISOString(),
       sourceType: "google_rag" as const,
       tracks: [
-        { id: "track_synth_6", name: "Sunset", artist: "The Midnight", album: "Endless Summer", durationMs: 240000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_7", name: "Nightcall", artist: "Kavinsky", album: "Outrun", durationMs: 220000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_8", name: "Tech Noir", artist: "Gunship", album: "Gunship", durationMs: 280000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_9", name: "Fly For Your Life", artist: "Gunship", album: "Gunship", durationMs: 260000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_10", name: "Days of Thunder", artist: "The Midnight", album: "Days of Thunder", durationMs: 300000, addedBy: "RAG Sourcing Engine" }
+        { id: "track_synth_6", name: "Sunset", artist: "The Midnight", album: "Endless Summer", durationMs: 240000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[5] },
+        { id: "track_synth_7", name: "Nightcall", artist: "Kavinsky", album: "Outrun", durationMs: 220000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[6] },
+        { id: "track_synth_8", name: "Tech Noir", artist: "Gunship", album: "Gunship", durationMs: 280000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[7] },
+        { id: "track_synth_9", name: "Fly For Your Life", artist: "Gunship", album: "Gunship", durationMs: 260000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[0] },
+        { id: "track_synth_10", name: "Days of Thunder", artist: "The Midnight", album: "Days of Thunder", durationMs: 300000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[1] }
       ]
     },
     {
@@ -56,11 +74,11 @@ function getMockPlaylists(roomId: string): RoomPlaylist[] {
       updatedAt: new Date().toISOString(),
       sourceType: "google_rag" as const,
       tracks: [
-        { id: "track_synth_11", name: "Snowman", artist: "Wys", album: "Lofi Study", durationMs: 160000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_12", name: "Feather", artist: "Nujabes", album: "Modal Soul", durationMs: 190000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_13", name: "Mellow", artist: "Shiloh Dynasty", album: "Mellow Beats", durationMs: 150000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_14", name: "Departure", artist: "Nujabes", album: "Departure", durationMs: 210000, addedBy: "RAG Sourcing Engine" },
-        { id: "track_synth_15", name: "Lofi Rain", artist: "Cozy Vibe", album: "Rainy Days", durationMs: 180000, addedBy: "RAG Sourcing Engine" }
+        { id: "track_synth_11", name: "Snowman", artist: "Wys", album: "Lofi Study", durationMs: 160000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[2] },
+        { id: "track_synth_12", name: "Feather", artist: "Nujabes", album: "Modal Soul", durationMs: 190000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[3] },
+        { id: "track_synth_13", name: "Mellow", artist: "Shiloh Dynasty", album: "Mellow Beats", durationMs: 150000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[4] },
+        { id: "track_synth_14", name: "Departure", artist: "Nujabes", album: "Departure", durationMs: 210000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[5] },
+        { id: "track_synth_15", name: "Lofi Rain", artist: "Cozy Vibe", album: "Rainy Days", durationMs: 180000, addedBy: "RAG Sourcing Engine", coverUrl: ALBUM_COVERS[6] }
       ]
     }
   ];
