@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { getTopTracks, SpotifyApiError } from "@/lib/spotify";
+import { getTopTracks, getClientCredentialsToken, SpotifyApiError } from "@/lib/spotify";
 import { getCachedData, setCachedData } from "@/lib/redis";
 
 export async function GET(request: NextRequest) {
