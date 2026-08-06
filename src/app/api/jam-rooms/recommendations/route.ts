@@ -188,12 +188,16 @@ export async function GET(request: Request) {
 
     if (!forceRefresh) {
       const cached = await getCachedData<any>(cacheKey);
-      if (cached) {
-        return NextResponse.json({
-          ...cached,
-          fromCache: true,
-          timestamp: new Date().toISOString(),
-        });
+      if (cached && Array.isArray(cached.roomRecs?.topRooms) && cached.roomRecs.topRooms.length > 0) {
+        const firstRoomName = (cached.roomRecs.topRooms[0]?.room?.name || "").toLowerCase();
+        // Invalidate stale cached payload if it contains old legacy "Tamil" room recommendations
+        if (!firstRoomName.includes("tamil")) {
+          return NextResponse.json({
+            ...cached,
+            fromCache: true,
+            timestamp: new Date().toISOString(),
+          });
+        }
       }
     }
 
