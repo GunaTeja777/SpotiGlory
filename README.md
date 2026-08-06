@@ -110,7 +110,7 @@ flowchart TD
     subgraph Redis Caching Layer
         B -->|Cache Miss| E[lib/features.ts: Calibrated Behavioral Signals]
         B -->|Cache Hit| Q
-        E -->|Write-Through Cache| R[(Upstash Redis Cache)]
+        E -->|Write-Through Cache| RC[(Upstash Redis Cache)]
     end
 
     subgraph Dynamic Jam Room Engine
@@ -119,20 +119,26 @@ flowchart TD
     end
 
     subgraph GenAI Narrative & RAG Pipeline
-        E --> H[/api/analysis/narrative: OpenRouter AI]
-        H & G --> I[src/lib/roomPlaylistSource.ts: RAG Sourcing Engine]
+        E --> H[OpenRouter AI Narrative Engine]
+        H --> I[src/lib/roomPlaylistSource.ts: RAG Sourcing Engine]
+        G --> I
         I --> J[Telegram Bot Webhook: /api/telegram/webhook]
     end
 
     subgraph Ground-Truth Retraining Loop
         K[10-Item Mini-IPIP Quiz /dashboard/quiz] --> L[ipipQuiz.ts: Pearson r Evaluator]
         M[Trait Card Liquid Feedback UI] --> N[feedbackStore.ts: Correction Pairs]
-        L & N --> O[ridgeRegression.ts: L2 Ridge Regression Solver]
+        L --> O[ridgeRegression.ts: L2 Ridge Regression Solver]
+        N --> O
         O -->|Auto-Trigger @ 10 Pairs| P[Semver Version History v1.0.0 -> v1.1.0]
     end
 
     subgraph Dashboard UI
-        G & I & J & P & D --> Q[Liquid Glass Dashboard /dashboard]
+        G --> Q[Liquid Glass Dashboard /dashboard]
+        I --> Q
+        J --> Q
+        P --> Q
+        D --> Q
         Q --> R[OCEAN Glowing Radar Chart & Attribution]
         Q --> S[Dynamic Jam Rooms & Suggested People]
         Q --> T[Telegram Bot Assistant Interface]
