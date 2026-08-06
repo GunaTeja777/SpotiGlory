@@ -438,6 +438,10 @@ export default function IndividualJamRoomPage() {
                 <div className="flex flex-col gap-2.5">
                   {playlists[activePlaylistIndex]?.tracks.map((track, idx) => {
                     const isPlaying = activePlayingId === track.id;
+                    const spotifyUrl =
+                      track.spotifyUrl ||
+                      `https://open.spotify.com/search/${encodeURIComponent(`${track.name} ${track.artist}`)}`;
+
                     return (
                       <div
                         key={track.id || idx}
@@ -474,34 +478,40 @@ export default function IndividualJamRoomPage() {
                             )}
                           </div>
 
-                          {/* Track Title & Artist */}
+                          {/* Track Title & Artist (Clickable Spotify Link) */}
                           <div className="min-w-0">
-                            <h4 className="text-xs font-bold text-white truncate group-hover:text-[#1DB954] transition-colors">
-                              {track.name}
-                            </h4>
+                            <a
+                              href={spotifyUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-bold text-white truncate hover:text-[#1DB954] transition-colors flex items-center gap-1 group/title"
+                              title={`Open ${track.name} on Spotify`}
+                            >
+                              <span className="truncate">{track.name}</span>
+                              <ExternalLink className="w-3 h-3 text-gray-400 opacity-60 group-hover/title:opacity-100 group-hover/title:text-[#1DB954] shrink-0" />
+                            </a>
                             <p className="text-[11px] text-gray-400 truncate">
                               {track.artist} • <span className="text-gray-400">{track.album}</span>
                             </p>
                           </div>
                         </div>
 
-                        {/* Right Track Actions */}
+                        {/* Right Track Actions: Duration & Spotify Direct Link Button */}
                         <div className="flex items-center gap-3 shrink-0">
                           <span className="text-[11px] font-mono text-gray-400 hidden sm:block">
                             {formatMs(track.durationMs)}
                           </span>
 
-                          {track.spotifyUrl && (
-                            <a
-                              href={track.spotifyUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-1.5 rounded-lg bg-white/[0.05] border border-white/10 text-gray-400 hover:text-[#1DB954] hover:border-[#1DB954]/40 transition-colors"
-                              title="Open on Spotify"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
-                          )}
+                          <a
+                            href={spotifyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1 rounded-xl bg-[#1DB954]/10 border border-[#1DB954]/30 text-[#1DB954] hover:bg-[#1DB954] hover:text-black font-bold text-[11px] flex items-center gap-1.5 transition-all shadow-[0_0_10px_rgba(29,185,84,0.15)] shrink-0"
+                            title={`Open ${track.name} by ${track.artist} on Spotify`}
+                          >
+                            <span>Spotify</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
                         </div>
                       </div>
                     );
