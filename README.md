@@ -1,6 +1,6 @@
 # 🎵 SpotiGlory
 
-> **Liquid Glass Spotify Audio Analytics, Psychometric Personality Profiler, ML Retraining Engine, Telegram AI Bot & Agentic RAG Pipeline**
+> ** Spotify Audio Analytics, Psychometric Personality Profiler, ML Retraining Engine, Telegram AI Bot & Agentic RAG Pipeline**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16_App_Router-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
