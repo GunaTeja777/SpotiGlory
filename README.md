@@ -248,7 +248,7 @@ npx tsx --test src/lib/feedbackStore.test.ts src/lib/narrativeEval.test.ts src/l
 
 ## 👨‍💻 Author & Credits
 
-Crafted with ❤️ by **[GunaTeja777](https://github.com/GunaTeja777)**  
+Crafted  by **[GunaTeja777](https://github.com/GunaTeja777)**  
 ⭐ **Star the repo on GitHub**: [https://github.com/GunaTeja777/SpotiGlory](https://github.com/GunaTeja777/SpotiGlory)
 
 ---
