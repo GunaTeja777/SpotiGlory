@@ -1,6 +1,6 @@
 # 🎵 SpotiGlory
 
-> **Liquid Glass Spotify Audio Analytics, Psychometric Personality Profiler, ML Retraining Engine, Telegram AI Bot & Agentic RAG Pipeline**
+> ** Spotify Audio Analytics, Psychometric Personality Profiler, ML Retraining Engine, Telegram AI Bot & Agentic RAG Pipeline**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16_App_Router-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
@@ -347,7 +347,7 @@ The psychometric scoring models in SpotiGlory draw theoretical framework from:
 
 ## 👨‍💻 Author & Credits
 
-Crafted with ❤️ by **[GunaTeja777](https://github.com/GunaTeja777)**  
+Crafted  by **[GunaTeja777](https://github.com/GunaTeja777)**  
 ⭐ **Star the repo on GitHub**: [https://github.com/GunaTeja777/SpotiGlory](https://github.com/GunaTeja777/SpotiGlory)
 
 ---
