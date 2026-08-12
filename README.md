@@ -301,4 +301,4 @@ Crafted  by **[GunaTeja777](https://github.com/GunaTeja777)**
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for detailss.
